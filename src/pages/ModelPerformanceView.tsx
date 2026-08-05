@@ -79,53 +79,29 @@ const metricHeaderHelp: Record<string, string> = {
 const CARBON_TARGETS = ['CO2 (ppm)', 'Carbon Flux (NEE AgriSense)', 'Carbon Potential Score'];
 const CARBON_FEATURES = [
   {
-    feature: 'Cahaya / PAR',
-    label: 'Cahaya',
-    importance: 0.26,
-    description: 'Membaca peluang serapan CO2 melalui fotosintesis saat cahaya tersedia.',
-  },
-  {
-    feature: 'Kelembapan Tanah',
-    label: 'Moisture',
-    importance: 0.2,
-    description: 'Mempengaruhi respirasi tanah, aktivitas mikroba, dan potensi pelepasan CO2.',
+    feature: 'Waktu / Siklus Harian',
+    label: 'Waktu',
+    importance: 0.45,
+    description: 'Menentukan proksi intensitas cahaya (PAR buatan) untuk menggerakkan siklus fotosintesis harian.',
   },
   {
     feature: 'Suhu Udara',
     label: 'Suhu',
-    importance: 0.18,
-    description: 'Mengatur laju respirasi ekosistem dan perubahan CO2 di sekitar lahan.',
+    importance: 0.30,
+    description: 'Faktor utama penentu laju respirasi ekosistem (pelepasan CO2) dan batas toleransi suhu tanaman.',
   },
   {
-    feature: 'CO2',
+    feature: 'Konsentrasi CO2',
     label: 'CO2',
-    importance: 0.14,
-    description: 'Sinyal utama konsentrasi karbon udara lokal yang sedang dipantau.',
+    importance: 0.15,
+    description: 'Sinyal langsung ketersediaan karbon di udara yang menjadi bahan baku utama fotosintesis.',
   },
   {
-    feature: 'pH Tanah',
-    label: 'pH',
-    importance: 0.08,
-    description: 'Mempengaruhi dekomposisi bahan organik dan pelepasan karbon dari tanah.',
-  },
-  {
-    feature: 'Nitrogen',
-    label: 'N',
-    importance: 0.05,
-    description: 'Indikator pendukung aktivitas biologis yang dapat memengaruhi siklus karbon tanah.',
-  },
-  {
-    feature: 'Kalium',
-    label: 'K',
-    importance: 0.05,
-    description: 'Indikator respons stres lingkungan yang dapat mengubah pola serapan dan pelepasan CO2.',
-  },
-  {
-    feature: 'Fosfor',
-    label: 'P',
-    importance: 0.04,
-    description: 'Indikator proses energi biologis dalam dinamika karbon ekosistem.',
-  },
+    feature: 'Kelembapan Udara (RH)',
+    label: 'RH',
+    importance: 0.10,
+    description: 'Mempengaruhi tingkat penguapan (VPD) yang mengatur bukaan stomata pada daun.',
+  }
 ];
 const isCarbonTarget = (target: string) => CARBON_TARGETS.includes(target);
 
