@@ -366,11 +366,17 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
             </div>
           }
         />
-
+      {/* Real-time Sensor Data Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-4 mb-8">
+        <SensorCard title="CO2" value={latestReading?.carbon_data?.co2_ppm ?? 0} unit="ppm" icon={CloudSun} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.carbon_data?.co2_ppm || 0}))} />
+        <SensorCard title="CH4" value={latestReading?.carbon_data?.ch4_ppm ?? 0} unit="ppm" icon={CloudSun} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.carbon_data?.ch4_ppm || 0}))} />
+        <SensorCard title="NO2" value={latestReading?.carbon_data?.no2_ppb ?? 0} unit="ppb" icon={CloudSun} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.carbon_data?.no2_ppb || 0}))} />
+        <SensorCard title="Suhu" value={latestReading?.environment?.air_temperature_c ?? 0} unit="°C" icon={Thermometer} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.environment?.air_temperature_c || 0}))} />
+        <SensorCard title="Lembap" value={latestReading?.environment?.air_humidity_percent ?? 0} unit="%" icon={Droplets} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.environment?.air_humidity_percent || 0}))} />
+        <SensorCard title="Angin" value={latestReading?.environment?.wind_speed_kmh ?? 0} unit="km/h" icon={Wind} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.environment?.wind_speed_kmh || 0}))} />
+        <SensorCard title="Baterai" value={latestReading?.power?.battery_percent ?? 0} unit="%" icon={Battery} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.power?.battery_percent || 0}))} />
+        <SensorCard title="Elevasi" value={latestReading?.location?.altitude_m ?? 0} unit="m" icon={MapPin} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.location?.altitude_m || 0}))} />
       </div>
-
-
-
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Chart */}
