@@ -10,8 +10,7 @@ import numpy as np
 import os, math
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Ambil dari model dataset
-INPUT_FILE = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "model", "dataset", "agrisense_synthetic_21k.csv"))
+INPUT_FILE = os.path.join(BASE_DIR, "agrisense_synthetic_21k.csv")
 OUTPUT_FILE = os.path.join(BASE_DIR, "processed_tropical_features.csv")
 
 # Constants
