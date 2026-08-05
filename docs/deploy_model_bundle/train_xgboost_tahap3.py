@@ -34,27 +34,23 @@ AUDIT_FILE = os.path.join(BASE_DIR, "tahap3_training_audit.json")
 os.makedirs(ARTIFACTS_DIR, exist_ok=True)
 
 FEATURE_COLS = [
-    'suhu_udara', 'kelembapan_udara', 'tekanan_hpa', 'cahaya_lux',
-    'kelembapan_tanah', 'suhu_tanah', 'ph_tanah', 'tvoc_ppb',
-    'n_mg_kg', 'p_mg_kg', 'k_mg_kg',
-    'epsilon', 'fapar', 'par',
-    't_scalar', 'w_scalar', 'c_scalar',
-    'gpp', 'reco', 'npp',
-    'soc_baseline_gC_m2', 'c_biomass_acc', 'c_current', 'c_max',
-    'elapsed_hours', 'hour_sin', 'hour_cos', 'dow_sin', 'dow_cos',
-    'is_daytime', 'is_cabai', 'has_full_data',
-    'suhu_udara_lag1', 'kelembapan_tanah_lag1', 'co2_lag1',
-    'suhu_udara_roll6', 'kelembapan_tanah_roll6',
-    'vpd_approx'
+    "suhu_udara", "kelembapan_udara",
+    "epsilon", "fapar",
+    "t_scalar", "c_scalar",
+    "gpp", "reco", "npp",
+    "soc_baseline_gC_m2", "c_biomass_acc", "c_current", "c_max",
+    "elapsed_hours", "hour_sin", "hour_cos", "dow_sin", "dow_cos",
+    "is_daytime", "is_cabai", "has_full_data",
+    "suhu_udara_lag1", "co2_lag1",
+    "suhu_udara_roll6",
+    "vpd_approx"
 ]
 
 # Map nama target dari dataset -> nama file model yang lama
 TARGET_MAP = {
-    'target_co2_ppm': 'co2_ppm',
-    'target_nee_agrisense': 'nee_agrisense',
-    'target_carbon_potential_score': 'carbon_potential_score',
-    'target_kelembapan_tanah': 'kelembapan_tanah',
-    'target_ph_tanah': 'ph_tanah'
+    "target_co2_ppm": "co2_ppm",
+    "target_nee_agrisense": "nee_agrisense",
+    "target_carbon_potential_score": "carbon_potential_score"
 }
 
 print("=" * 70)

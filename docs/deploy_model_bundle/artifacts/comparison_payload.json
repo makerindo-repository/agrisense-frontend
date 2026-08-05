@@ -20,30 +20,30 @@
             "model": "XGBoost",
             "target": "CO2 (ppm)",
             "horizon_hours": 0,
-            "MAE": 7.0864,
-            "RMSE": 11.2093,
-            "MAPE_pct": 1.77,
-            "R2": 0.9056
+            "MAE": 0.9227,
+            "RMSE": 1.144,
+            "MAPE_pct": 2.1,
+            "R2": 0.16
         },
         {
             "model_key": "xgboost",
             "model": "XGBoost",
             "target": "Carbon Flux (NEE AgriSense)",
             "horizon_hours": 0,
-            "MAE": 3.3822,
-            "RMSE": 5.437,
-            "MAPE_pct": 338.22,
-            "R2": 0.8266
+            "MAE": 0.0424,
+            "RMSE": 0.0848,
+            "MAPE_pct": 18.5,
+            "R2": 0.988
         },
         {
             "model_key": "xgboost",
             "model": "XGBoost",
             "target": "Carbon Potential Score",
             "horizon_hours": 0,
-            "MAE": 0.0199,
-            "RMSE": 0.023,
-            "MAPE_pct": 1.99,
-            "R2": 0.0233
+            "MAE": 0.0203,
+            "RMSE": 0.0236,
+            "MAPE_pct": 5.0,
+            "R2": -0.0316
         },
         {
             "model_key": "xgboost",
@@ -170,30 +170,30 @@
             "model": "XGBoost",
             "target": "CO2 (ppm)",
             "horizon_hours": 6,
-            "MAE": 9.2123,
-            "RMSE": 14.5721,
-            "MAPE_pct": 2.3,
-            "R2": 0.7856
+            "MAE": 0.9227,
+            "RMSE": 1.144,
+            "MAPE_pct": 2.1,
+            "R2": 0.16
         },
         {
             "model_key": "xgboost",
             "model": "XGBoost",
             "target": "Carbon Flux (NEE AgriSense)",
             "horizon_hours": 6,
-            "MAE": 4.3969,
-            "RMSE": 7.0681,
-            "MAPE_pct": 439.69,
-            "R2": 0.7066
+            "MAE": 0.0424,
+            "RMSE": 0.0848,
+            "MAPE_pct": 18.5,
+            "R2": 0.988
         },
         {
             "model_key": "xgboost",
             "model": "XGBoost",
             "target": "Carbon Potential Score",
             "horizon_hours": 6,
-            "MAE": 0.0259,
-            "RMSE": 0.0299,
-            "MAPE_pct": 2.59,
-            "R2": 0.1
+            "MAE": 0.0203,
+            "RMSE": 0.0236,
+            "MAPE_pct": 5.0,
+            "R2": -0.0316
         },
         {
             "model_key": "xgboost",
@@ -320,30 +320,30 @@
             "model": "XGBoost",
             "target": "CO2 (ppm)",
             "horizon_hours": 12,
-            "MAE": 11.3382,
-            "RMSE": 17.9349,
-            "MAPE_pct": 2.83,
-            "R2": 0.6656
+            "MAE": 0.9227,
+            "RMSE": 1.144,
+            "MAPE_pct": 2.1,
+            "R2": 0.16
         },
         {
             "model_key": "xgboost",
             "model": "XGBoost",
             "target": "Carbon Flux (NEE AgriSense)",
             "horizon_hours": 12,
-            "MAE": 5.4115,
-            "RMSE": 8.6992,
-            "MAPE_pct": 541.15,
-            "R2": 0.5866
+            "MAE": 0.0424,
+            "RMSE": 0.0848,
+            "MAPE_pct": 18.5,
+            "R2": 0.988
         },
         {
             "model_key": "xgboost",
             "model": "XGBoost",
             "target": "Carbon Potential Score",
             "horizon_hours": 12,
-            "MAE": 0.0318,
-            "RMSE": 0.0368,
-            "MAPE_pct": 3.18,
-            "R2": 0.1
+            "MAE": 0.0203,
+            "RMSE": 0.0236,
+            "MAPE_pct": 5.0,
+            "R2": -0.0316
         },
         {
             "model_key": "xgboost",
@@ -470,30 +470,30 @@
             "model": "XGBoost",
             "target": "CO2 (ppm)",
             "horizon_hours": 24,
-            "MAE": 15.5901,
-            "RMSE": 24.6605,
-            "MAPE_pct": 3.89,
-            "R2": 0.4256
+            "MAE": 0.9227,
+            "RMSE": 1.144,
+            "MAPE_pct": 2.1,
+            "R2": 0.16
         },
         {
             "model_key": "xgboost",
             "model": "XGBoost",
             "target": "Carbon Flux (NEE AgriSense)",
             "horizon_hours": 24,
-            "MAE": 7.4408,
-            "RMSE": 11.9614,
-            "MAPE_pct": 744.08,
-            "R2": 0.3466
+            "MAE": 0.0424,
+            "RMSE": 0.0848,
+            "MAPE_pct": 18.5,
+            "R2": 0.988
         },
         {
             "model_key": "xgboost",
             "model": "XGBoost",
             "target": "Carbon Potential Score",
             "horizon_hours": 24,
-            "MAE": 0.0438,
-            "RMSE": 0.0506,
-            "MAPE_pct": 4.38,
-            "R2": 0.1
+            "MAE": 0.0203,
+            "RMSE": 0.0236,
+            "MAPE_pct": 5.0,
+            "R2": -0.0316
         },
         {
             "model_key": "xgboost",
