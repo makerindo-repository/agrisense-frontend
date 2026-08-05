@@ -366,6 +366,8 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
             </div>
           }
         />
+      </div>
+
       {/* Real-time Sensor Data Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-4 mb-8">
         <SensorCard title="CO2" value={latestReading?.carbon_data?.co2_ppm ?? 0} unit="ppm" icon={CloudSun} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.carbon_data?.co2_ppm || 0}))} />
