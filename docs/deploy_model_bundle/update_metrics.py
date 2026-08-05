@@ -1,7 +1,8 @@
 import json
 import os
 
-BASE_DIR = r"c:\NoteISlam\AgriSense-UNIKOM-V1.0\docs\deploy_model_bundle"
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 AUDIT_FILE = os.path.join(BASE_DIR, "tahap3_training_audit.json")
 COMPARISON_FILE = os.path.join(BASE_DIR, "artifacts", "comparison_payload.json")
 

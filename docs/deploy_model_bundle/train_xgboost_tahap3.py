@@ -25,7 +25,8 @@ import xgboost as xgb
 # ═══════════════════════════════════════════════════════════════
 # KONFIGURASI
 # ═══════════════════════════════════════════════════════════════
-BASE_DIR = r"C:\NoteISlam\AgriSense-UNIKOM-V1.0\docs\deploy_model_bundle"
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.path.join(BASE_DIR, "processed_tropical_features.csv")
 ARTIFACTS_DIR = os.path.join(BASE_DIR, "artifacts", "sintetik_90")
 AUDIT_FILE = os.path.join(BASE_DIR, "tahap3_training_audit.json")
