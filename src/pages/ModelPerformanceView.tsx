@@ -536,26 +536,40 @@ export default function ModelPerformanceView({ nodes }: { nodes?: any[] }) {
   const maxFeatureImportance = featureImportance[0]?.importance || 1;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+    <motion.div 
+      className="space-y-6"
+      initial="hidden"
+      animate="show"
+      variants={{
+        hidden: { opacity: 0 },
+        show: {
+          opacity: 1,
+          transition: { staggerChildren: 0.1 }
+        }
+      }}
+    >
+      <motion.div 
+        variants={{ hidden: { opacity: 0, y: -20 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 20 } } }}
+        className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-card/60 backdrop-blur-xl p-4 rounded-2xl border border-border/50 shadow-sm"
+      >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Performa Model Karbon</h1>
+            <h1 className="text-2xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">Performa Model Karbon</h1>
           </div>
-          <p className="text-muted-foreground text-sm mb-2">Evaluasi forecasting karbon.</p>
+          <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest">Evaluasi Forecasting & Akurasi AI</p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto shrink-0">
-          <div className="w-full sm:w-[200px] bg-card px-2 py-1 rounded-lg shadow-sm border border-border/50 flex items-center gap-1.5 h-10">
-            <Radio size={12} className="text-primary animate-pulse shrink-0" />
+          <div className="w-full sm:w-[200px] bg-background/80 backdrop-blur px-3 py-1.5 rounded-xl shadow-inner border border-border/50 flex items-center gap-2 h-11 transition-all focus-within:ring-2 focus-within:ring-primary/20">
+            <Radio size={14} className="text-primary animate-pulse shrink-0" />
             <Select value={selectedNodeCode} onValueChange={(v) => setSelectedNodeCode(v || 'all')}>
-              <SelectTrigger className="w-full border-none bg-transparent font-semibold text-[10px] uppercase tracking-wider h-8 px-1">
+              <SelectTrigger className="w-full border-none bg-transparent font-bold text-[11px] uppercase tracking-wider h-8 px-1 focus:ring-0">
                 <SelectValue placeholder="Pilih Node" />
               </SelectTrigger>
-              <SelectContent className="rounded-md border-none shadow-2xl">
-                <SelectItem value="all" className="font-semibold py-1.5 text-[10px] uppercase cursor-pointer">Semua (Global)</SelectItem>
+              <SelectContent className="rounded-xl border-border/50 shadow-2xl backdrop-blur-xl bg-background/95">
+                <SelectItem value="all" className="font-bold py-2 text-[11px] uppercase cursor-pointer">Semua (Global)</SelectItem>
                 {nodeOptions.map(n => (
-                  <SelectItem key={n.code} value={n.code} className="font-semibold py-1.5 text-[10px] uppercase cursor-pointer">
+                  <SelectItem key={n.code} value={n.code} className="font-bold py-2 text-[11px] uppercase cursor-pointer">
                     {n.label}
                   </SelectItem>
                 ))}
@@ -564,13 +578,13 @@ export default function ModelPerformanceView({ nodes }: { nodes?: any[] }) {
           </div>
 
           <Select value={selectedTarget} onValueChange={(v) => setSelectedTarget(v || availableTargets[0])}>
-            <SelectTrigger className="w-full sm:w-[220px] border-none shadow-sm bg-card font-semibold text-[10px] rounded-md h-10">
+            <SelectTrigger className="w-full sm:w-[220px] border border-border/50 shadow-sm bg-background/80 backdrop-blur font-bold text-[11px] rounded-xl h-11 focus:ring-2 focus:ring-primary/20">
               <SelectValue placeholder="Pilih Target" />
             </SelectTrigger>
-            <SelectContent className="rounded-md border-none shadow-2xl">
+            <SelectContent className="rounded-xl border-border/50 shadow-2xl backdrop-blur-xl bg-background/95">
               {availableTargets.map(t => (
-                <SelectItem key={t} value={t}>
-                  <span className="font-semibold px-1">
+                <SelectItem key={t} value={t} className="py-2">
+                  <span className="font-bold px-1 text-[11px]">
                     {`${t}${isCarbonTarget(t) ? ' (C)' : ' (Pendukung)'}`}
                   </span>
                 </SelectItem>
@@ -579,150 +593,165 @@ export default function ModelPerformanceView({ nodes }: { nodes?: any[] }) {
           </Select>
 
           <Select value={selectedHorizon} onValueChange={(v) => setSelectedHorizon(v || '1')}>
-            <SelectTrigger className="w-full sm:w-[150px] border-none shadow-sm bg-card font-semibold text-[10px] rounded-md h-10">
+            <SelectTrigger className="w-full sm:w-[150px] border border-border/50 shadow-sm bg-background/80 backdrop-blur font-bold text-[11px] rounded-xl h-11 focus:ring-2 focus:ring-primary/20">
               <SelectValue placeholder="Horizon">
                 {selectedHorizon ? horizonLabel(selectedHorizon) : "Horizon"}
               </SelectValue>
             </SelectTrigger>
-            <SelectContent className="rounded-md border-none shadow-2xl">
+            <SelectContent className="rounded-xl border-border/50 shadow-2xl backdrop-blur-xl bg-background/95">
               {availableHorizons.map(h => (
-                <SelectItem key={h} value={h.toString()} className="font-semibold text-[10px]">{horizonLabel(h)}</SelectItem>
+                <SelectItem key={h} value={h.toString()} className="font-bold text-[11px] py-2">{horizonLabel(h)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-      </div>
+      </motion.div>
 
       {/* Best Model Banner */}
       {bestModel && (
-      <Card className="border-none shadow-sm shadow-emerald-900/10 bg-gradient-to-r from-emerald-600 to-teal-700 text-white overflow-hidden relative">
-        <div className="absolute -right-8 -top-8 opacity-10">
-          <Award size={200} />
-        </div>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-              <Award size={24} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold">{bestModel.model}</h2>
-                <Badge className="bg-amber-400 text-amber-900 font-black text-[10px] border-none">Model Terbaik</Badge>
-                <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider backdrop-blur-sm">
-                  {bestModelUsesNodeMetrics ? 'Per-Node' : 'Agregasi Global'}
-                </span>
-                <Badge className={targetIsCarbon ? "bg-white/20 text-white font-black text-[10px] border-none" : "bg-white/10 text-white/80 font-black text-[10px] border-none"}>
-                  {targetIsCarbon ? "Forecast Karbon" : "Target Pendukung"}
-                </Badge>
+      <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 300, damping: 25 } } }}>
+        <Card className="border-none shadow-2xl shadow-emerald-900/20 bg-gradient-to-br from-emerald-600 via-teal-600 to-teal-800 text-white overflow-hidden relative group rounded-3xl">
+          {/* Decorative Background Elements */}
+          <div className="absolute -right-12 -top-12 opacity-10 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-700 ease-out">
+            <Award size={250} strokeWidth={1} />
+          </div>
+          <div className="absolute left-0 bottom-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent pointer-events-none" />
+          
+          <CardContent className="p-8 relative z-10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+              <div className="flex items-center gap-5">
+                <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner group-hover:bg-white/20 transition-colors duration-500">
+                  <Award size={32} className="text-emerald-100" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                    <h2 className="text-3xl font-black tracking-tight">{bestModel.model}</h2>
+                    <Badge className="bg-amber-400 hover:bg-amber-300 text-amber-900 font-black text-[10px] border-none uppercase tracking-widest px-2 py-0.5 shadow-sm">AI Terbaik</Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="bg-black/20 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest backdrop-blur-sm border border-white/10">
+                      {bestModelUsesNodeMetrics ? 'Akurasi Per-Node' : 'Agregasi Global'}
+                    </span>
+                    <Badge className={targetIsCarbon ? "bg-emerald-400/20 text-emerald-100 font-black text-[9px] border border-emerald-400/30 uppercase tracking-widest" : "bg-white/10 text-white/80 font-black text-[9px] border-none uppercase tracking-widest"}>
+                      {targetIsCarbon ? "Target Utama Karbon" : "Target Pendukung"}
+                    </Badge>
+                  </div>
+                </div>
               </div>
-              <p className="text-white/80 text-sm mt-1 mb-2 leading-relaxed">
+              <p className="text-emerald-50 text-xs md:text-right max-w-xs leading-relaxed font-medium bg-black/10 p-3 rounded-xl border border-white/5 backdrop-blur-sm">
                 {bestModelUsesNodeMetrics 
-                ? `Metrik operasional ${selectedNodeLabel} berdasarkan pasangan prediksi vs aktual untuk ${horizonLabel(bestModel.horizon_hours ?? selectedHorizon).toLowerCase()} pada target ${selectedTarget}.`
-                : `Metrik operasional gabungan seluruh node berdasarkan pasangan prediksi vs aktual untuk ${horizonLabel(bestModel.horizon_hours ?? selectedHorizon).toLowerCase()} pada target ${selectedTarget}.`}
+                ? `Metrik aktual dari ${selectedNodeLabel} untuk ${horizonLabel(bestModel.horizon_hours ?? selectedHorizon).toLowerCase()}.`
+                : `Metrik agregasi seluruh jaringan node untuk ${horizonLabel(bestModel.horizon_hours ?? selectedHorizon).toLowerCase()}.`}
               </p>
             </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-4">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">MAPE</p>
-              <p className="text-3xl font-bold">{metricLabel('MAPE_pct', bestModel.MAPE_pct, bestModel.target)}</p>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-black/20 backdrop-blur-md p-4 rounded-2xl border border-white/10 hover:bg-black/30 transition-colors">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-200 mb-1">MAPE</p>
+                <p className="text-3xl font-black">{metricLabel('MAPE_pct', bestModel.MAPE_pct, bestModel.target)}</p>
+              </div>
+              <div className="bg-black/20 backdrop-blur-md p-4 rounded-2xl border border-white/10 hover:bg-black/30 transition-colors">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-200 mb-1">MAE</p>
+                <p className="text-3xl font-black">{bestModel.MAE}</p>
+              </div>
+              <div className="bg-black/20 backdrop-blur-md p-4 rounded-2xl border border-white/10 hover:bg-black/30 transition-colors">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-200 mb-1">RMSE</p>
+                <p className="text-3xl font-black">{bestModel.RMSE}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 shadow-inner group-hover:bg-white/15 transition-colors relative overflow-hidden">
+                <div className="absolute right-0 top-0 w-16 h-16 bg-white/10 rounded-bl-full pointer-events-none" />
+                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-100 mb-1 relative z-10">R² Score</p>
+                <p className="text-3xl font-black text-white relative z-10">{metricLabel('R2', bestModel.R2, bestModel.target)}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">MAE</p>
-              <p className="text-3xl font-bold">{bestModel.MAE}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">RMSE</p>
-              <p className="text-3xl font-bold">{bestModel.RMSE}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">R² Score</p>
-              <p className="text-3xl font-bold">{metricLabel('R2', bestModel.R2, bestModel.target)}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </motion.div>
       )}
 
 
       {/* Tabs */}
-      <Tabs defaultValue="comparison" className="space-y-4 w-full flex flex-col">
-        <div className="flex justify-center w-full">
-          <TabsList className="bg-muted/50 p-1.5 rounded-lg h-14 shadow-sm border border-border/30">
-            <TabsTrigger value="comparison" className="rounded-md font-bold text-sm data-[state=active]:shadow-sm px-8 py-2.5 transition-all">Perbandingan Model</TabsTrigger>
-            <TabsTrigger value="accuracy" className="rounded-md font-bold text-sm data-[state=active]:shadow-sm px-8 py-2.5 transition-all">Konvergensi Loss</TabsTrigger>
-            <TabsTrigger value="features" className="rounded-md font-bold text-sm data-[state=active]:shadow-sm px-8 py-2.5 transition-all">Feature Importance</TabsTrigger>
+      <Tabs defaultValue="comparison" className="space-y-6 w-full flex flex-col mt-4">
+        <div className="flex justify-center w-full relative z-20">
+          <TabsList className="bg-background/80 backdrop-blur-xl p-1.5 rounded-2xl h-14 shadow-sm border border-border/50">
+            <TabsTrigger value="comparison" className="rounded-xl font-bold text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg px-8 py-2.5 transition-all duration-300">Perbandingan Model</TabsTrigger>
+            <TabsTrigger value="accuracy" className="rounded-xl font-bold text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg px-8 py-2.5 transition-all duration-300">Konvergensi Loss</TabsTrigger>
+            <TabsTrigger value="features" className="rounded-xl font-bold text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg px-8 py-2.5 transition-all duration-300">Feature Importance</TabsTrigger>
           </TabsList>
         </div>
 
         {/* Tab 1: Perbandingan Model */}
-        <TabsContent value="comparison">
+        <TabsContent value="comparison" className="mt-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="border-none shadow-sm shadow-black/5">
-              <CardHeader>
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <BarChart3 size={18} className="text-primary" />
-                  Metrik Performa Model
-                </CardTitle>
-                <CardDescription>
-                  Perbandingan metrik error regresi (RMSE, MAE, MAPE) dan R² Score. {horizonMetricDescription(selectedHorizon)}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {comparisonChartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={320} minWidth={300} minHeight={320}>
-                  <BarChart data={comparisonChartData} barGap={4} barCategoryGap="20%">
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="metric" tick={{ fontSize: 11, fontWeight: 600 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip 
-                      contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }}
-                      formatter={(value: any) => `${value}` as any}
-                    />
-                    <Legend wrapperStyle={{ fontSize: 11, fontWeight: 600 }} />
-                    <Bar dataKey="LSTM" fill={MODEL_COLORS['LSTM']} radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="XGBoost" fill={MODEL_COLORS['XGBoost']} radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="SVM" fill={MODEL_COLORS['SVM']} radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-                ) : (
-                  <div className="flex items-center justify-center h-[320px] text-muted-foreground">
-                    <p className="text-sm">Tidak ada data untuk ditampilkan</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
+              <Card className="border-border/50 shadow-sm bg-card/50 backdrop-blur hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden">
+                <CardHeader className="bg-muted/20 border-b border-border/50">
+                  <CardTitle className="text-base font-black flex items-center gap-2">
+                    <BarChart3 size={18} className="text-primary" />
+                    Metrik Performa Model
+                  </CardTitle>
+                  <CardDescription className="font-medium">
+                    Perbandingan metrik error regresi (RMSE, MAE, MAPE) dan R² Score. {horizonMetricDescription(selectedHorizon)}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {comparisonChartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={320} minWidth={300} minHeight={320}>
+                    <BarChart data={comparisonChartData} barGap={4} barCategoryGap="20%">
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                      <XAxis dataKey="metric" tick={{ fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
+                      <Tooltip 
+                        contentStyle={{ borderRadius: 16, border: '1px solid hsl(var(--border))', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.2)', backgroundColor: 'hsl(var(--background))', fontWeight: 600 }}
+                        formatter={(value: any) => `${value}` as any}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700, paddingTop: '20px' }} />
+                      <Bar dataKey="LSTM" fill={MODEL_COLORS['LSTM']} radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="XGBoost" fill={MODEL_COLORS['XGBoost']} radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="SVM" fill={MODEL_COLORS['SVM']} radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-[320px] text-muted-foreground">
+                      <p className="text-sm font-bold">Tidak ada data untuk ditampilkan</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            <Card className="border-none shadow-sm shadow-black/5">
-              <CardHeader>
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <Shield size={18} className="text-primary" />
-                  Radar Performa Keseluruhan
-                </CardTitle>
-                <CardDescription>
-                  Evaluasi multi-dimensi performa model (skor dinormalisasi). {horizonMetricDescription(selectedHorizon)}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {radarData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={320} minWidth={300} minHeight={320}>
-                  <RadarChart data={radarData}>
-                    <PolarGrid stroke="hsl(var(--border))" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fontWeight: 600 }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 9 }} />
-                    <Radar name="LSTM" dataKey="LSTM" stroke={MODEL_COLORS['LSTM']} fill={MODEL_COLORS['LSTM']} fillOpacity={0.3} />
-                    <Radar name="XGBoost" dataKey="XGBoost" stroke={MODEL_COLORS['XGBoost']} fill={MODEL_COLORS['XGBoost']} fillOpacity={0.2} />
-                    <Radar name="SVM" dataKey="SVM" stroke={MODEL_COLORS['SVM']} fill={MODEL_COLORS['SVM']} fillOpacity={0.15} />
-                    <Legend wrapperStyle={{ fontSize: 11, fontWeight: 600 }} />
-                  </RadarChart>
-                </ResponsiveContainer>
-                ) : (
-                  <div className="flex items-center justify-center h-[320px] text-muted-foreground">
-                    <p className="text-sm">Tidak ada data untuk ditampilkan</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
+              <Card className="border-border/50 shadow-sm bg-card/50 backdrop-blur hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden">
+                <CardHeader className="bg-muted/20 border-b border-border/50">
+                  <CardTitle className="text-base font-black flex items-center gap-2">
+                    <Shield size={18} className="text-primary" />
+                    Radar Performa Keseluruhan
+                  </CardTitle>
+                  <CardDescription className="font-medium">
+                    Evaluasi multi-dimensi performa model (skor dinormalisasi). {horizonMetricDescription(selectedHorizon)}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {radarData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={320} minWidth={300} minHeight={320}>
+                    <RadarChart data={radarData}>
+                      <PolarGrid stroke="hsl(var(--border))" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fontWeight: 700 }} />
+                      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 9, fontWeight: 600 }} axisLine={false} tickLine={false} />
+                      <Radar name="LSTM" dataKey="LSTM" stroke={MODEL_COLORS['LSTM']} strokeWidth={2} fill={MODEL_COLORS['LSTM']} fillOpacity={0.4} />
+                      <Radar name="XGBoost" dataKey="XGBoost" stroke={MODEL_COLORS['XGBoost']} strokeWidth={2} fill={MODEL_COLORS['XGBoost']} fillOpacity={0.3} />
+                      <Radar name="SVM" dataKey="SVM" stroke={MODEL_COLORS['SVM']} strokeWidth={2} fill={MODEL_COLORS['SVM']} fillOpacity={0.2} />
+                      <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700, paddingTop: '20px' }} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-[320px] text-muted-foreground">
+                      <p className="text-sm font-bold">Tidak ada data untuk ditampilkan</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
 
           {/* Detail Table */}

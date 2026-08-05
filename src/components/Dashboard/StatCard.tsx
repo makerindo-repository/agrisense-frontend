@@ -24,12 +24,12 @@ export function StatCard({ title, value, total, unit, icon: Icon, color, isFlipp
         {/* Front */}
         <Card
           className={cn(
-            "absolute inset-0 border-none shadow-sm shadow-black/5 overflow-hidden flex flex-col bg-card transition-all duration-300",
+            "relative h-full border-none shadow-sm shadow-black/5 flex flex-col bg-card transition-all duration-300",
             !isFlipped && "group-hover:shadow-md group-hover:-translate-y-1"
           )}
-          style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+          style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(0deg) translateZ(1px)' }}
         >
-          <CardContent className="p-5 relative z-10 h-full flex flex-col">
+          <CardContent className="p-5 h-full flex flex-col rounded-xl overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <div className={cn("transition-transform duration-300 group-hover:scale-110 flex items-center justify-center", color)}>
                 {typeof Icon === 'string' ? (
@@ -72,10 +72,10 @@ export function StatCard({ title, value, total, unit, icon: Icon, color, isFlipp
         {/* Back */}
         {isFlippable && (
           <Card
-            className="absolute inset-0 border-none shadow-md overflow-hidden bg-card"
-            style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+            className="absolute inset-0 border-none shadow-md bg-card"
+            style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg) translateZ(1px)' }}
           >
-            <CardContent className="p-4 h-full flex flex-col justify-center items-center text-center relative z-10 border border-primary/10 rounded-xl">
+            <CardContent className="p-4 h-full flex flex-col justify-center items-center text-center relative z-10 border border-primary/10 rounded-xl overflow-hidden">
               {flipContent}
               <div className="mt-3 text-[8px] font-bold text-muted-foreground/40 uppercase tracking-widest">
                 {t("Klik untuk menutup")}
