@@ -1039,6 +1039,6 @@ export default function ModelPerformanceView({ nodes }: { nodes?: any[] }) {
         </Card>
       )}
       </div>
-    </div>
+    </motion.div>
   );
 }
