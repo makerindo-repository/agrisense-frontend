@@ -602,8 +602,8 @@ export default function AnalyticsView({ selectedNode, setSelectedNode, readings,
             {/* KOLOM KIRI (75%) */}
             <div className="w-full lg:w-[75%] flex flex-col gap-6">
               {/* Baris 1: Konteks & Korelasi */}
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 items-stretch">
-        <Card className="lg:col-span-1 border-none shadow-xl shadow-emerald-900/10 bg-gradient-to-br from-emerald-600 to-teal-700 text-white overflow-hidden relative flex flex-col h-full">
+              <div className="grid grid-cols-1 gap-3 items-stretch">
+        <Card className="border-none shadow-xl shadow-emerald-900/10 bg-gradient-to-br from-emerald-600 to-teal-700 text-white overflow-hidden relative flex flex-col h-full">
           <div className="absolute -top-6 -right-6 opacity-10 rotate-12">
             <MapIcon size={160} />
           </div>
@@ -1063,91 +1063,6 @@ export default function AnalyticsView({ selectedNode, setSelectedNode, readings,
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Carbon Flux Card — Serapan Karbon */}
-              <Card className="border-none shadow-sm shadow-black/5">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle>Status Carbon Balance</CardTitle>
-                      <CardDescription className="text-[10px]">Source/Sink dan deteksi anomali CO2</CardDescription>
-                    </div>
-                    <Badge className={dynamicMetrics.carbonState === 'Carbon Sink' ? "bg-emerald-500/20 text-emerald-600" : dynamicMetrics.carbonState === 'Carbon Source' ? "bg-red-500/20 text-red-600" : "bg-blue-500/20 text-blue-600"}>
-                      {dynamicMetrics.carbonState}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2.5 rounded-lg bg-muted/50">
-                      <span className="text-[10px] text-muted-foreground block">CO2 Saat Ini</span>
-                      <span className="font-bold text-sm">{dynamicMetrics.currentCo2.toFixed(1)} ppm</span>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-muted/50">
-                      <span className="text-[10px] text-muted-foreground block">Rata-rata CO2</span>
-                      <span className="font-bold text-sm">{dynamicMetrics.avgCo2.toFixed(1)} ppm</span>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-muted/50">
-                      <span className="text-[10px] text-muted-foreground block">Carbon Flux</span>
-                      <span className="font-bold text-sm">{dynamicMetrics.fx.nee.toFixed(4)}</span>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-muted/50">
-                      <span className="text-[10px] text-muted-foreground block">CPS</span>
-                      <span className="font-bold text-sm">{(dynamicMetrics.cciRaw * 100).toFixed(1)}%</span>
-                    </div>
-                  </div>
-                  <div className="p-3 rounded-md bg-primary/5 border border-primary/10">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-bold text-primary">Deteksi CO2</span>
-                      <Badge className={dynamicMetrics.co2Status === 'CO2 Anomali' ? "bg-red-500/20 text-red-600 border-none" : dynamicMetrics.co2Status === 'CO2 Tinggi' || dynamicMetrics.co2Status === 'CO2 Elevasi' ? "bg-amber-500/20 text-amber-600 border-none" : dynamicMetrics.co2Status === 'CO2 Rendah' ? "bg-blue-500/20 text-blue-600 border-none" : "bg-emerald-500/20 text-emerald-600 border-none"}>
-                        {dynamicMetrics.co2Status}
-                      </Badge>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed mt-2">
-                      Status ini membaca CO2 sebagai sinyal karbon lokal. Nilai di atas 500 ppm dianggap elevasi dan perlu dibaca bersama cahaya, NEE, ventilasi, posisi sensor, serta aktivitas respirasi lahan.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-none shadow-sm shadow-black/5">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle>Carbon Flux — Serapan Karbon (NEE)</CardTitle>
-                  <CardDescription className="text-[10px]">Model LUE Monteith (1972)</CardDescription>
-                </div>
-                <Popover>
-                  <PopoverTrigger className="p-1 rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-primary transition-colors">
-                      <Info size={14} />
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[320px] text-xs z-50 shadow-xl" align="end">
-                    <p className="font-semibold mb-1 text-[13px]">Net Ecosystem Exchange (NEE)</p>
-                    <div className="text-[10px] text-muted-foreground space-y-2 mb-3">
-                      <p>Pertukaran karbon bersih antara lahan dan atmosfer.</p>
-                    </div>
-                    <div className="space-y-0.5 pt-1.5 border-t border-border/50">
-                      <p className="font-bold text-[10px] text-emerald-600">Positif (+): lahan menyerap karbon.</p>
-                      <p className="font-bold text-[10px] text-red-500">Negatif (-): lahan melepas karbon.</p>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center py-3 flex flex-col items-center">
-                <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-4xl font-black text-primary">{dynamicMetrics.fx.nee.toFixed(4)}</span>
-                  <span className="text-sm font-semibold text-foreground">gC/m² per jam</span>
-                </div>
-                <div className="text-sm font-semibold text-foreground leading-tight">
-                  ≈ {Math.abs(dynamicMetrics.fx.co2Seq).toFixed(4)} gCO₂/m² {dynamicMetrics.fx.nee >= 0 ? 'diserap' : 'dilepas'} oleh ekosistem
-                </div>
-              </div>
-
-
-            </CardContent>
-          </Card>
 
               </div>
             </div>
