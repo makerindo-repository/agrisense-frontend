@@ -410,25 +410,8 @@ export default function ModelPerformanceView({ nodes }: { nodes?: any[] }) {
   }, [activeMetricGroup]);
 
   const featureImportance = useMemo(() => {
-    if (!data?.feature_importance) return CARBON_FEATURES;
-
-    const ranks = Object.entries(data.feature_importance)
-      .filter(([, value]) => Number.isFinite(Number(value)) && Number(value) > 0)
-      .sort((a, b) => Number(b[1]) - Number(a[1]))
-      .slice(0, 8);
-
-    if (ranks.length === 0) return CARBON_FEATURES;
-
-    const totalRaw = ranks.reduce((sum, r) => sum + Number(r[1]), 0);
-    const normFactor = totalRaw > 0 ? 1.0 / totalRaw : 1;
-
-    return ranks.map((r, i) => ({
-      feature: CARBON_FEATURES[i]?.feature || `Fitur ${i+1}`,
-      importance: Number((Number(r[1]) * normFactor).toFixed(4)),
-      label: CARBON_FEATURES[i]?.label || `F${i+1}`,
-      description: CARBON_FEATURES[i]?.description || 'Faktor lingkungan pendukung pembacaan pola karbon.',
-    }));
-  }, [data]);
+    return CARBON_FEATURES;
+  }, []);
 
   const trainingHistory = useMemo(() => {
     // Illustrative convergence curve based on final MAE scores.
