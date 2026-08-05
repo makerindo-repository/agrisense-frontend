@@ -317,69 +317,114 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-        <StatCard
-          title={t("Aktif")}
-          value={stats.online}
-          total={stats.total}
-          icon="https://cdn-icons-png.flaticon.com/512/7903/7903716.png"
-          color="text-primary"
-          isFlippable={true}
-          flipContent={
-            <div className="space-y-1.5 w-full text-center">
-              <div className="text-[11px] font-bold text-primary uppercase tracking-widest mb-1 border-b pb-1">{t("Status Perangkat")}</div>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                {t("Jumlah node yang saat ini aktif pada sistem.")}
-              </p>
-            </div>
+      <motion.div 
+        className="grid grid-cols-1 sm:grid-cols-3 gap-6"
+        initial="hidden"
+        animate="show"
+        variants={{
+          hidden: { opacity: 0 },
+          show: {
+            opacity: 1,
+            transition: { staggerChildren: 0.15 }
           }
-        />
-        <StatCard
-          title={t("Peringatan")}
-          value={stats.warning}
-          total={stats.total}
-          icon="https://cdn-icons-png.flaticon.com/512/272/272340.png"
-          color="text-yellow-500"
-          isFlippable={true}
-          flipContent={
-            <div className="space-y-1.5 w-full text-center">
-              <div className="text-[11px] font-bold text-yellow-600 uppercase tracking-widest mb-1 border-b pb-1">{t("Anomali Lingkungan")}</div>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                {t("Jumlah node yang mendeteksi parameter lingkungan berada di luar ambang batas aman.")}
-              </p>
-            </div>
-          }
-        />
-        <StatCard
-          title={t("Tidak Aktif")}
-          value={stats.offline}
-          total={stats.total}
-          icon="https://cdn-icons-png.flaticon.com/512/3334/3334877.png"
-          color="text-destructive"
-          isFlippable={true}
-          flipContent={
-            <div className="space-y-1.5 w-full text-center">
-              <div className="text-[11px] font-bold text-red-600 uppercase tracking-widest mb-1 border-b pb-1">{t("Kehilangan Koneksi")}</div>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                {t("Perangkat yang gagal terhubung ke sistem.")}
-              </p>
-            </div>
-          }
-        />
-      </div>
+        }}
+      >
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 20 } } }}>
+          <StatCard
+            title={t("Aktif")}
+            value={stats.online}
+            total={stats.total}
+            icon="https://cdn-icons-png.flaticon.com/512/7903/7903716.png"
+            color="text-primary"
+            isFlippable={true}
+            flipContent={
+              <div className="space-y-1.5 w-full text-center">
+                <div className="text-[11px] font-bold text-primary uppercase tracking-widest mb-1 border-b border-primary/20 pb-1">{t("Status Perangkat")}</div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  {t("Jumlah node yang saat ini aktif pada sistem.")}
+                </p>
+              </div>
+            }
+          />
+        </motion.div>
+        
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 20 } } }}>
+          <StatCard
+            title={t("Peringatan")}
+            value={stats.warning}
+            total={stats.total}
+            icon="https://cdn-icons-png.flaticon.com/512/272/272340.png"
+            color="text-yellow-500"
+            isFlippable={true}
+            flipContent={
+              <div className="space-y-1.5 w-full text-center">
+                <div className="text-[11px] font-bold text-yellow-600 uppercase tracking-widest mb-1 border-b border-yellow-600/20 pb-1">{t("Anomali Lingkungan")}</div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  {t("Jumlah node yang mendeteksi parameter lingkungan berada di luar ambang batas aman.")}
+                </p>
+              </div>
+            }
+          />
+        </motion.div>
+
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 20 } } }}>
+          <StatCard
+            title={t("Tidak Aktif")}
+            value={stats.offline}
+            total={stats.total}
+            icon="https://cdn-icons-png.flaticon.com/512/3334/3334877.png"
+            color="text-destructive"
+            isFlippable={true}
+            flipContent={
+              <div className="space-y-1.5 w-full text-center">
+                <div className="text-[11px] font-bold text-red-600 uppercase tracking-widest mb-1 border-b border-red-600/20 pb-1">{t("Kehilangan Koneksi")}</div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  {t("Perangkat yang gagal terhubung ke sistem.")}
+                </p>
+              </div>
+            }
+          />
+        </motion.div>
+      </motion.div>
 
       {/* Real-time Sensor Data Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-4 mb-8">
-        <SensorCard title="CO2" value={latestReading?.carbon_data?.co2_ppm ?? 0} unit="ppm" icon={CloudSun} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.carbon_data?.co2_ppm || 0}))} />
-        <SensorCard title="CH4" value={latestReading?.carbon_data?.ch4_ppm ?? 0} unit="ppm" icon={CloudSun} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.carbon_data?.ch4_ppm || 0}))} />
-        <SensorCard title="NO2" value={latestReading?.carbon_data?.no2_ppb ?? 0} unit="ppb" icon={CloudSun} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.carbon_data?.no2_ppb || 0}))} />
-        <SensorCard title="Suhu" value={latestReading?.environment?.air_temperature_c ?? 0} unit="°C" icon={Thermometer} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.environment?.air_temperature_c || 0}))} />
-        <SensorCard title="Lembap" value={latestReading?.environment?.air_humidity_percent ?? 0} unit="%" icon={Droplets} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.environment?.air_humidity_percent || 0}))} />
-        <SensorCard title="Angin" value={latestReading?.environment?.wind_speed_kmh ?? 0} unit="km/h" icon={Wind} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.environment?.wind_speed_kmh || 0}))} />
-        <SensorCard title="Baterai" value={latestReading?.power?.battery_percent ?? 0} unit="%" icon={Battery} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.power?.battery_percent || 0}))} />
-        <SensorCard title="Elevasi" value={latestReading?.location?.altitude_m ?? 0} unit="m" icon={MapPin} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.location?.altitude_m || 0}))} />
-      </div>
-
+      <motion.div 
+        className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4 mb-8"
+        initial="hidden"
+        animate="show"
+        variants={{
+          hidden: { opacity: 0 },
+          show: {
+            opacity: 1,
+            transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+          }
+        }}
+      >
+        <motion.div variants={{ hidden: { opacity: 0, scale: 0.9 }, show: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 300, damping: 24 } } }}>
+          <SensorCard title="CO2" value={latestReading?.carbon_data?.co2_ppm ?? 0} unit="ppm" icon={CloudSun} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.carbon_data?.co2_ppm || 0}))} />
+        </motion.div>
+        <motion.div variants={{ hidden: { opacity: 0, scale: 0.9 }, show: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 300, damping: 24 } } }}>
+          <SensorCard title="CH4" value={latestReading?.carbon_data?.ch4_ppm ?? 0} unit="ppm" icon={CloudSun} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.carbon_data?.ch4_ppm || 0}))} />
+        </motion.div>
+        <motion.div variants={{ hidden: { opacity: 0, scale: 0.9 }, show: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 300, damping: 24 } } }}>
+          <SensorCard title="NO2" value={latestReading?.carbon_data?.no2_ppb ?? 0} unit="ppb" icon={CloudSun} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.carbon_data?.no2_ppb || 0}))} />
+        </motion.div>
+        <motion.div variants={{ hidden: { opacity: 0, scale: 0.9 }, show: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 300, damping: 24 } } }}>
+          <SensorCard title="Suhu" value={latestReading?.environment?.air_temperature_c ?? 0} unit="°C" icon={Thermometer} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.environment?.air_temperature_c || 0}))} />
+        </motion.div>
+        <motion.div variants={{ hidden: { opacity: 0, scale: 0.9 }, show: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 300, damping: 24 } } }}>
+          <SensorCard title="Lembap" value={latestReading?.environment?.air_humidity_percent ?? 0} unit="%" icon={Droplets} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.environment?.air_humidity_percent || 0}))} />
+        </motion.div>
+        <motion.div variants={{ hidden: { opacity: 0, scale: 0.9 }, show: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 300, damping: 24 } } }}>
+          <SensorCard title="Angin" value={latestReading?.environment?.wind_speed_kmh ?? 0} unit="km/h" icon={Wind} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.environment?.wind_speed_kmh || 0}))} />
+        </motion.div>
+        <motion.div variants={{ hidden: { opacity: 0, scale: 0.9 }, show: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 300, damping: 24 } } }}>
+          <SensorCard title="Baterai" value={latestReading?.power?.battery_percent ?? 0} unit="%" icon={Battery} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.power?.battery_percent || 0}))} />
+        </motion.div>
+        <motion.div variants={{ hidden: { opacity: 0, scale: 0.9 }, show: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 300, damping: 24 } } }}>
+          <SensorCard title="Elevasi" value={latestReading?.location?.altitude_m ?? 0} unit="m" icon={MapPin} readings={activeReadings.slice(0, 24).reverse().map(r => ({value: r.location?.altitude_m || 0}))} />
+        </motion.div>
+      </motion.div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Chart */}
         <Card className="lg:col-span-2 border-none shadow-sm shadow-black/5 overflow-hidden group">

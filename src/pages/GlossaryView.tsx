@@ -23,21 +23,21 @@ const glossaryData = [
       { name: "Ringkasan Carbon Flux (NEE)", desc: "Kartu hijau dengan ikon daun. Menampilkan laju pertukaran karbon bersih. Nilai positif = tanaman menyerap CO₂. Klik ikon (i) di pojok kanan atas kartu untuk melihat penjelasan singkat.", icon: Leaf },
       { name: "Suhu & Cuaca Terkini (BMKG)", desc: "Panel abu-abu gelap di sisi kanan. Menampilkan suhu dalam derajat Celsius, kondisi cuaca (cerah/hujan), arah angin, dan prakiraan 4 periode ke depan dari BMKG.", icon: CloudSun },
       { name: "Status Perangkat (Node)", desc: "Kartu dengan ikon antena. Hijau = Aktif mengirim data. Kuning = Peringatan (ada parameter di luar ambang batas). Merah = Tidak aktif / mati.", icon: Radio },
-      { name: "Unsur Hara Tanah", desc: "7 kartu kecil berwarna di bawah ringkasan utama. Menampilkan Nitrogen (N), Phosphorus (P), Potassium (K), Konduktivitas (EC), pH Tanah, Kelembapan, dan Suhu Tanah. Klik kartu untuk membalik dan melihat penjelasan singkat.", icon: FlaskConical },
-      { name: "Grafik Riwayat Analitik", desc: "Grafik garis besar di bagian bawah. Gunakan dropdown di pojok kanan atas grafik untuk mengubah parameter yang ditampilkan (CO₂, Suhu, Kelembapan, Nitrogen). Gunakan filter rentang waktu (24 Jam / 7 Hari / 30 Hari).", icon: BarChart3 },
+      { name: "Parameter Lingkungan Utama", desc: "Kartu ringkas di bawah ringkasan utama. Menampilkan nilai real-time untuk CO₂, CH₄, NO₂, Suhu Udara, Kelembapan, dan Kecepatan Angin. Klik kartu untuk membalik dan melihat deskripsi singkat.", icon: Activity },
+      { name: "Grafik Riwayat Analitik", desc: "Grafik garis besar di bagian bawah. Gunakan dropdown di pojok kanan atas grafik untuk mengubah parameter yang ditampilkan (CO₂, Suhu, Kelembapan, dll). Gunakan filter rentang waktu (24 Jam / 7 Hari / 30 Hari).", icon: BarChart3 },
       { name: "Pemilih Perangkat & Tanggal", desc: "Di bagian atas halaman. Dropdown pertama untuk memilih sensor/node yang ingin dipantau. Ikon kalender untuk memilih tanggal spesifik.", icon: Filter }
     ]
   },
   {
     term: "Data Sensor",
     description: "Catatan rinci pembacaan sensor di lapangan.",
-    detail: "Berisi data suhu, kelembapan, pH tanah, NPK, dan parameter lain dari setiap node. Bisa difilter per waktu untuk melihat tren pertumbuhan tanaman.",
+    detail: "Berisi data CO₂, CH₄, NO₂, suhu udara, kelembapan, kecepatan angin, dan parameter lain dari setiap node. Bisa difilter per waktu untuk melihat tren lingkungan.",
     roles: ['admin', 'operator', 'viewer'],
     category: "OPERASIONAL",
     features: [
       { name: "Filter Rentang Waktu", desc: "Dropdown di pojok kanan atas. Pilih '24 Jam', '7 Hari', atau '30 Hari' untuk menyaring data sensor yang ditampilkan di tabel dan grafik.", icon: Filter },
-      { name: "Tabel Data Kronologis", desc: "Tabel utama menampilkan setiap baris data mentah: waktu pengiriman, suhu, kelembapan, pH, NPK, CO₂, dan lainnya. Baris terbaru selalu muncul di paling atas.", icon: Database },
-      { name: "Grafik Parameter Sensor", desc: "Grafik garis interaktif di bawah tabel. Hover pada titik data untuk melihat nilai tepat. Gunakan dropdown parameter untuk berganti antara CO₂, Suhu, Kelembapan, atau Nitrogen.", icon: BarChart3 },
+      { name: "Tabel Data Kronologis", desc: "Tabel utama menampilkan setiap baris data mentah: waktu pengiriman, CO₂, gas lainnya, iklim mikro, dll. Baris terbaru selalu muncul di paling atas.", icon: Database },
+      { name: "Grafik Parameter Sensor", desc: "Grafik garis interaktif di bawah tabel. Hover pada titik data untuk melihat nilai tepat. Gunakan dropdown parameter untuk berganti antarmetrik.", icon: BarChart3 },
       { name: "Pemilih Node/Sensor", desc: "Dropdown untuk memilih perangkat sensor spesifik yang ingin dilihat datanya. Setiap node memiliki data independen.", icon: Radio }
     ]
   },
@@ -194,10 +194,9 @@ const glossaryData = [
     roles: ['admin', 'operator', 'viewer'],
     category: "KAMUS ILMIAH",
     features: [
-      { name: "PAR (Photosynthetically Active Radiation)", desc: "Bagian dari cahaya matahari (400-700nm) yang bisa digunakan tanaman untuk fotosintesis. Di AgriSense, ini dikonversi dari sensor Lux.", icon: Activity },
+      { name: "PAR (Photosynthetically Active Radiation)", desc: "Bagian dari cahaya matahari (400-700nm) yang bisa digunakan tanaman untuk fotosintesis.", icon: Activity },
       { name: "fAPAR (Fraction of Absorbed PAR)", desc: "Seberapa efisien tajuk daun menangkap cahaya. Nilai ini dipengaruhi oleh kerapatan daun (Leaf Area Index).", icon: Leaf },
       { name: "T_scalar (Stress Suhu)", desc: "Faktor pembatas dari suhu udara. Fotosintesis melambat jika suhu terlalu dingin (<10°C) atau terlalu panas (>40°C).", icon: Thermometer },
-      { name: "W_scalar (Stress Air)", desc: "Faktor pembatas dari kelembapan tanah. Tanaman menutup stomata jika tanah terlalu kering untuk mencegah dehidrasi.", icon: Droplets },
       { name: "C_scalar (CO2 Fertilization)", desc: "Efek 'pupuk udara'. Kenaikan konsentrasi CO2 di sekitar daun dapat memacu laju fotosintesis hingga batas tertentu.", icon: Zap },
       { name: "Net Ecosystem Exchange (NEE)", desc: "Hasil akhir (GPP - RECO). Mengetahui apakah lahan Anda adalah penyerap karbon (Sink) atau pelepas emisi (Source).", icon: TrendingUp }
     ]

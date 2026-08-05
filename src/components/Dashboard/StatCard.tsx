@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Info, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
@@ -11,33 +10,28 @@ export function StatCard({ title, value, total, unit, icon: Icon, color, isFlipp
 
   return (
     <div
-      className={cn("w-full h-full perspective-1000", isFlippable ? "group" : "")}
+      className={cn("w-full h-full perspective-1000", isFlippable ? "group cursor-pointer" : "")}
       style={{ perspective: '1000px' }}
+      onClick={() => isFlippable && setIsFlipped(!isFlipped)}
     >
       <motion.div
         className="w-full h-full relative preserve-3d"
         style={{ transformStyle: 'preserve-3d' }}
         initial={false}
         animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 0.4, type: "tween", ease: "easeInOut" }}
+        transition={{ duration: 0.5, type: "spring", stiffness: 260, damping: 20 }}
       >
         {/* Front */}
         <Card
-          className="border-none shadow-sm shadow-black/5 group-hover:shadow-md group-hover:-translate-y-1 transition-all duration-300 overflow-hidden relative h-full flex flex-col"
+          className={cn(
+            "absolute inset-0 border-none shadow-sm shadow-black/5 overflow-hidden flex flex-col bg-card transition-all duration-300",
+            !isFlipped && "group-hover:shadow-md group-hover:-translate-y-1"
+          )}
           style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
         >
-          {isFlippable && (
-            <button
-              onClick={(e) => { e.stopPropagation(); setIsFlipped(true); }}
-              className="absolute top-2 right-2 p-1.5 rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-primary transition-colors z-20 opacity-0 group-hover:opacity-100 shadow-sm"
-              title={t("Lihat Detail")}
-            >
-              <Info size={12} />
-            </button>
-          )}
-          <CardContent className="p-6 relative z-10 h-full flex flex-col">
-            <div className="flex items-center justify-between mb-6">
-              <div className={cn("transition-all duration-300 group-hover:scale-110 flex items-center justify-center", color)}>
+          <CardContent className="p-5 relative z-10 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <div className={cn("transition-transform duration-300 group-hover:scale-110 flex items-center justify-center", color)}>
                 {typeof Icon === 'string' ? (
                   <div 
                     className="w-7 h-7 bg-current drop-shadow-sm" 
@@ -53,20 +47,20 @@ export function StatCard({ title, value, total, unit, icon: Icon, color, isFlipp
                     }} 
                   />
                 ) : (
-                  <Icon size={28} strokeWidth={1.5} className="drop-shadow-sm" />
+                  <Icon size={24} strokeWidth={1.5} className="drop-shadow-sm" />
                 )}
               </div>
               {total !== undefined && total !== null && (
                 <div className="flex flex-col items-end">
-                  <div className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider">{t("Kapasitas")}</div>
-                  <div className="text-xs font-bold text-muted-foreground px-1 py-1">
+                  <div className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-0.5">{t("Kapasitas")}</div>
+                  <div className="text-[11px] font-black text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-full border border-border/50 shadow-sm">
                     {value} / {total}
                   </div>
                 </div>
               )}
             </div>
             <div className="mt-auto">
-              <h3 className={cn("text-muted-foreground/80 font-semibold uppercase tracking-widest mb-1", (title.includes("Kesehatan") || title.includes("Carbon Flux") || title.includes("Prediksi")) ? "text-[10px]" : "text-xs")}>{title}</h3>
+              <h3 className={cn("text-muted-foreground/80 font-semibold uppercase tracking-widest mb-1 transition-colors group-hover:text-foreground", (title.includes("Kesehatan") || title.includes("Carbon Flux") || title.includes("Prediksi")) ? "text-[10px]" : "text-[11px]")}>{title}</h3>
               <div className="flex items-baseline gap-1 mt-auto">
                 <span className={cn("font-semibold tracking-tighter", (title.includes("Kesehatan") || title.includes("Carbon Flux") || title.includes("Prediksi")) ? "text-3xl" : "text-4xl")}>{value}</span>
                 <span className="text-[9px] font-semibold text-muted-foreground/60 uppercase leading-tight">{unit || (total === undefined ? '% SOC' : '')}</span>
@@ -78,18 +72,14 @@ export function StatCard({ title, value, total, unit, icon: Icon, color, isFlipp
         {/* Back */}
         {isFlippable && (
           <Card
-            className="absolute inset-0 border-none shadow-sm shadow-black/5 overflow-hidden"
+            className="absolute inset-0 border-none shadow-md overflow-hidden bg-card"
             style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
           >
-            <button
-              onClick={(e) => { e.stopPropagation(); setIsFlipped(false); }}
-              className="absolute top-2 right-2 p-1.5 rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-primary transition-colors z-20 shadow-sm"
-              title={t("Tutup Detail")}
-            >
-              <X size={12} />
-            </button>
-            <CardContent className="p-4 h-full flex flex-col justify-center items-center text-center relative z-10">
+            <CardContent className="p-4 h-full flex flex-col justify-center items-center text-center relative z-10 border border-primary/10 rounded-xl">
               {flipContent}
+              <div className="mt-3 text-[8px] font-bold text-muted-foreground/40 uppercase tracking-widest">
+                {t("Klik untuk menutup")}
+              </div>
             </CardContent>
           </Card>
         )}
