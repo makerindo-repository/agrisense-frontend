@@ -1,0 +1,87 @@
+{
+  "total_findings": 16,
+  "critical": 3,
+  "warnings": 13,
+  "details": [
+    {
+      "severity": "KUNING",
+      "category": "Data Quality",
+      "detail": "Kolom 'is_daytime' hanya punya 2 nilai unik. Mungkin terlalu sedikit variasi."
+    },
+    {
+      "severity": "KUNING",
+      "category": "Data Quality",
+      "detail": "Kolom 'is_cabai' hanya punya 2 nilai unik. Mungkin terlalu sedikit variasi."
+    },
+    {
+      "severity": "KUNING",
+      "category": "Data Quality",
+      "detail": "Kolom 'has_full_data' hanya punya 2 nilai unik. Mungkin terlalu sedikit variasi."
+    },
+    {
+      "severity": "MERAH",
+      "category": "Target Leakage",
+      "detail": "KRITIS: Fitur 'kelembapan_tanah' berkorelasi 0.9988 dengan target 'target_kelembapan_tanah'. Model akan 'curang' dan tidak generalize!"
+    },
+    {
+      "severity": "MERAH",
+      "category": "Target Leakage",
+      "detail": "KRITIS: Fitur 'w_scalar' berkorelasi 0.9988 dengan target 'target_kelembapan_tanah'. Model akan 'curang' dan tidak generalize!"
+    },
+    {
+      "severity": "MERAH",
+      "category": "Target Leakage",
+      "detail": "KRITIS: 'kelembapan_tanah' fitur dan target IDENTIK (corr=0.9988)! Model akan mendapat skor R2=1.0 palsu. HARUS diperbaiki dengan menggunakan nilai SHIFTED (t+1) sebagai target."
+    },
+    {
+      "severity": "KUNING",
+      "category": "Multikolinearitas",
+      "detail": "'suhu_udara' dan 'suhu_tanah' berkorelasi 0.9921. Salah satu mungkin redundan."
+    },
+    {
+      "severity": "KUNING",
+      "category": "Multikolinearitas",
+      "detail": "'suhu_udara' dan 'reco' berkorelasi 0.9978. Salah satu mungkin redundan."
+    },
+    {
+      "severity": "KUNING",
+      "category": "Multikolinearitas",
+      "detail": "'cahaya_lux' dan 'par' berkorelasi 1.0. Salah satu mungkin redundan."
+    },
+    {
+      "severity": "KUNING",
+      "category": "Multikolinearitas",
+      "detail": "'kelembapan_tanah' dan 'w_scalar' berkorelasi 1.0. Salah satu mungkin redundan."
+    },
+    {
+      "severity": "KUNING",
+      "category": "Multikolinearitas",
+      "detail": "'suhu_tanah' dan 'reco' berkorelasi 0.9845. Salah satu mungkin redundan."
+    },
+    {
+      "severity": "KUNING",
+      "category": "Multikolinearitas",
+      "detail": "'gpp' dan 'npp' berkorelasi 1.0. Salah satu mungkin redundan."
+    },
+    {
+      "severity": "KUNING",
+      "category": "Multikolinearitas",
+      "detail": "'soc_baseline_gC_m2' dan 'c_current' berkorelasi 0.9999. Salah satu mungkin redundan."
+    },
+    {
+      "severity": "KUNING",
+      "category": "Multikolinearitas",
+      "detail": "'soc_baseline_gC_m2' dan 'c_max' berkorelasi 0.9875. Salah satu mungkin redundan."
+    },
+    {
+      "severity": "KUNING",
+      "category": "Multikolinearitas",
+      "detail": "'c_current' dan 'c_max' berkorelasi 0.9874. Salah satu mungkin redundan."
+    },
+    {
+      "severity": "KUNING",
+      "category": "Scale",
+      "detail": "Rasio skala antar fitur = 1317345x. WAJIB normalisasi (StandardScaler/MinMaxScaler) sebelum training. Ini sudah dilakukan oleh scaler di pipeline training."
+    }
+  ]
+}

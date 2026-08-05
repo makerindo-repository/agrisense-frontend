@@ -1,0 +1,384 @@
+# ============================================================
+# AgriSense Docker Compose Configuration
+# ============================================================
+# Services:
+#   - app: Laravel + PHP-FPM + Python
+#   - db: MySQL 8.0
+#   - redis: Cache & Queue
+#   - queue: AI Forecast Worker
+#   - scheduler: Cron Jobs
+#   - nginx: Reverse proxy
+#   - autoheal: Auto-restart unhealthy containers
+# ============================================================
+
+services:
+  # ════════════════════════════════════════════
+  # Application (PHP-FPM + Python)
+  # ════════════════════════════════════════════
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+        VITE_RECAPTCHA_SITE_KEY: ${VITE_RECAPTCHA_SITE_KEY:-}
+    image: agrisense-app:latest
+    container_name: agrisense-app
+    restart: unless-stopped
+    working_dir: /app/backend
+    environment:
+      - APP_NAME=AgriSense
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=false
+      - APP_URL=${APP_URL:-http://localhost}
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-agrisense}
+      - DB_USERNAME=${DB_APP_USERNAME:-agrisense}
+      - DB_PASSWORD=${DB_APP_PASSWORD:-${DB_PASSWORD:-change_this_db_password}}
+      - CACHE_DRIVER=redis
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=redis
+      - SESSION_SECURE_COOKIE=true
+      - SESSION_SAME_SITE=lax
+      - REDIS_CLIENT=phpredis
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-null}
+      - REDIS_PORT=6379
+      - AI_MODEL_BUNDLE_PATH=/app/docs/deploy_model_bundle
+      - PYTHON_EXECUTABLE=/opt/ai_env/bin/python
+      - AI_FORECAST_MODELS=svm,xgboost,lstm
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - AI_PROVIDER=${AI_PROVIDER:-gemini}
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY:-}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI:-}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - MAIL_MAILER=${MAIL_MAILER:-log}
+      - MAIL_HOST=${MAIL_HOST:-127.0.0.1}
+      - MAIL_PORT=${MAIL_PORT:-2525}
+      - MAIL_USERNAME=${MAIL_USERNAME:-}
+      - MAIL_PASSWORD=${MAIL_PASSWORD:-}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-hello@agrisense.id}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-AgriSense}
+      - RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY:-}
+    volumes:
+      - ./backend/storage:/app/backend/storage
+      - ./backend/bootstrap/cache:/app/backend/bootstrap/cache
+      - ./docs/deploy_model_bundle:/app/docs/deploy_model_bundle:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - agrisense
+    healthcheck:
+      test: ["CMD", "php-fpm", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
+
+  # ════════════════════════════════════════════
+  # Queue Worker (AI Forecast)
+  # ════════════════════════════════════════════
+  queue:
+    image: agrisense-app:latest
+    container_name: agrisense-queue
+    restart: unless-stopped
+    working_dir: /app/backend
+    command: ["php", "artisan", "queue:work", "redis", "--queue=ai-forecast,default", "--sleep=3", "--tries=2", "--timeout=180"]
+    environment:
+      - RUN_STARTUP_TASKS=false
+      - APP_NAME=AgriSense
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=false
+      - APP_URL=${APP_URL:-http://localhost}
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-agrisense}
+      - DB_USERNAME=${DB_APP_USERNAME:-agrisense}
+      - DB_PASSWORD=${DB_APP_PASSWORD:-${DB_PASSWORD:-change_this_db_password}}
+      - CACHE_DRIVER=redis
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=redis
+      - SESSION_SECURE_COOKIE=true
+      - SESSION_SAME_SITE=lax
+      - REDIS_CLIENT=phpredis
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-null}
+      - REDIS_PORT=6379
+      - AI_MODEL_BUNDLE_PATH=/app/docs/deploy_model_bundle
+      - PYTHON_EXECUTABLE=/opt/ai_env/bin/python
+      - AI_FORECAST_MODELS=svm,xgboost,lstm
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - AI_PROVIDER=${AI_PROVIDER:-gemini}
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY:-}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - MAIL_MAILER=${MAIL_MAILER:-log}
+      - MAIL_HOST=${MAIL_HOST:-127.0.0.1}
+      - MAIL_PORT=${MAIL_PORT:-2525}
+      - MAIL_USERNAME=${MAIL_USERNAME:-}
+      - MAIL_PASSWORD=${MAIL_PASSWORD:-}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-hello@agrisense.id}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-AgriSense}
+    volumes:
+      - ./backend/storage:/app/backend/storage
+      - ./backend/bootstrap/cache:/app/backend/bootstrap/cache
+      - ./docs/deploy_model_bundle:/app/docs/deploy_model_bundle:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - agrisense
+    healthcheck:
+      disable: true
+
+  # ════════════════════════════════════════════
+  # Scheduler (Cron Jobs)
+  # ════════════════════════════════════════════
+  scheduler:
+    image: agrisense-app:latest
+    container_name: agrisense-scheduler
+    restart: unless-stopped
+    working_dir: /app/backend
+    command: ["php", "artisan", "schedule:work"]
+    environment:
+      - RUN_STARTUP_TASKS=false
+      - APP_NAME=AgriSense
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=false
+      - APP_URL=${APP_URL:-http://localhost}
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-agrisense}
+      - DB_USERNAME=${DB_APP_USERNAME:-agrisense}
+      - DB_PASSWORD=${DB_APP_PASSWORD:-${DB_PASSWORD:-change_this_db_password}}
+      - CACHE_DRIVER=redis
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=redis
+      - SESSION_SECURE_COOKIE=true
+      - SESSION_SAME_SITE=lax
+      - REDIS_CLIENT=phpredis
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-null}
+      - REDIS_PORT=6379
+      - AI_MODEL_BUNDLE_PATH=/app/docs/deploy_model_bundle
+      - PYTHON_EXECUTABLE=/opt/ai_env/bin/python
+      - AI_FORECAST_MODELS=svm,xgboost,lstm
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - AI_PROVIDER=${AI_PROVIDER:-gemini}
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY:-}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - MAIL_MAILER=${MAIL_MAILER:-log}
+      - MAIL_HOST=${MAIL_HOST:-127.0.0.1}
+      - MAIL_PORT=${MAIL_PORT:-2525}
+      - MAIL_USERNAME=${MAIL_USERNAME:-}
+      - MAIL_PASSWORD=${MAIL_PASSWORD:-}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-hello@agrisense.id}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-AgriSense}
+    volumes:
+      - ./backend/storage:/app/backend/storage
+      - ./backend/bootstrap/cache:/app/backend/bootstrap/cache
+      - ./docs/deploy_model_bundle:/app/docs/deploy_model_bundle:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - agrisense
+    healthcheck:
+      disable: true
+
+  # ════════════════════════════════════════════
+  # MQTT Listener
+  # ════════════════════════════════════════════
+  mqtt:
+    image: agrisense-app:latest
+    container_name: agrisense-mqtt
+    restart: unless-stopped
+    working_dir: /app/backend
+    command: ["php", "artisan", "mqtt:listen"]
+    environment:
+      - RUN_STARTUP_TASKS=false
+      - APP_NAME=AgriSense
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=false
+      - APP_URL=${APP_URL:-http://localhost}
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-agrisense}
+      - DB_USERNAME=${DB_APP_USERNAME:-agrisense}
+      - DB_PASSWORD=${DB_APP_PASSWORD:-${DB_PASSWORD:-change_this_db_password}}
+      - CACHE_DRIVER=redis
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=redis
+      - SESSION_SECURE_COOKIE=true
+      - SESSION_SAME_SITE=lax
+      - REDIS_CLIENT=phpredis
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-null}
+      - REDIS_PORT=6379
+      - AI_MODEL_BUNDLE_PATH=/app/docs/deploy_model_bundle
+      - PYTHON_EXECUTABLE=/opt/ai_env/bin/python
+      - AI_FORECAST_MODELS=svm,xgboost,lstm
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - AI_PROVIDER=${AI_PROVIDER:-gemini}
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY:-}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - MAIL_MAILER=${MAIL_MAILER:-log}
+      - MAIL_HOST=${MAIL_HOST:-127.0.0.1}
+      - MAIL_PORT=${MAIL_PORT:-2525}
+      - MAIL_USERNAME=${MAIL_USERNAME:-}
+      - MAIL_PASSWORD=${MAIL_PASSWORD:-}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-hello@agrisense.id}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-AgriSense}
+      - MQTT_HOST=broker.emqx.io
+      - MQTT_FORWARD_URL=http://agrisense-nginx/api/iot/agrisense/readings
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=
+      - MQTT_PASSWORD=
+      - MQTT_TLS_VERIFY_PEER=false
+    volumes:
+      - ./backend/app/Console/Commands:/app/backend/app/Console/Commands
+      - ./backend/.env:/app/backend/.env
+      - ./backend/storage:/app/backend/storage
+      - ./backend/bootstrap/cache:/app/backend/bootstrap/cache
+      - ./docs/deploy_model_bundle:/app/docs/deploy_model_bundle:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - agrisense
+    healthcheck:
+      disable: true
+
+  # ════════════════════════════════════════════
+  # Database (MySQL 8.0)
+  # ════════════════════════════════════════════
+  db:
+    image: mysql:8.0
+    container_name: agrisense-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-agrisense}
+      MYSQL_USER: ${DB_APP_USERNAME:-agrisense}
+      MYSQL_PASSWORD: ${DB_APP_PASSWORD:-${DB_PASSWORD:-change_this_db_password}}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-change_this_root_password}
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'false'
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - agrisense
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 90s
+
+  # ════════════════════════════════════════════
+  # Cache (Redis)
+  # ════════════════════════════════════════════
+  redis:
+    image: redis:7-alpine
+    container_name: agrisense-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - agrisense
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 90s
+
+  # ════════════════════════════════════════════
+  # Web Server (Nginx)
+  # ════════════════════════════════════════════
+  nginx:
+    image: nginx:alpine
+    container_name: agrisense-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./backend/public:/app/public:ro
+      - ./dist:/app/dist:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - agrisense
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--timeout=5", "--spider", "http://localhost/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ════════════════════════════════════════════
+  # Dokter Jaga: Autoheal
+  # ════════════════════════════════════════════
+  # Memantau healthcheck semua kontainer.
+  # Jika ada yang statusnya "unhealthy", Autoheal
+  # akan me-restart kontainer tersebut secara otomatis.
+  # RAM: ~5-10 MB. Sangat ringan.
+  # Log waktu menggunakan WIB (Asia/Jakarta).
+  # Cek: docker logs agrisense-autoheal
+  # ════════════════════════════════════════════
+  autoheal:
+    image: willfarrell/autoheal
+    container_name: agrisense-autoheal
+    restart: always
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+      - AUTOHEAL_INTERVAL=60
+      - AUTOHEAL_START_PERIOD=300
+      - AUTOHEAL_DEFAULT_STOP_TIMEOUT=20
+      - DOCKER_SOCK=/var/run/docker.sock
+      - TZ=Asia/Jakarta
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - agrisense
+
+networks:
+  agrisense:
+    driver: bridge
+
+volumes:
+  db_data:
+    driver: local
+  redis_data:
+    driver: local

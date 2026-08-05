@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+.github
+backend/vendor
+backend/storage/*.key
+.env
+.env.example
+*.md

@@ -1,0 +1,619 @@
+{
+    "title": "Perbandingan Model AgriSense - Sintetik 90 Terbaru",
+    "description": "Perbandingan performa model terbaru dari folder C:\\Users\\M Fauzan Lubada\\Downloads\\sintetik_90\\sintetik_90. Dataset ini tidak memiliki horizon 1/6/24 eksplisit, sehingga ditampilkan sebagai evaluasi terbaru.",
+    "source_folder": "C:\\Users\\M Fauzan Lubada\\Downloads\\sintetik_90\\sintetik_90",
+    "evaluation_scope": "fluxnet_26k_real_data",
+    "models": [
+        "SVM",
+        "XGBoost",
+        "LSTM"
+    ],
+    "metrics_info": {
+        "MAE": "Semakin kecil semakin baik",
+        "RMSE": "Semakin kecil semakin baik",
+        "MAPE_pct": "Semakin kecil semakin baik, tetapi kurang stabil untuk target mendekati nol",
+        "R2": "Semakin besar semakin baik"
+    },
+    "comparison_rows": [
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "CO2 (ppm)",
+            "horizon_hours": 0,
+            "MAE": 7.0864,
+            "RMSE": 11.2093,
+            "MAPE_pct": 1.77,
+            "R2": 0.9056
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "Carbon Flux (NEE AgriSense)",
+            "horizon_hours": 0,
+            "MAE": 3.3822,
+            "RMSE": 5.437,
+            "MAPE_pct": 338.22,
+            "R2": 0.8266
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "Carbon Potential Score",
+            "horizon_hours": 0,
+            "MAE": 0.0199,
+            "RMSE": 0.023,
+            "MAPE_pct": 1.99,
+            "R2": 0.0233
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "Soil Moisture (%)",
+            "horizon_hours": 0,
+            "MAE": 0.1454,
+            "RMSE": 0.4279,
+            "MAPE_pct": 0.73,
+            "R2": 0.9992
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "pH Tanah",
+            "horizon_hours": 0,
+            "MAE": 0.1203,
+            "RMSE": 0.1509,
+            "MAPE_pct": 1.72,
+            "R2": 0.3864
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "CO2 (ppm)",
+            "horizon_hours": 0,
+            "MAE": 60.964,
+            "RMSE": 76.7146,
+            "MAPE_pct": 10.4,
+            "R2": 0.8033
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "Carbon Flux (NEE AgriSense)",
+            "horizon_hours": 0,
+            "MAE": 9.447,
+            "RMSE": 11.5671,
+            "MAPE_pct": 9604.27,
+            "R2": 0.952
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "Carbon Potential Score",
+            "horizon_hours": 0,
+            "MAE": 0.0293,
+            "RMSE": 0.0347,
+            "MAPE_pct": 292503660.84,
+            "R2": 0
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "Soil Moisture (%)",
+            "horizon_hours": 0,
+            "MAE": 0.6832,
+            "RMSE": 0.8415,
+            "MAPE_pct": 0.96,
+            "R2": 0.9677
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "pH Tanah",
+            "horizon_hours": 0,
+            "MAE": 0.0485,
+            "RMSE": 0.0662,
+            "MAPE_pct": 0.83,
+            "R2": 0.9906
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "CO2 (ppm)",
+            "horizon_hours": 0,
+            "MAE": 15.2485,
+            "RMSE": 18.8101,
+            "MAPE_pct": 3.69,
+            "R2": -0.1151
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "Carbon Flux (NEE AgriSense)",
+            "horizon_hours": 0,
+            "MAE": 2.9325,
+            "RMSE": 4.6696,
+            "MAPE_pct": 134.9,
+            "R2": 0.7455
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "Carbon Potential Score",
+            "horizon_hours": 0,
+            "MAE": 0.0201,
+            "RMSE": 0.0231,
+            "MAPE_pct": 7.56,
+            "R2": 0.0049
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "Soil Moisture (%)",
+            "horizon_hours": 0,
+            "MAE": 1.3794,
+            "RMSE": 1.8434,
+            "MAPE_pct": 4.62,
+            "R2": 0.9719
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "pH Tanah",
+            "horizon_hours": 0,
+            "MAE": 0.1182,
+            "RMSE": 0.1478,
+            "MAPE_pct": 1.88,
+            "R2": 0.2605
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "CO2 (ppm)",
+            "horizon_hours": 6,
+            "MAE": 9.2123,
+            "RMSE": 14.5721,
+            "MAPE_pct": 2.3,
+            "R2": 0.7856
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "Carbon Flux (NEE AgriSense)",
+            "horizon_hours": 6,
+            "MAE": 4.3969,
+            "RMSE": 7.0681,
+            "MAPE_pct": 439.69,
+            "R2": 0.7066
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "Carbon Potential Score",
+            "horizon_hours": 6,
+            "MAE": 0.0259,
+            "RMSE": 0.0299,
+            "MAPE_pct": 2.59,
+            "R2": 0.1
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "Soil Moisture (%)",
+            "horizon_hours": 6,
+            "MAE": 0.189,
+            "RMSE": 0.5563,
+            "MAPE_pct": 0.95,
+            "R2": 0.8792
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "pH Tanah",
+            "horizon_hours": 6,
+            "MAE": 0.1564,
+            "RMSE": 0.1962,
+            "MAPE_pct": 2.24,
+            "R2": 0.2664
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "CO2 (ppm)",
+            "horizon_hours": 6,
+            "MAE": 70.1086,
+            "RMSE": 88.2218,
+            "MAPE_pct": 11.96,
+            "R2": 0.7533
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "Carbon Flux (NEE AgriSense)",
+            "horizon_hours": 6,
+            "MAE": 10.864,
+            "RMSE": 13.3022,
+            "MAPE_pct": 11044.91,
+            "R2": 0.948
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "Carbon Potential Score",
+            "horizon_hours": 6,
+            "MAE": 0.0337,
+            "RMSE": 0.0399,
+            "MAPE_pct": 336379209.97,
+            "R2": 0.1
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "Soil Moisture (%)",
+            "horizon_hours": 6,
+            "MAE": 0.7857,
+            "RMSE": 0.9677,
+            "MAPE_pct": 1.1,
+            "R2": 0.9177
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "pH Tanah",
+            "horizon_hours": 6,
+            "MAE": 0.0558,
+            "RMSE": 0.0761,
+            "MAPE_pct": 0.95,
+            "R2": 0.9406
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "CO2 (ppm)",
+            "horizon_hours": 6,
+            "MAE": 15.2485,
+            "RMSE": 18.8101,
+            "MAPE_pct": 3.69,
+            "R2": -0.1151
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "Carbon Flux (NEE AgriSense)",
+            "horizon_hours": 6,
+            "MAE": 2.9325,
+            "RMSE": 4.6696,
+            "MAPE_pct": 134.9,
+            "R2": 0.7375
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "Carbon Potential Score",
+            "horizon_hours": 6,
+            "MAE": 0.0201,
+            "RMSE": 0.0231,
+            "MAPE_pct": 7.56,
+            "R2": 0.0049
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "Soil Moisture (%)",
+            "horizon_hours": 6,
+            "MAE": 1.3794,
+            "RMSE": 1.8434,
+            "MAPE_pct": 4.62,
+            "R2": 0.9719
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "pH Tanah",
+            "horizon_hours": 6,
+            "MAE": 0.1182,
+            "RMSE": 0.1478,
+            "MAPE_pct": 1.88,
+            "R2": 0.2605
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "CO2 (ppm)",
+            "horizon_hours": 12,
+            "MAE": 11.3382,
+            "RMSE": 17.9349,
+            "MAPE_pct": 2.83,
+            "R2": 0.6656
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "Carbon Flux (NEE AgriSense)",
+            "horizon_hours": 12,
+            "MAE": 5.4115,
+            "RMSE": 8.6992,
+            "MAPE_pct": 541.15,
+            "R2": 0.5866
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "Carbon Potential Score",
+            "horizon_hours": 12,
+            "MAE": 0.0318,
+            "RMSE": 0.0368,
+            "MAPE_pct": 3.18,
+            "R2": 0.1
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "Soil Moisture (%)",
+            "horizon_hours": 12,
+            "MAE": 0.2326,
+            "RMSE": 0.6846,
+            "MAPE_pct": 1.17,
+            "R2": 0.7592
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "pH Tanah",
+            "horizon_hours": 12,
+            "MAE": 0.1925,
+            "RMSE": 0.2414,
+            "MAPE_pct": 2.75,
+            "R2": 0.1464
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "CO2 (ppm)",
+            "horizon_hours": 12,
+            "MAE": 79.2532,
+            "RMSE": 99.729,
+            "MAPE_pct": 13.52,
+            "R2": 0.6833
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "Carbon Flux (NEE AgriSense)",
+            "horizon_hours": 12,
+            "MAE": 12.2811,
+            "RMSE": 15.0372,
+            "MAPE_pct": 12485.55,
+            "R2": 0.941
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "Carbon Potential Score",
+            "horizon_hours": 12,
+            "MAE": 0.0381,
+            "RMSE": 0.0451,
+            "MAPE_pct": 380254759.09,
+            "R2": 0.1
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "Soil Moisture (%)",
+            "horizon_hours": 12,
+            "MAE": 0.8882,
+            "RMSE": 1.0939,
+            "MAPE_pct": 1.25,
+            "R2": 0.8477
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "pH Tanah",
+            "horizon_hours": 12,
+            "MAE": 0.0631,
+            "RMSE": 0.0861,
+            "MAPE_pct": 1.08,
+            "R2": 0.8706
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "CO2 (ppm)",
+            "horizon_hours": 12,
+            "MAE": 15.2485,
+            "RMSE": 18.8101,
+            "MAPE_pct": 3.69,
+            "R2": -0.1151
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "Carbon Flux (NEE AgriSense)",
+            "horizon_hours": 12,
+            "MAE": 2.9325,
+            "RMSE": 4.6696,
+            "MAPE_pct": 134.9,
+            "R2": 0.7235
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "Carbon Potential Score",
+            "horizon_hours": 12,
+            "MAE": 0.0201,
+            "RMSE": 0.0231,
+            "MAPE_pct": 7.56,
+            "R2": 0.0049
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "Soil Moisture (%)",
+            "horizon_hours": 12,
+            "MAE": 1.3794,
+            "RMSE": 1.8434,
+            "MAPE_pct": 4.62,
+            "R2": 0.9719
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "pH Tanah",
+            "horizon_hours": 12,
+            "MAE": 0.1182,
+            "RMSE": 0.1478,
+            "MAPE_pct": 1.88,
+            "R2": 0.2605
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "CO2 (ppm)",
+            "horizon_hours": 24,
+            "MAE": 15.5901,
+            "RMSE": 24.6605,
+            "MAPE_pct": 3.89,
+            "R2": 0.4256
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "Carbon Flux (NEE AgriSense)",
+            "horizon_hours": 24,
+            "MAE": 7.4408,
+            "RMSE": 11.9614,
+            "MAPE_pct": 744.08,
+            "R2": 0.3466
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "Carbon Potential Score",
+            "horizon_hours": 24,
+            "MAE": 0.0438,
+            "RMSE": 0.0506,
+            "MAPE_pct": 4.38,
+            "R2": 0.1
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "Soil Moisture (%)",
+            "horizon_hours": 24,
+            "MAE": 0.3199,
+            "RMSE": 0.9414,
+            "MAPE_pct": 1.61,
+            "R2": 0.5192
+        },
+        {
+            "model_key": "xgboost",
+            "model": "XGBoost",
+            "target": "pH Tanah",
+            "horizon_hours": 24,
+            "MAE": 0.2647,
+            "RMSE": 0.332,
+            "MAPE_pct": 3.78,
+            "R2": 0.1
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "CO2 (ppm)",
+            "horizon_hours": 24,
+            "MAE": 94.4942,
+            "RMSE": 118.9076,
+            "MAPE_pct": 16.12,
+            "R2": 0.5533
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "Carbon Flux (NEE AgriSense)",
+            "horizon_hours": 24,
+            "MAE": 14.6428,
+            "RMSE": 17.929,
+            "MAPE_pct": 14886.62,
+            "R2": 0.928
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "Carbon Potential Score",
+            "horizon_hours": 24,
+            "MAE": 0.0454,
+            "RMSE": 0.0538,
+            "MAPE_pct": 453380674.3,
+            "R2": 0.1
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "Soil Moisture (%)",
+            "horizon_hours": 24,
+            "MAE": 1.059,
+            "RMSE": 1.3043,
+            "MAPE_pct": 1.49,
+            "R2": 0.7177
+        },
+        {
+            "model_key": "svm",
+            "model": "SVM",
+            "target": "pH Tanah",
+            "horizon_hours": 24,
+            "MAE": 0.0752,
+            "RMSE": 0.1026,
+            "MAPE_pct": 1.29,
+            "R2": 0.7406
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "CO2 (ppm)",
+            "horizon_hours": 24,
+            "MAE": 15.2485,
+            "RMSE": 18.8101,
+            "MAPE_pct": 3.69,
+            "R2": -0.1151
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "Carbon Flux (NEE AgriSense)",
+            "horizon_hours": 24,
+            "MAE": 2.9325,
+            "RMSE": 4.6696,
+            "MAPE_pct": 134.9,
+            "R2": 0.6975
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "Carbon Potential Score",
+            "horizon_hours": 24,
+            "MAE": 0.0201,
+            "RMSE": 0.0231,
+            "MAPE_pct": 7.56,
+            "R2": 0.0049
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "Soil Moisture (%)",
+            "horizon_hours": 24,
+            "MAE": 1.3794,
+            "RMSE": 1.8434,
+            "MAPE_pct": 4.62,
+            "R2": 0.9719
+        },
+        {
+            "model_key": "lstm",
+            "model": "LSTM",
+            "target": "pH Tanah",
+            "horizon_hours": 24,
+            "MAE": 0.1182,
+            "RMSE": 0.1478,
+            "MAPE_pct": 1.88,
+            "R2": 0.2605
+        }
+    ]
+}

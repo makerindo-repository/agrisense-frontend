@@ -1,0 +1,60 @@
+node_modules/
+build/
+coverage/
+.DS_Store
+*.log
+__pycache__/
+*.py[cod]
+
+# Secrets — JANGAN pernah commit file .env
+.env
+.env.local
+.env.production
+!.env.example
+
+# Code Review Graph (local tool)
+.code-review-graph/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+
+# Scratch / Temporary
+scratch/
+
+# AI Tools & Local Configs (Cursor, Claude, Gemini, MCP)
+.mcp.json
+.opencode.json
+.windsurfrules
+.cursorrules
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.claude/
+.kiro/
+.playwright-mcp/
+.serena/
+.antigravity/
+test_var.php
+
+
+# Temporary Data Files & Large AI Models
+*.csv
+*.xlsx
+*.docx
+*.pdf
+*.zip
+*.joblib
+*.keras
+*.pkl
+AgriSense_Data_Historis_All_Nodes_*.csv
+AgriSense_Data_Historis_All_Nodes_20260519.xlsx
+docs/carbon_flux_easy_explanation.md
+docs/carbon_flux_methodology.md
+docs/qc_website_audit_readme.md
+backend/seed_performance_data.php
+
+backend/

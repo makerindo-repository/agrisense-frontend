@@ -1,0 +1,223 @@
+# ============================================================
+# AgriSense CI/CD Pipeline
+# ============================================================
+# Trigger:
+#   - Push ke main     → CI + Auto Deploy ke VPS
+#   - Pull Request     → CI saja (lint + test + build)
+# ============================================================
+
+name: AgriSense CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ════════════════════════════════════════════
+  # JOB 1: CI — Lint & Test Backend (Laravel)
+  # ════════════════════════════════════════════
+  backend-ci:
+    name: "🧪 Backend CI (PHP)"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: pdo_mysql, mbstring, exif, pcntl, bcmath, gd
+          coverage: none
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: backend/vendor
+          key: composer-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Code Style Check (Laravel Pint)
+        run: vendor/bin/pint --test
+
+      - name: Prepare Test Environment
+        run: |
+          cp .env.example .env
+          cp .env.example ../.env
+          php artisan key:generate
+          echo "DB_CONNECTION=sqlite" >> .env
+          echo "DB_DATABASE=:memory:" >> .env
+          echo "DB_CONNECTION=sqlite" >> ../.env
+          echo "DB_DATABASE=:memory:" >> ../.env
+
+      - name: Run PHPUnit Tests
+        run: php artisan test
+
+  # ════════════════════════════════════════════
+  # JOB 2: CI — Type Check & Build Frontend
+  # ════════════════════════════════════════════
+  frontend-ci:
+    name: "🎨 Frontend CI (React)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: TypeScript Type Check
+        run: npx tsc --noEmit
+
+      - name: Build Production Bundle
+        run: npm run build
+        env:
+          GEMINI_API_KEY: "ci-placeholder-key"
+
+  # ════════════════════════════════════════════
+  # JOB 3: CD — Deploy ke VPS via SSH
+  # Hanya jalan saat push ke main (bukan PR)
+  # ════════════════════════════════════════════
+  deploy:
+    name: "🚀 Deploy to VPS"
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          timeout: 120s
+          command_timeout: 40m
+          script: |
+            set -e
+            trap 'docker rm -f tmp-extract >/dev/null 2>&1 || true; echo ""; echo "Deploy failed. Docker status:"; docker compose ps || true; echo ""; echo "Redis logs:"; docker compose logs --tail=120 redis || true; echo ""; echo "Nginx logs:"; docker compose logs --tail=120 nginx || true; echo ""; echo "Database logs:"; docker compose logs --tail=200 db || true; echo ""; echo "App logs:"; docker compose logs --tail=120 app || true' ERR
+            cd /home/maker/agrisense
+
+            echo "══════════════════════════════════════"
+            echo "📥 Step 1/4: Pull latest code"
+            echo "══════════════════════════════════════"
+            git remote set-url origin https://x-access-token:${{ secrets.GH_DEPLOY_TOKEN }}@github.com/bagus081/AgriSense-Web--V1.0.git
+            git fetch origin main
+            git reset --hard origin/main
+            # Hapus token dari .git/config
+            git remote set-url origin git@github.com:bagus081/AgriSense-Web--V1.0.git
+
+            echo "══════════════════════════════════════"
+            echo "🐳 Step 2/4: Build Docker image"
+            echo "══════════════════════════════════════"
+            # Ensure swap is active (prevent OOM kill on 1.9 GB VPS)
+            if [ ! -f /swapfile ]; then
+              sudo fallocate -l 3G /swapfile
+              sudo chmod 600 /swapfile
+              sudo mkswap /swapfile
+              sudo swapon /swapfile
+              echo "✅ Swap 3GB created"
+            else
+              sudo swapon /swapfile 2>/dev/null || true
+            fi
+
+            # Stop app-layer containers to free RAM for Docker build.
+            # Keep db, redis & nginx running — nginx still serves the OLD
+            # dist/ while the new image is being built (zero downtime).
+            docker compose stop queue scheduler || true
+            docker compose stop app || true
+
+            # Prune ALL unused images, volumes, and builder cache to maximize free disk space
+            docker system prune -af --volumes 2>/dev/null || true
+            docker builder prune -af 2>/dev/null || true
+
+            # Build the app image (Dockerfile Stage 1 builds frontend).
+            # No separate "npm run build" on host — Dockerfile handles it.
+            docker compose build app
+            echo "✅ Docker image built!"
+
+            # --- ATOMIC DIST SWAP ---
+            # Extract dist/ into a TEMP folder first, then rename.
+            # This ensures nginx never serves an empty folder:
+            #   rm -rf dist → distrib-new → mv = atomic swap on Linux
+            echo "📦 Extracting frontend assets from image..."
+            docker rm -f tmp-extract >/dev/null 2>&1 || true
+            rm -rf ./dist-new
+            docker create --name tmp-extract agrisense-app:latest true
+            docker cp tmp-extract:/app/dist ./dist-new
+            docker rm -f tmp-extract >/dev/null 2>&1 || true
+            rm -rf ./dist-old
+            mv ./dist ./dist-old 2>/dev/null || true
+            mv ./dist-new ./dist
+            rm -rf ./dist-old
+            echo "✅ Frontend assets swapped atomically (no nginx downtime)!"
+
+            echo "══════════════════════════════════════"
+            echo "🚀 Step 3/4: Start all services"
+            echo "══════════════════════════════════════"
+            # Start everything at once. Docker Compose respects
+            # depends_on + service_healthy so ordering is automatic.
+            docker compose up -d
+
+            # Wait for app to become healthy.
+            echo "⏳ Waiting for app to be healthy..."
+            TRIES=0
+            MAX_TRIES=60
+            while [ "$TRIES" -lt "$MAX_TRIES" ]; do
+              if [ "$(docker inspect -f '{{.State.Health.Status}}' agrisense-app)" == "healthy" ]; then
+                echo "✅ App is healthy!"
+                break
+              fi
+              TRIES=$((TRIES + 1))
+              if [ "$TRIES" -ge "$MAX_TRIES" ]; then
+                echo "❌ App did not become healthy after $((MAX_TRIES * 5))s"
+                docker compose logs --tail=60 app
+                exit 1
+              fi
+              echo "  ⏳ Attempt $TRIES/$MAX_TRIES — waiting 5s..."
+              sleep 5
+            done
+
+            # Safety net: ensure migrations are up to date
+            docker compose exec -T app php artisan migrate --force 2>/dev/null || true
+
+            echo "══════════════════════════════════════"
+            echo "🧹 Step 4/4: Optimize & clear caches"
+            echo "══════════════════════════════════════"
+            # PENTING: Urutan harus clear dulu, BARU cache.
+            # Jika cache dulu → app membaca config cache lama yang rusak → 500 Error.
+            docker compose exec -T app php artisan config:clear
+            docker compose exec -T app php artisan cache:clear
+            docker compose exec -T app php artisan route:clear
+            docker compose exec -T app php artisan view:clear
+            docker compose exec -T app php artisan optimize:clear
+            # Buat cache baru setelah semua lama dibersihkan
+            docker compose exec -T app php artisan config:cache
+            # Reload nginx agar membaca dist/ baru tanpa restart
+            docker compose exec -T nginx nginx -s reload 2>/dev/null || docker compose restart nginx
+
+            echo ""
+            echo "✅ ══════════════════════════════════"
+            echo "✅  AgriSense deployed successfully!"
+            echo "✅ ══════════════════════════════════"

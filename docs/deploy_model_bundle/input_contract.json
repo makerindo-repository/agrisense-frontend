@@ -1,0 +1,37 @@
+{
+  "raw_payload_fields": [
+    "Device ID",
+    "Jenis Tanaman",
+    "Timestamp",
+    "CO2 (ppm)",
+    "TVOC (ppb)",
+    "Suhu Udara (°C)",
+    "Kelembapan Udara (%)",
+    "Tekanan (hPa)",
+    "Cahaya (Lux)",
+    "Kelembapan Tanah (%)",
+    "Suhu Tanah (°C)",
+    "pH Tanah",
+    "N (mg/kg)",
+    "P (mg/kg)",
+    "K (mg/kg)",
+    "Baterai (%)"
+  ],
+  "model_aliases": {
+    "Waktu": "Timestamp",
+    "Suhu Udara (°C)": "Temp (°C)",
+    "Kelembapan Udara (%)": "Humidity (%)",
+    "Kelembapan Tanah (%)": "Soil Moisture (%)",
+    "pH Tanah": "pH",
+    "Baterai (%)": "Battery (%)"
+  },
+  "missing_defaults": {
+    "RSSI (dBm)": -70.0
+  },
+  "notes": [
+    "Model forecasting memakai data yang sudah di-regularize per 1 jam.",
+    "LSTM membutuhkan sequence historis per device.",
+    "SVM dan XGBoost membutuhkan feature engineering yang sama dengan pipeline training."
+  ]
+}
+

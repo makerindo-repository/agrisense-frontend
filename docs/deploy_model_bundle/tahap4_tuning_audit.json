@@ -1,0 +1,107 @@
+{
+  "co2_ppm": {
+    "R2": 0.6900666469147456,
+    "MAE": 15.03156163014421,
+    "RMSE": 20.316058975343363,
+    "Best_Params": {
+      "subsample": 0.8,
+      "reg_lambda": 5.0,
+      "reg_alpha": 0.1,
+      "n_estimators": 300,
+      "max_depth": 6,
+      "learning_rate": 0.05,
+      "colsample_bytree": 0.8
+    },
+    "Top5_Features": {
+      "tekanan_hpa": 0.751825749874115,
+      "cahaya_lux": 0.16156059503555298,
+      "n_mg_kg": 0.05996328592300415,
+      "p_mg_kg": 0.013670474290847778,
+      "k_mg_kg": 0.012979833409190178
+    }
+  },
+  "nee_agrisense": {
+    "R2": 0.7542732312553901,
+    "MAE": 4.366158926061175,
+    "RMSE": 6.4728007185440095,
+    "Best_Params": {
+      "subsample": 0.8,
+      "reg_lambda": 5.0,
+      "reg_alpha": 0.1,
+      "n_estimators": 300,
+      "max_depth": 6,
+      "learning_rate": 0.05,
+      "colsample_bytree": 0.8
+    },
+    "Top5_Features": {
+      "cahaya_lux": 0.9223563075065613,
+      "tekanan_hpa": 0.049717195332050323,
+      "n_mg_kg": 0.014809140004217625,
+      "k_mg_kg": 0.007014337927103043,
+      "p_mg_kg": 0.006102990824729204
+    }
+  },
+  "carbon_potential_score": {
+    "R2": 0.0007977223155010149,
+    "MAE": 0.02003084976420377,
+    "RMSE": 0.023264139783857263,
+    "Best_Params": {
+      "subsample": 0.8,
+      "reg_lambda": 1.0,
+      "reg_alpha": 0.1,
+      "n_estimators": 100,
+      "max_depth": 6,
+      "learning_rate": 0.01,
+      "colsample_bytree": 0.8
+    },
+    "Top5_Features": {
+      "tekanan_hpa": 0.2928939461708069,
+      "n_mg_kg": 0.19408993422985077,
+      "cahaya_lux": 0.181998610496521,
+      "k_mg_kg": 0.17057938873767853,
+      "p_mg_kg": 0.1604381650686264
+    }
+  },
+  "kelembapan_tanah": {
+    "R2": 0.9224366912888107,
+    "MAE": 3.1766783153838203,
+    "RMSE": 4.143056102808574,
+    "Best_Params": {
+      "subsample": 0.8,
+      "reg_lambda": 1.0,
+      "reg_alpha": 0,
+      "n_estimators": 500,
+      "max_depth": 6,
+      "learning_rate": 0.05,
+      "colsample_bytree": 0.8
+    },
+    "Top5_Features": {
+      "n_mg_kg": 0.7677404880523682,
+      "p_mg_kg": 0.09385260939598083,
+      "k_mg_kg": 0.07778196036815643,
+      "tekanan_hpa": 0.057002224028110504,
+      "cahaya_lux": 0.0036227870732545853
+    }
+  },
+  "ph_tanah": {
+    "R2": 0.35374835714924446,
+    "MAE": 0.12328200689079381,
+    "RMSE": 0.15488990683962472,
+    "Best_Params": {
+      "subsample": 0.8,
+      "reg_lambda": 1.0,
+      "reg_alpha": 0.1,
+      "n_estimators": 500,
+      "max_depth": 8,
+      "learning_rate": 0.01,
+      "colsample_bytree": 0.8
+    },
+    "Top5_Features": {
+      "n_mg_kg": 0.7039381861686707,
+      "k_mg_kg": 0.14451760053634644,
+      "p_mg_kg": 0.07126672565937042,
+      "tekanan_hpa": 0.06187625974416733,
+      "cahaya_lux": 0.01840115338563919
+    }
+  }
+}

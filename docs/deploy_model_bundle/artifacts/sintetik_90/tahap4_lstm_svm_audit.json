@@ -1,0 +1,26 @@
+{
+    "SVM": {
+        "CO2 (ppm)": "Trained with 38 features",
+        "Carbon Flux (NEE AgriSense)": "Trained with 38 features",
+        "Carbon Potential Score": "Trained with 38 features",
+        "Soil Moisture (%)": "Trained with 38 features",
+        "pH Tanah": "Trained with 38 features"
+    },
+    "LSTM": {
+        "CO2 (ppm)": {
+            "R2": 0.24916100632529137
+        },
+        "Carbon Flux (NEE AgriSense)": {
+            "R2": -2.7203547989112957
+        },
+        "Carbon Potential Score": {
+            "R2": -0.008499201065058415
+        },
+        "Soil Moisture (%)": {
+            "R2": -1.299093315032637
+        },
+        "pH Tanah": {
+            "R2": -0.15685652951603757
+        }
+    }
+}

@@ -1,0 +1,244 @@
+{
+  "total_rows_output": 26619,
+  "num_features": 32,
+  "num_targets": 5,
+  "feature_stats": {
+    "suhu_udara": {
+      "mean": 30.2022,
+      "min": 18.0,
+      "max": 38.0,
+      "std": 3.8721
+    },
+    "kelembapan_udara": {
+      "mean": 75.2277,
+      "min": 30.0,
+      "max": 100.0,
+      "std": 25.3862
+    },
+    "tekanan_hpa": {
+      "mean": 999.8695,
+      "min": 990.0,
+      "max": 1010.0,
+      "std": 3.6201
+    },
+    "cahaya_lux": {
+      "mean": 28466.7332,
+      "min": 0.0,
+      "max": 120000.0,
+      "std": 39079.3608
+    },
+    "kelembapan_tanah": {
+      "mean": 32.0,
+      "min": 12.3508,
+      "max": 52.491,
+      "std": 11.7213
+    },
+    "suhu_tanah": {
+      "mean": 30.136,
+      "min": 19.06,
+      "max": 35.0,
+      "std": 3.3138
+    },
+    "ph_tanah": {
+      "mean": 6.2844,
+      "min": 5.6157,
+      "max": 7.039,
+      "std": 0.1773
+    },
+    "tvoc_ppb": {
+      "mean": 175.7054,
+      "min": 10.0,
+      "max": 334.2208,
+      "std": 43.251
+    },
+    "n_mg_kg": {
+      "mean": 185.923,
+      "min": 50.0,
+      "max": 317.511,
+      "std": 43.0148
+    },
+    "p_mg_kg": {
+      "mean": 36.0244,
+      "min": 5.0,
+      "max": 70.9232,
+      "std": 9.9368
+    },
+    "k_mg_kg": {
+      "mean": 182.9986,
+      "min": 88.6863,
+      "max": 277.5431,
+      "std": 26.6377
+    },
+    "epsilon": {
+      "mean": 1.2,
+      "min": 1.2,
+      "max": 1.2,
+      "std": 0.0
+    },
+    "fapar": {
+      "mean": 0.63,
+      "min": 0.63,
+      "max": 0.63,
+      "std": 0.0
+    },
+    "par": {
+      "mean": 526.6346,
+      "min": 0.0,
+      "max": 2220.0,
+      "std": 722.9682
+    },
+    "t_scalar": {
+      "mean": 0.889,
+      "min": 0.359,
+      "max": 1.0,
+      "std": 0.157
+    },
+    "w_scalar": {
+      "mean": 0.5333,
+      "min": 0.2058,
+      "max": 0.8748,
+      "std": 0.1954
+    },
+    "c_scalar": {
+      "mean": 0.9876,
+      "min": 0.8333,
+      "max": 1.4179,
+      "std": 0.048
+    },
+    "gpp": {
+      "mean": 0.5744,
+      "min": 0.0,
+      "max": 4.5669,
+      "std": 0.8427
+    },
+    "reco": {
+      "mean": 0.188,
+      "min": 0.086,
+      "max": 0.2708,
+      "std": 0.0383
+    },
+    "npp": {
+      "mean": 0.27,
+      "min": 0.0,
+      "max": 2.1464,
+      "std": 0.3961
+    },
+    "soc_baseline_gC_m2": {
+      "mean": 5850.0,
+      "min": 5850.0,
+      "max": 5850.0,
+      "std": 0.0
+    },
+    "c_biomass_acc": {
+      "mean": 3.7973,
+      "min": 0.0003,
+      "max": 7.1863,
+      "std": 2.0022
+    },
+    "c_current": {
+      "mean": 5853.7973,
+      "min": 5850.0003,
+      "max": 5857.1863,
+      "std": 2.0022
+    },
+    "c_max": {
+      "mean": 7897.5,
+      "min": 7897.5,
+      "max": 7897.5,
+      "std": 0.0
+    },
+    "elapsed_hours": {
+      "mean": 7284.1912,
+      "min": 0.0,
+      "max": 14034.5,
+      "std": 3951.8537
+    },
+    "hour_sin": {
+      "mean": -0.0007,
+      "min": -1.0,
+      "max": 1.0,
+      "std": 0.7075
+    },
+    "hour_cos": {
+      "mean": 0.0011,
+      "min": -1.0,
+      "max": 1.0,
+      "std": 0.7067
+    },
+    "dow_sin": {
+      "mean": -0.0017,
+      "min": -0.9749,
+      "max": 0.9749,
+      "std": 0.707
+    },
+    "dow_cos": {
+      "mean": -0.0048,
+      "min": -0.901,
+      "max": 1.0,
+      "std": 0.7072
+    },
+    "is_daytime": {
+      "mean": 0.4994,
+      "min": 0.0,
+      "max": 1.0,
+      "std": 0.5
+    },
+    "is_cabai": {
+      "mean": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "std": 0.0
+    },
+    "has_full_data": {
+      "mean": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "std": 0.0
+    }
+  },
+  "target_stats": {
+    "co2_ppm": {
+      "mean": 414.8119,
+      "min": 350.0,
+      "max": 595.5,
+      "std": 20.1675
+    },
+    "nee_agrisense": {
+      "mean": -1.1821,
+      "min": -35.9636,
+      "max": 22.4266,
+      "std": 7.2675
+    },
+    "carbon_potential_score": {
+      "mean": 0.2588,
+      "min": 0.2583,
+      "max": 0.2593,
+      "std": 0.0003
+    },
+    "target_kelembapan_tanah": {
+      "mean": 32.0,
+      "min": 12.3508,
+      "max": 52.491,
+      "std": 11.7213
+    },
+    "target_ph_tanah": {
+      "mean": 6.2844,
+      "min": 5.6157,
+      "max": 7.039,
+      "std": 0.1773
+    }
+  },
+  "transformations_applied": {
+    "suhu": "offset +3.0C, clip 18-38",
+    "kelembapan_udara": "scale x1.25, clip 30-100",
+    "kelembapan_tanah": "scale x1.54, clip 5-60",
+    "co2": "offset +43.0 ppm, clip 350-600",
+    "cahaya": "W/m2 * 120 -> Lux",
+    "npk_ph": "Simulasi berbasis korelasi + noise (Data Proksi)"
+  },
+  "warnings": [
+    "NPK dan pH adalah data PROKSI (simulasi), bukan pengukuran asli",
+    "CPS menggunakan SOC baseline default (5850 gC/m2)",
+    "Elapsed_hours dihitung dari index, bukan timestamp absolut"
+  ]
+}

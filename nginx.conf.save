@@ -1,0 +1,52 @@
+server {
+    listen 80;
+    # GANTI server_name _ menjadi domain Anda
+    server_name agrisense.web.id www.agrisense.web.id;
+
+    root /var/www/frontend;
+    index index.html index.htm;
+
+    # 1. Melayani Frontend React
+    location / {
+        try_files $uri $uri/ /index.html;
+
+        # Penonaktifan cache Murni untuk file HTML (Terutama index.html React)
+        location ~* \.html$ {
+            add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0";
+            expires off;
+        }
+    }
+
+    # 2. Mengarahkan /api langsung ke Backend Laravel tanpa try_files (Ultra Stabil)
+    location /api {
+        fastcgi_pass agrisense_backend:9000; # Menggunakan nama container backend Anda
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME /var/www/html/public/index.php;
+    }
+}
+server {
+    listen 80;
+    # GANTI server_name _ menjadi domain Anda
+    server_name agrisense.web.id www.agrisense.web.id;
+
+    root /var/www/frontend;
+    index index.html index.htm;
+
+    # 1. Melayani Frontend React
+    location / {
+        try_files $uri $uri/ /index.html;
+
+        # Penonaktifan cache Murni untuk file HTML (Terutama index.html React)
+        location ~* \.html$ {
+            add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0";
+            expires off;
+        }
+    }
+
+    # 2. Mengarahkan /api langsung ke Backend Laravel tanpa try_files (Ultra Stabil)
+    location /api {
+        fastcgi_pass agrisense_backend:9000; # Menggunakan nama container backend Anda
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME /var/www/html/public/index.php;
+    }
+}

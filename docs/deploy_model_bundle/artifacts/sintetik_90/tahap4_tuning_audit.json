@@ -1,0 +1,102 @@
+{
+    "co2_ppm": {
+        "R2": 0.9229568573654738,
+        "MAE": 5.839633453474821,
+        "Best_Params": {
+            "subsample": 1.0,
+            "reg_lambda": 2,
+            "reg_alpha": 1,
+            "n_estimators": 800,
+            "max_depth": 10,
+            "learning_rate": 0.05,
+            "colsample_bytree": 0.6
+        },
+        "Top5_Features": {
+            "co2_lag1": 0.3287588059902191,
+            "tekanan_hpa": 0.1813911646604538,
+            "vpd_approx": 0.10947342216968536,
+            "npp": 0.053913138806819916,
+            "elapsed_hours": 0.04578952118754387
+        }
+    },
+    "nee_agrisense": {
+        "R2": 0.8263962538875743,
+        "MAE": 3.3869772317972187,
+        "Best_Params": {
+            "subsample": 0.6,
+            "reg_lambda": 5,
+            "reg_alpha": 0.1,
+            "n_estimators": 300,
+            "max_depth": 6,
+            "learning_rate": 0.05,
+            "colsample_bytree": 1.0
+        },
+        "Top5_Features": {
+            "cahaya_lux": 0.6263545155525208,
+            "hour_sin": 0.0998690128326416,
+            "is_daytime": 0.06805169582366943,
+            "hour_cos": 0.06538162380456924,
+            "elapsed_hours": 0.020149286836385727
+        }
+    },
+    "carbon_potential_score": {
+        "R2": 0.027766258141966205,
+        "MAE": 0.019853021375546995,
+        "Best_Params": {
+            "subsample": 0.6,
+            "reg_lambda": 5,
+            "reg_alpha": 1,
+            "n_estimators": 500,
+            "max_depth": 6,
+            "learning_rate": 0.01,
+            "colsample_bytree": 0.8
+        },
+        "Top5_Features": {
+            "c_biomass_acc": 0.3428914546966553,
+            "elapsed_hours": 0.0515393428504467,
+            "soc_baseline_gC_m2": 0.028326058760285378,
+            "kelembapan_tanah_roll6": 0.025913896039128304,
+            "c_current": 0.025165924802422523
+        }
+    },
+    "kelembapan_tanah": {
+        "R2": 0.9992334417588272,
+        "MAE": 0.13938259405200532,
+        "Best_Params": {
+            "subsample": 1.0,
+            "reg_lambda": 2,
+            "reg_alpha": 1,
+            "n_estimators": 800,
+            "max_depth": 10,
+            "learning_rate": 0.05,
+            "colsample_bytree": 0.6
+        },
+        "Top5_Features": {
+            "kelembapan_tanah_lag1": 0.3739279508590698,
+            "kelembapan_tanah": 0.353428453207016,
+            "w_scalar": 0.26746228337287903,
+            "n_mg_kg": 0.0026119400281459093,
+            "kelembapan_tanah_roll6": 0.0014880980597808957
+        }
+    },
+    "ph_tanah": {
+        "R2": 0.38802833927942626,
+        "MAE": 0.12013420847244789,
+        "Best_Params": {
+            "subsample": 0.6,
+            "reg_lambda": 5,
+            "reg_alpha": 1,
+            "n_estimators": 500,
+            "max_depth": 6,
+            "learning_rate": 0.01,
+            "colsample_bytree": 0.8
+        },
+        "Top5_Features": {
+            "kelembapan_tanah": 0.3607299327850342,
+            "w_scalar": 0.20915745198726654,
+            "kelembapan_tanah_roll6": 0.19544276595115662,
+            "kelembapan_tanah_lag1": 0.13872720301151276,
+            "elapsed_hours": 0.042023248970508575
+        }
+    }
+}

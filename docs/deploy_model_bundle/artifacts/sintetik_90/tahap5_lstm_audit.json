@@ -1,0 +1,34 @@
+{
+    "LSTM_Optimized": {
+        "CO2 (ppm)": {
+            "R2": 0.22840137669303706,
+            "MAE": 41.083908190349916,
+            "Epochs_Ran": 31,
+            "Time_Minutes": 2.590778140227
+        },
+        "Carbon Flux (NEE AgriSense)": {
+            "R2": -0.43142158854523016,
+            "MAE": 9.563558059183674,
+            "Epochs_Ran": 32,
+            "Time_Minutes": 2.5799086848894754
+        },
+        "Carbon Potential Score": {
+            "R2": -0.0553190384906137,
+            "MAE": 0.02049701392934374,
+            "Epochs_Ran": 35,
+            "Time_Minutes": 2.7929120540618895
+        },
+        "Soil Moisture (%)": {
+            "R2": -1.0537570959069522,
+            "MAE": 21.559003374376513,
+            "Epochs_Ran": 31,
+            "Time_Minutes": 2.528473699092865
+        },
+        "pH Tanah": {
+            "R2": 0.22640446365256373,
+            "MAE": 0.1435431207347355,
+            "Epochs_Ran": 32,
+            "Time_Minutes": 2.564068404833476
+        }
+    }
+}

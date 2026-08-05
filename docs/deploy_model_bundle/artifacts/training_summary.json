@@ -1,0 +1,838 @@
+{
+  "version": "2.0",
+  "modules_available": {
+    "svm": true,
+    "xgboost": true,
+    "pytorch_lstm": true
+  },
+  "run_context": {
+    "dataset_path": "d:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\dataset\\synthetic_agrisense\\synthetic_agrisense_latest_realistic_10000\\synthetic_agrisense_latest_realistic_10000.csv",
+    "output_dir": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000"
+  },
+  "data": {
+    "raw_shape": [
+      10000,
+      17
+    ],
+    "modeling_shape": [
+      13653,
+      17
+    ],
+    "period_start": "2026-05-06 04:06:36",
+    "period_end": "2027-03-01 07:47:06",
+    "device_counts_raw": {
+      "AGRISENSE-CC-001": 3334,
+      "AGRISENSE-CC-002": 3333,
+      "AGRISENSE-CC-003": 3333
+    },
+    "device_counts_modeling": {
+      "AGRISENSE-CC-001": 4583,
+      "AGRISENSE-CC-002": 4778,
+      "AGRISENSE-CC-003": 4292
+    },
+    "missing_pct": {
+      "Device ID": 0.0,
+      "Jenis Tanaman": 0.0,
+      "Timestamp": 0.0,
+      "CO2 (ppm)": 0.0,
+      "TVOC (ppb)": 0.0,
+      "Temp (°C)": 0.0,
+      "Humidity (%)": 0.0,
+      "Tekanan (hPa)": 0.0,
+      "Cahaya (Lux)": 0.0,
+      "Soil Moisture (%)": 0.0,
+      "Suhu Tanah (°C)": 0.0,
+      "pH": 0.0,
+      "N (mg/kg)": 0.0,
+      "P (mg/kg)": 0.0,
+      "K (mg/kg)": 0.0,
+      "Battery (%)": 0.0,
+      "RSSI (dBm)": 0.0
+    },
+    "time_regularization": {
+      "enabled": true,
+      "freq": "1h",
+      "max_interpolation_gap_hours": 3
+    }
+  },
+  "anomaly_detection": {
+    "total_anomalies": 137,
+    "anomaly_rate_pct": 1.0
+  },
+  "drift_detection_psi": {
+    "CO2 (ppm)": 3.7357,
+    "Temp (°C)": 0.0055,
+    "Humidity (%)": 0.0218,
+    "Soil Moisture (%)": 0.1054,
+    "pH": 0.3826,
+    "N (mg/kg)": 4.0288,
+    "P (mg/kg)": 0.3256,
+    "K (mg/kg)": 2.6983,
+    "Battery (%)": 0.2223,
+    "RSSI (dBm)": 0.0
+  },
+  "forecast_models": {
+    "svm": [
+      {
+        "model": "SVM",
+        "prediction_mode": "independent",
+        "target": "Soil Moisture (%)",
+        "horizon_hours": 1,
+        "rows_used": 13513,
+        "train_rows": 10810,
+        "test_rows": 2703,
+        "MAE": 0.6265,
+        "RMSE": 2.014,
+        "MAPE_pct": 1.5,
+        "R2": 0.5474
+      },
+      {
+        "model": "SVM",
+        "prediction_mode": "independent",
+        "target": "Soil Moisture (%)",
+        "horizon_hours": 6,
+        "rows_used": 13498,
+        "train_rows": 10798,
+        "test_rows": 2700,
+        "MAE": 1.3086,
+        "RMSE": 2.6141,
+        "MAPE_pct": 3.25,
+        "R2": 0.3121
+      },
+      {
+        "model": "SVM",
+        "prediction_mode": "independent",
+        "target": "Soil Moisture (%)",
+        "horizon_hours": 24,
+        "rows_used": 13444,
+        "train_rows": 10755,
+        "test_rows": 2689,
+        "MAE": 2.1004,
+        "RMSE": 3.6524,
+        "MAPE_pct": 5.23,
+        "R2": -0.2557
+      },
+      {
+        "model": "SVM",
+        "prediction_mode": "independent",
+        "target": "pH",
+        "horizon_hours": 1,
+        "rows_used": 13513,
+        "train_rows": 10810,
+        "test_rows": 2703,
+        "MAE": 0.1152,
+        "RMSE": 0.1445,
+        "MAPE_pct": 1.74,
+        "R2": 0.9275
+      },
+      {
+        "model": "SVM",
+        "prediction_mode": "independent",
+        "target": "pH",
+        "horizon_hours": 6,
+        "rows_used": 13498,
+        "train_rows": 10798,
+        "test_rows": 2700,
+        "MAE": 0.259,
+        "RMSE": 0.3154,
+        "MAPE_pct": 3.96,
+        "R2": 0.6548
+      },
+      {
+        "model": "SVM",
+        "prediction_mode": "independent",
+        "target": "pH",
+        "horizon_hours": 24,
+        "rows_used": 13444,
+        "train_rows": 10755,
+        "test_rows": 2689,
+        "MAE": 0.434,
+        "RMSE": 0.5229,
+        "MAPE_pct": 6.66,
+        "R2": 0.0459
+      }
+    ],
+    "xgboost": [
+      {
+        "model": "XGBoost",
+        "prediction_mode": "independent",
+        "target": "Soil Moisture (%)",
+        "horizon_hours": 1,
+        "rows_used": 13513,
+        "train_rows": 10810,
+        "test_rows": 2703,
+        "MAE": 0.3375,
+        "RMSE": 1.5511,
+        "MAPE_pct": 0.79,
+        "R2": 0.7315
+      },
+      {
+        "model": "XGBoost",
+        "prediction_mode": "independent",
+        "target": "Soil Moisture (%)",
+        "horizon_hours": 6,
+        "rows_used": 13498,
+        "train_rows": 10798,
+        "test_rows": 2700,
+        "MAE": 1.1759,
+        "RMSE": 2.9045,
+        "MAPE_pct": 2.91,
+        "R2": 0.1508
+      },
+      {
+        "model": "XGBoost",
+        "prediction_mode": "independent",
+        "target": "Soil Moisture (%)",
+        "horizon_hours": 24,
+        "rows_used": 13444,
+        "train_rows": 10755,
+        "test_rows": 2689,
+        "MAE": 1.8546,
+        "RMSE": 3.4387,
+        "MAPE_pct": 4.6,
+        "R2": -0.113
+      },
+      {
+        "model": "XGBoost",
+        "prediction_mode": "independent",
+        "target": "pH",
+        "horizon_hours": 1,
+        "rows_used": 13513,
+        "train_rows": 10810,
+        "test_rows": 2703,
+        "MAE": 0.0365,
+        "RMSE": 0.0495,
+        "MAPE_pct": 0.55,
+        "R2": 0.9915
+      },
+      {
+        "model": "XGBoost",
+        "prediction_mode": "independent",
+        "target": "pH",
+        "horizon_hours": 6,
+        "rows_used": 13498,
+        "train_rows": 10798,
+        "test_rows": 2700,
+        "MAE": 0.1777,
+        "RMSE": 0.2165,
+        "MAPE_pct": 2.7,
+        "R2": 0.8374
+      },
+      {
+        "model": "XGBoost",
+        "prediction_mode": "independent",
+        "target": "pH",
+        "horizon_hours": 24,
+        "rows_used": 13444,
+        "train_rows": 10755,
+        "test_rows": 2689,
+        "MAE": 0.351,
+        "RMSE": 0.4204,
+        "MAPE_pct": 5.4,
+        "R2": 0.3832
+      }
+    ],
+    "lstm": [
+      {
+        "model": "LSTM",
+        "prediction_mode": "independent",
+        "target": "Soil Moisture (%)",
+        "horizon_hours": 1,
+        "seq_len": 24,
+        "epochs": 30,
+        "per_device": [
+          {
+            "device_id": "AGRISENSE-CC-001",
+            "MAE": 0.9401,
+            "RMSE": 2.7872,
+            "MAPE_pct": 2.18,
+            "R2": 0.5717
+          },
+          {
+            "device_id": "AGRISENSE-CC-002",
+            "MAE": 0.3572,
+            "RMSE": 0.5215,
+            "MAPE_pct": 0.97,
+            "R2": 0.8617
+          },
+          {
+            "device_id": "AGRISENSE-CC-003",
+            "MAE": 0.3311,
+            "RMSE": 0.4603,
+            "MAPE_pct": 0.91,
+            "R2": 0.8489
+          }
+        ],
+        "avg_MAE": 0.5428,
+        "avg_RMSE": 1.2563,
+        "avg_MAPE_pct": 1.35,
+        "avg_R2": 0.7608
+      },
+      {
+        "model": "LSTM",
+        "prediction_mode": "independent",
+        "target": "Soil Moisture (%)",
+        "horizon_hours": 6,
+        "seq_len": 24,
+        "epochs": 30,
+        "per_device": [
+          {
+            "device_id": "AGRISENSE-CC-001",
+            "MAE": 1.9085,
+            "RMSE": 3.8356,
+            "MAPE_pct": 4.73,
+            "R2": 0.1898
+          },
+          {
+            "device_id": "AGRISENSE-CC-002",
+            "MAE": 1.1967,
+            "RMSE": 1.496,
+            "MAPE_pct": 3.25,
+            "R2": -0.137
+          },
+          {
+            "device_id": "AGRISENSE-CC-003",
+            "MAE": 1.1034,
+            "RMSE": 1.4444,
+            "MAPE_pct": 3.04,
+            "R2": -0.4871
+          }
+        ],
+        "avg_MAE": 1.4029,
+        "avg_RMSE": 2.2587,
+        "avg_MAPE_pct": 3.67,
+        "avg_R2": -0.1448
+      },
+      {
+        "model": "LSTM",
+        "prediction_mode": "independent",
+        "target": "Soil Moisture (%)",
+        "horizon_hours": 24,
+        "seq_len": 24,
+        "epochs": 30,
+        "per_device": [
+          {
+            "device_id": "AGRISENSE-CC-001",
+            "MAE": 2.8564,
+            "RMSE": 4.9931,
+            "MAPE_pct": 6.99,
+            "R2": -0.3682
+          },
+          {
+            "device_id": "AGRISENSE-CC-002",
+            "MAE": 1.3133,
+            "RMSE": 1.6219,
+            "MAPE_pct": 3.55,
+            "R2": -0.3327
+          },
+          {
+            "device_id": "AGRISENSE-CC-003",
+            "MAE": 1.3166,
+            "RMSE": 1.5704,
+            "MAPE_pct": 3.62,
+            "R2": -0.7596
+          }
+        ],
+        "avg_MAE": 1.8288,
+        "avg_RMSE": 2.7285,
+        "avg_MAPE_pct": 4.72,
+        "avg_R2": -0.4868
+      },
+      {
+        "model": "LSTM",
+        "prediction_mode": "independent",
+        "target": "pH",
+        "horizon_hours": 1,
+        "seq_len": 24,
+        "epochs": 30,
+        "per_device": [
+          {
+            "device_id": "AGRISENSE-CC-001",
+            "MAE": 0.0948,
+            "RMSE": 0.1243,
+            "MAPE_pct": 1.49,
+            "R2": 0.8193
+          },
+          {
+            "device_id": "AGRISENSE-CC-002",
+            "MAE": 0.0848,
+            "RMSE": 0.1089,
+            "MAPE_pct": 1.2,
+            "R2": 0.9209
+          },
+          {
+            "device_id": "AGRISENSE-CC-003",
+            "MAE": 0.1003,
+            "RMSE": 0.1296,
+            "MAPE_pct": 1.48,
+            "R2": 0.8507
+          }
+        ],
+        "avg_MAE": 0.0933,
+        "avg_RMSE": 0.1209,
+        "avg_MAPE_pct": 1.39,
+        "avg_R2": 0.8636
+      },
+      {
+        "model": "LSTM",
+        "prediction_mode": "independent",
+        "target": "pH",
+        "horizon_hours": 6,
+        "seq_len": 24,
+        "epochs": 30,
+        "per_device": [
+          {
+            "device_id": "AGRISENSE-CC-001",
+            "MAE": 0.2566,
+            "RMSE": 0.3285,
+            "MAPE_pct": 4.01,
+            "R2": -0.2613
+          },
+          {
+            "device_id": "AGRISENSE-CC-002",
+            "MAE": 0.2778,
+            "RMSE": 0.3382,
+            "MAPE_pct": 3.94,
+            "R2": 0.2366
+          },
+          {
+            "device_id": "AGRISENSE-CC-003",
+            "MAE": 0.3486,
+            "RMSE": 0.4416,
+            "MAPE_pct": 5.07,
+            "R2": -0.7338
+          }
+        ],
+        "avg_MAE": 0.2943,
+        "avg_RMSE": 0.3694,
+        "avg_MAPE_pct": 4.34,
+        "avg_R2": -0.2528
+      },
+      {
+        "model": "LSTM",
+        "prediction_mode": "independent",
+        "target": "pH",
+        "horizon_hours": 24,
+        "seq_len": 24,
+        "epochs": 30,
+        "per_device": [
+          {
+            "device_id": "AGRISENSE-CC-001",
+            "MAE": 0.3362,
+            "RMSE": 0.4286,
+            "MAPE_pct": 5.3,
+            "R2": -1.1505
+          },
+          {
+            "device_id": "AGRISENSE-CC-002",
+            "MAE": 0.3611,
+            "RMSE": 0.4408,
+            "MAPE_pct": 5.17,
+            "R2": -0.2964
+          },
+          {
+            "device_id": "AGRISENSE-CC-003",
+            "MAE": 0.3517,
+            "RMSE": 0.4313,
+            "MAPE_pct": 5.17,
+            "R2": -0.6487
+          }
+        ],
+        "avg_MAE": 0.3497,
+        "avg_RMSE": 0.4336,
+        "avg_MAPE_pct": 5.21,
+        "avg_R2": -0.6985
+      }
+    ]
+  },
+  "condition_classifier": {
+    "rows_used": 13653,
+    "train_rows": 10922,
+    "test_rows": 2731,
+    "label_distribution": {
+      "Darurat": 2138,
+      "Kritis": 1850,
+      "Normal": 4159,
+      "Optimal": 2042,
+      "Waspada": 3464
+    },
+    "classification_report": {
+      "Darurat": {
+        "precision": 0.9332191780821918,
+        "recall": 0.8307926829268293,
+        "f1-score": 0.8790322580645161,
+        "support": 656.0
+      },
+      "Kritis": {
+        "precision": 0.6666666666666666,
+        "recall": 0.3373913043478261,
+        "f1-score": 0.44803695150115475,
+        "support": 575.0
+      },
+      "Normal": {
+        "precision": 0.6349809885931559,
+        "recall": 0.9243542435424354,
+        "f1-score": 0.7528174305033809,
+        "support": 542.0
+      },
+      "Optimal": {
+        "precision": 0.9077669902912622,
+        "recall": 0.9639175257731959,
+        "f1-score": 0.935,
+        "support": 194.0
+      },
+      "Waspada": {
+        "precision": 0.5156794425087108,
+        "recall": 0.581151832460733,
+        "f1-score": 0.5464615384615384,
+        "support": 764.0
+      },
+      "accuracy": 0.6850970340534602,
+      "macro avg": {
+        "precision": 0.7316626532283974,
+        "recall": 0.727521517810204,
+        "f1-score": 0.712269635706118,
+        "support": 2731.0
+      },
+      "weighted avg": {
+        "precision": 0.6992935555349329,
+        "recall": 0.6850970340534602,
+        "f1-score": 0.674177982834469,
+        "support": 2731.0
+      }
+    },
+    "rf_feature_importance_top15": {
+      "rank_1": 0.11889564252000241,
+      "rank_2": 0.1008480676827769,
+      "rank_3": 0.09776906417697064,
+      "rank_4": 0.09211769397290595,
+      "rank_5": 0.08401294680890843,
+      "rank_6": 0.08176655380719595,
+      "rank_7": 0.08005197377634697,
+      "rank_8": 0.057000556685333,
+      "rank_9": 0.04938283466503553,
+      "rank_10": 0.04849882340540954,
+      "rank_11": 0.03547733789385111,
+      "rank_12": 0.03307314444549854,
+      "rank_13": 0.027874994487083964,
+      "rank_14": 0.018709928729618908,
+      "rank_15": 0.01820266677074032
+    }
+  },
+  "device_stats": {
+    "AGRISENSE-CC-001": {
+      "n_readings": 4583,
+      "duration_hours": 7179.0,
+      "anomaly_rate_pct": 1.0,
+      "sensor_means": {
+        "CO2 (ppm)": 569.28,
+        "Temp (°C)": 24.28,
+        "Humidity (%)": 87.42,
+        "Soil Moisture (%)": 37.29,
+        "pH": 6.32,
+        "N (mg/kg)": 166.48,
+        "P (mg/kg)": 34.75,
+        "K (mg/kg)": 225.81,
+        "Battery (%)": 73.01,
+        "RSSI (dBm)": -70.0
+      },
+      "condition_distribution": {
+        "Darurat": 1294,
+        "Waspada": 1117,
+        "Normal": 934,
+        "Kritis": 739,
+        "Optimal": 499
+      }
+    },
+    "AGRISENSE-CC-002": {
+      "n_readings": 4778,
+      "duration_hours": 6556.0,
+      "anomaly_rate_pct": 1.0,
+      "sensor_means": {
+        "CO2 (ppm)": 539.81,
+        "Temp (°C)": 24.24,
+        "Humidity (%)": 88.17,
+        "Soil Moisture (%)": 36.35,
+        "pH": 7.14,
+        "N (mg/kg)": 165.77,
+        "P (mg/kg)": 32.57,
+        "K (mg/kg)": 218.65,
+        "Battery (%)": 54.54,
+        "RSSI (dBm)": -70.0
+      },
+      "condition_distribution": {
+        "Normal": 1410,
+        "Waspada": 1274,
+        "Kritis": 808,
+        "Darurat": 698,
+        "Optimal": 588
+      }
+    },
+    "AGRISENSE-CC-003": {
+      "n_readings": 4292,
+      "duration_hours": 5144.0,
+      "anomaly_rate_pct": 1.0,
+      "sensor_means": {
+        "CO2 (ppm)": 502.34,
+        "Temp (°C)": 24.36,
+        "Humidity (%)": 88.35,
+        "Soil Moisture (%)": 36.32,
+        "pH": 6.84,
+        "N (mg/kg)": 162.83,
+        "P (mg/kg)": 33.19,
+        "K (mg/kg)": 210.51,
+        "Battery (%)": 54.25,
+        "RSSI (dBm)": -70.0
+      },
+      "condition_distribution": {
+        "Normal": 1815,
+        "Waspada": 1073,
+        "Optimal": 955,
+        "Kritis": 303,
+        "Darurat": 146
+      }
+    }
+  },
+  "weak_label_bounds": {
+    "Soil Moisture (%)": {
+      "q05": 34.58,
+      "q10": 34.87,
+      "q25": 35.42109589041096,
+      "q75": 37.335,
+      "q90": 38.54,
+      "q95": 39.47096
+    },
+    "pH": {
+      "q05": 5.97,
+      "q10": 6.08,
+      "q25": 6.35,
+      "q75": 7.18,
+      "q90": 7.44,
+      "q95": 7.54
+    },
+    "N (mg/kg)": {
+      "q05": 155.0,
+      "q10": 159.0,
+      "q25": 161.0,
+      "q75": 169.0,
+      "q90": 175.0,
+      "q95": 177.17860962566846
+    },
+    "P (mg/kg)": {
+      "q05": 31.0,
+      "q10": 31.0,
+      "q25": 32.0,
+      "q75": 35.0,
+      "q90": 35.8,
+      "q95": 36.0
+    },
+    "K (mg/kg)": {
+      "q05": 200.0,
+      "q10": 203.0,
+      "q25": 208.0,
+      "q75": 228.0,
+      "q90": 240.0,
+      "q95": 245.97808219178083
+    },
+    "CO2 (ppm)": {
+      "q05": 432.392,
+      "q10": 446.502,
+      "q25": 481.54,
+      "q75": 588.58,
+      "q90": 643.01,
+      "q95": 662.742
+    }
+  },
+  "model_artifacts": {
+    "svm": [
+      {
+        "target": "Soil Moisture (%)",
+        "horizon_hours": "1",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\svm_soil_moisture_h1.pkl"
+      },
+      {
+        "target": "Soil Moisture (%)",
+        "horizon_hours": "6",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\svm_soil_moisture_h6.pkl"
+      },
+      {
+        "target": "Soil Moisture (%)",
+        "horizon_hours": "24",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\svm_soil_moisture_h24.pkl"
+      },
+      {
+        "target": "pH",
+        "horizon_hours": "1",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\svm_ph_h1.pkl"
+      },
+      {
+        "target": "pH",
+        "horizon_hours": "6",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\svm_ph_h6.pkl"
+      },
+      {
+        "target": "pH",
+        "horizon_hours": "24",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\svm_ph_h24.pkl"
+      }
+    ],
+    "xgboost": [
+      {
+        "target": "Soil Moisture (%)",
+        "horizon_hours": "1",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\xgboost_soil_moisture_h1.pkl"
+      },
+      {
+        "target": "Soil Moisture (%)",
+        "horizon_hours": "6",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\xgboost_soil_moisture_h6.pkl"
+      },
+      {
+        "target": "Soil Moisture (%)",
+        "horizon_hours": "24",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\xgboost_soil_moisture_h24.pkl"
+      },
+      {
+        "target": "pH",
+        "horizon_hours": "1",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\xgboost_ph_h1.pkl"
+      },
+      {
+        "target": "pH",
+        "horizon_hours": "6",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\xgboost_ph_h6.pkl"
+      },
+      {
+        "target": "pH",
+        "horizon_hours": "24",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\xgboost_ph_h24.pkl"
+      }
+    ],
+    "lstm": [
+      {
+        "target": "Soil Moisture (%)",
+        "horizon_hours": "1",
+        "device_id": "AGRISENSE-CC-001",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_soil_moisture_h1_agrisense_cc_001.pt"
+      },
+      {
+        "target": "Soil Moisture (%)",
+        "horizon_hours": "1",
+        "device_id": "AGRISENSE-CC-002",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_soil_moisture_h1_agrisense_cc_002.pt"
+      },
+      {
+        "target": "Soil Moisture (%)",
+        "horizon_hours": "1",
+        "device_id": "AGRISENSE-CC-003",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_soil_moisture_h1_agrisense_cc_003.pt"
+      },
+      {
+        "target": "Soil Moisture (%)",
+        "horizon_hours": "6",
+        "device_id": "AGRISENSE-CC-001",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_soil_moisture_h6_agrisense_cc_001.pt"
+      },
+      {
+        "target": "Soil Moisture (%)",
+        "horizon_hours": "6",
+        "device_id": "AGRISENSE-CC-002",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_soil_moisture_h6_agrisense_cc_002.pt"
+      },
+      {
+        "target": "Soil Moisture (%)",
+        "horizon_hours": "6",
+        "device_id": "AGRISENSE-CC-003",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_soil_moisture_h6_agrisense_cc_003.pt"
+      },
+      {
+        "target": "Soil Moisture (%)",
+        "horizon_hours": "24",
+        "device_id": "AGRISENSE-CC-001",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_soil_moisture_h24_agrisense_cc_001.pt"
+      },
+      {
+        "target": "Soil Moisture (%)",
+        "horizon_hours": "24",
+        "device_id": "AGRISENSE-CC-002",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_soil_moisture_h24_agrisense_cc_002.pt"
+      },
+      {
+        "target": "Soil Moisture (%)",
+        "horizon_hours": "24",
+        "device_id": "AGRISENSE-CC-003",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_soil_moisture_h24_agrisense_cc_003.pt"
+      },
+      {
+        "target": "pH",
+        "horizon_hours": "1",
+        "device_id": "AGRISENSE-CC-001",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_ph_h1_agrisense_cc_001.pt"
+      },
+      {
+        "target": "pH",
+        "horizon_hours": "1",
+        "device_id": "AGRISENSE-CC-002",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_ph_h1_agrisense_cc_002.pt"
+      },
+      {
+        "target": "pH",
+        "horizon_hours": "1",
+        "device_id": "AGRISENSE-CC-003",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_ph_h1_agrisense_cc_003.pt"
+      },
+      {
+        "target": "pH",
+        "horizon_hours": "6",
+        "device_id": "AGRISENSE-CC-001",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_ph_h6_agrisense_cc_001.pt"
+      },
+      {
+        "target": "pH",
+        "horizon_hours": "6",
+        "device_id": "AGRISENSE-CC-002",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_ph_h6_agrisense_cc_002.pt"
+      },
+      {
+        "target": "pH",
+        "horizon_hours": "6",
+        "device_id": "AGRISENSE-CC-003",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_ph_h6_agrisense_cc_003.pt"
+      },
+      {
+        "target": "pH",
+        "horizon_hours": "24",
+        "device_id": "AGRISENSE-CC-001",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_ph_h24_agrisense_cc_001.pt"
+      },
+      {
+        "target": "pH",
+        "horizon_hours": "24",
+        "device_id": "AGRISENSE-CC-002",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_ph_h24_agrisense_cc_002.pt"
+      },
+      {
+        "target": "pH",
+        "horizon_hours": "24",
+        "device_id": "AGRISENSE-CC-003",
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\lstm_ph_h24_agrisense_cc_003.pt"
+      }
+    ],
+    "classifier": [
+      {
+        "path": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts\\condition_classifier.pkl"
+      }
+    ]
+  },
+  "outputs": {
+    "clean_csv": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\agrisense_cleaned_v2.csv",
+    "modeling_clean_csv": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\agrisense_cleaned_hourly_v2.csv",
+    "summary_json": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\agrisense_algorithm_summary_v2.json",
+    "web_comparison_json": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\agrisense_model_comparison_web.json",
+    "web_comparison_html": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\agrisense_model_comparison_dashboard.html",
+    "model_artifact_dir": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_ml_prototype_synthetic_agrisense_latest_realistic_10000\\model_artifacts",
+    "latest_summary_json": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_algorithm_summary_latest.json",
+    "latest_web_comparison_json": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_model_comparison_web.json",
+    "latest_web_comparison_html": "D:\\Tugas Kuliah\\Semester 6\\MBKM - Magang\\Agrisense\\output\\agrisense_model_comparison_dashboard.html"
+  }
+}
