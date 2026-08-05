@@ -1151,7 +1151,6 @@ export default function AnalyticsView({ selectedNode, setSelectedNode, readings,
 
               </div>
             </div>
-          </div>
 
         <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
           <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl">

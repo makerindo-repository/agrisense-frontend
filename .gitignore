@@ -58,3 +58,6 @@ docs/qc_website_audit_readme.md
 backend/seed_performance_data.php
 
 backend/
+*.sql
+ssl/
+.env
