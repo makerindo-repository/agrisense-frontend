@@ -65,23 +65,23 @@ df['suhu_udara'] = df['TA_F'].clip(18.0, 38.0)
 # Kelembapan Udara: clip 30-100
 df['kelembapan_udara'] = df['RH'].clip(30.0, 100.0)
 
-# Kelembapan Tanah: clip 5-60
-df['kelembapan_tanah'] = df['SWC_F_MDS_1'].clip(5.0, 60.0)
+# Kelembapan Tanah (DIHAPUS/DIKOMENTAR: Fitur tanah dihapus)
+# df['kelembapan_tanah'] = df['SWC_F_MDS_1'].clip(5.0, 60.0)
 
 # CO2: clip 350-600 (no offset needed)
 df['co2_ppm'] = df['CO2_F_MDS'].clip(350.0, 600.0)
 
-# Cahaya: W/m2 -> Lux
-df['cahaya_lux'] = (df['SW_IN_F'] * 120.0).clip(0.0, 120000.0)
+# Cahaya (DIHAPUS/DIKOMENTAR: Fitur cahaya_lux dihapus)
+# df['cahaya_lux'] = (df['SW_IN_F'] * 120.0).clip(0.0, 120000.0)
 
-# Suhu Tanah
-df['suhu_tanah'] = df['TS_F_MDS_1'].clip(18.0, 35.0) if 'TS_F_MDS_1' in df.columns else (df['suhu_udara'] * 0.92 + 2.5).clip(18.0, 35.0)
+# Suhu Tanah (DIHAPUS/DIKOMENTAR: Fitur suhu_tanah dihapus)
+# df['suhu_tanah'] = df['TS_F_MDS_1'].clip(18.0, 35.0) if 'TS_F_MDS_1' in df.columns else (df['suhu_udara'] * 0.92 + 2.5).clip(18.0, 35.0)
 
-# Tekanan
-if 'PA_F' in df.columns:
-    df['tekanan_hpa'] = (df['PA_F'] * 10.0).clip(990.0, 1025.0)
-else:
-    df['tekanan_hpa'] = 1010.0 + np.random.normal(0, 2, len(df))
+# Tekanan (DIHAPUS/DIKOMENTAR: Fitur tekanan_hpa dihapus)
+# if 'PA_F' in df.columns:
+#     df['tekanan_hpa'] = (df['PA_F'] * 10.0).clip(990.0, 1025.0)
+# else:
+#     df['tekanan_hpa'] = 1010.0 + np.random.normal(0, 2, len(df))
 
 # VPD (Vapor Pressure Deficit) - konversi dari hPa ke kPa untuk kompatibilitas Laravel
 if 'VPD_F' in df.columns:
@@ -92,29 +92,17 @@ else:
 
 print(f"  Suhu: mean={df['suhu_udara'].mean():.1f}")
 print(f"  RH: mean={df['kelembapan_udara'].mean():.1f}")
-print(f"  SWC: mean={df['kelembapan_tanah'].mean():.1f}")
 print(f"  CO2: mean={df['co2_ppm'].mean():.1f}")
 
 # ═══════════════════════════════════════════════════════════════
-# LANGKAH 3: Simulasi NPK, pH, TVOC
+# LANGKAH 3: Simulasi NPK, pH, TVOC (DIHAPUS/DIKOMENTAR)
 # ═══════════════════════════════════════════════════════════════
-print("\n--- Simulasi Sensor NPK, pH, TVOC ---")
-
-df['ph_tanah'] = 6.3 - 0.008 * (df['kelembapan_tanah'] - 30) + \
-                 np.random.normal(0, 0.15, len(df))
-df['ph_tanah'] = df['ph_tanah'].clip(4.5, 8.0)
-
-df['n_mg_kg'] = (180 + 3.0 * (df['kelembapan_tanah'] - 30) +
-                 np.random.normal(0, 25, len(df))).clip(50.0, 500.0)
-df['p_mg_kg'] = (35 + 0.5 * (df['kelembapan_tanah'] - 30) +
-                 np.random.normal(0, 8, len(df))).clip(5.0, 120.0)
-df['k_mg_kg'] = (180 + 1.5 * (df['kelembapan_tanah'] - 30) +
-                 np.random.normal(0, 20, len(df))).clip(30.0, 500.0)
-df['tvoc_ppb'] = (150 + 8.0 * (df['suhu_udara'] - 27) +
-                  np.random.normal(0, 30, len(df))).clip(10.0, 500.0)
-
-print(f"  pH={df['ph_tanah'].mean():.2f}, N={df['n_mg_kg'].mean():.0f}, "
-      f"P={df['p_mg_kg'].mean():.0f}, K={df['k_mg_kg'].mean():.0f}")
+# Features soil, NPK, pH, TVOC dihapus dari pipeline model
+# df['ph_tanah'] = ...
+# df['n_mg_kg'] = ...
+# df['p_mg_kg'] = ...
+# df['k_mg_kg'] = ...
+# df['tvoc_ppb'] = ...
 
 # ═══════════════════════════════════════════════════════════════
 # LANGKAH 4: Fitur Turunan (FIX: epsilon, fapar BERVARIASI)
@@ -129,15 +117,14 @@ df['epsilon'] = (1.20 * temp_stress.clip(0.7, 1.0) +
 print(f"  FIX epsilon: mean={df['epsilon'].mean():.3f}, "
       f"std={df['epsilon'].std():.3f}")
 
-# FIX #3: fapar bervariasi berdasarkan kelembapan tanah (proxy vegetasi)
-# Tanaman lebih hijau saat tanah lembab
-veg_index = 0.55 + 0.004 * (df['kelembapan_tanah'] - 20)
+# FIX #3: fapar bervariasi (tanpa kelembapan tanah)
+veg_index = 0.55
 df['fapar'] = (veg_index + np.random.normal(0, 0.04, len(df))).clip(0.30, 0.90)
 print(f"  FIX fapar: mean={df['fapar'].mean():.3f}, "
       f"std={df['fapar'].std():.3f}")
 
-# PAR
-df['par'] = df['cahaya_lux'] * LUX_TO_PAR
+# PAR (DIHAPUS/DIKOMENTAR: Fitur par dihapus dari FEATURE_COLS)
+# df['par'] = df['cahaya_lux'] * LUX_TO_PAR
 
 # T_scalar
 def calc_t_scalar(temp):
@@ -150,8 +137,8 @@ df['t_scalar'] = df['suhu_udara'].apply(
     lambda t: max(0.0, min(1.0, calc_t_scalar(t)))
 )
 
-# W_scalar
-df['w_scalar'] = (df['kelembapan_tanah'] / FIELD_CAPACITY).clip(0.0, 1.0)
+# W_scalar (DIHAPUS/DIKOMENTAR: Fitur w_scalar yang bergantung kelembapan tanah dihapus)
+# df['w_scalar'] = (df['kelembapan_tanah'] / FIELD_CAPACITY).clip(0.0, 1.0)
 
 # FIX #2: c_scalar dihitung dari CO2 BASELINE (bukan dari co2_ppm target!)
 # Gunakan rata-rata CO2 global + noise kecil, BUKAN nilai per-baris
@@ -161,10 +148,10 @@ print(f"  FIX c_scalar: mean={df['c_scalar'].mean():.3f}, "
       f"std={df['c_scalar'].std():.3f}, "
       f"corr dgn co2_ppm={df['c_scalar'].corr(df['co2_ppm']):.3f}")
 
-# GPP
-par_mj = df['par'] * PAR_TO_MJ_PER_HOUR * 0.5
+# GPP (tanpa w_scalar dan par)
+par_mj = (df['SW_IN_F'] * 120.0 * LUX_TO_PAR) * PAR_TO_MJ_PER_HOUR * 0.5 if 'SW_IN_F' in df.columns else 1.0
 df['gpp'] = (par_mj * df['fapar'] * df['epsilon'] *
-             df['t_scalar'] * df['w_scalar'] * df['c_scalar']).clip(0.0, None)
+             df['t_scalar'] * df['c_scalar']).clip(0.0, None)
 
 # RECO
 def calc_reco(temp_c):
@@ -255,12 +242,12 @@ print("\n--- Menghitung Lag & Rolling Features (Strategi 1) ---")
 
 # Karena data FLUXNET adalah 30-menitan, Lag 1 Jam = shift 2 baris
 df['suhu_udara_lag1'] = df['suhu_udara'].shift(2).bfill()
-df['kelembapan_tanah_lag1'] = df['kelembapan_tanah'].shift(2).bfill()
+# df['kelembapan_tanah_lag1'] = df['kelembapan_tanah'].shift(2).bfill()
 df['co2_lag1'] = df['co2_ppm'].shift(2).bfill()
 
 # Rata-rata dalam 6 jam terakhir (12 baris)
 df['suhu_udara_roll6'] = df['suhu_udara'].rolling(window=12, min_periods=1).mean()
-df['kelembapan_tanah_roll6'] = df['kelembapan_tanah'].rolling(window=12, min_periods=1).mean()
+# df['kelembapan_tanah_roll6'] = df['kelembapan_tanah'].rolling(window=12, min_periods=1).mean()
 
 # ═══════════════════════════════════════════════════════════════
 # LANGKAH 6.8: NEE dari FLUXNET (bukan turunan)
@@ -276,20 +263,15 @@ print("\n--- FIX Target Leakage: Shift +1 ---")
 df['target_co2_ppm'] = df['co2_ppm'].shift(-1)
 df['target_nee_agrisense'] = df['nee_agrisense'].shift(-1)
 df['target_carbon_potential_score'] = df['carbon_potential_score'].shift(-1)
-df['target_kelembapan_tanah'] = df['kelembapan_tanah'].shift(-1)
-df['target_ph_tanah'] = df['ph_tanah'].shift(-1)
+# df['target_kelembapan_tanah'] = df['kelembapan_tanah'].shift(-1)
+# df['target_ph_tanah'] = df['ph_tanah'].shift(-1)
 
 # Hapus baris terakhir (yang target-nya NaN karena shift)
 df = df.dropna(subset=['target_co2_ppm', 'target_nee_agrisense',
-                        'target_carbon_potential_score',
-                        'target_kelembapan_tanah', 'target_ph_tanah'])
+                        'target_carbon_potential_score'])
 df = df.reset_index(drop=True)
 
 print(f"  Baris setelah shift: {len(df)}")
-print(f"  Corr kelembapan_tanah(fitur) vs target: "
-      f"{df['kelembapan_tanah'].corr(df['target_kelembapan_tanah']):.4f}")
-print(f"  Corr ph_tanah(fitur) vs target: "
-      f"{df['ph_tanah'].corr(df['target_ph_tanah']):.4f}")
 print(f"  Corr c_scalar vs target_co2: "
       f"{df['c_scalar'].corr(df['target_co2_ppm']):.4f}")
 
@@ -297,27 +279,24 @@ print(f"  Corr c_scalar vs target_co2: "
 # LANGKAH 8: Susun Final DataFrame
 # ═══════════════════════════════════════════════════════════════
 FEATURE_COLS = [
-    'suhu_udara', 'kelembapan_udara', 'tekanan_hpa', 'cahaya_lux',
-    'kelembapan_tanah', 'suhu_tanah', 'ph_tanah', 'tvoc_ppb',
-    'n_mg_kg', 'p_mg_kg', 'k_mg_kg',
-    'epsilon', 'fapar', 'par',
-    't_scalar', 'w_scalar', 'c_scalar',
+    'suhu_udara', 'kelembapan_udara',
+    'epsilon', 'fapar',
+    't_scalar', 'c_scalar',
     'gpp', 'reco', 'npp',
     'soc_baseline_gC_m2', 'c_biomass_acc', 'c_current', 'c_max',
     'elapsed_hours', 'hour_sin', 'hour_cos', 'dow_sin', 'dow_cos',
     'is_daytime', 'is_cabai', 'has_full_data',
-    'suhu_udara_lag1', 'kelembapan_tanah_lag1', 'co2_lag1',
-    'suhu_udara_roll6', 'kelembapan_tanah_roll6',
+    'suhu_udara_lag1', 'co2_lag1',
+    'suhu_udara_roll6',
     'vpd_approx'
 ]
 
 TARGET_COLS = [
     'target_co2_ppm', 'target_nee_agrisense',
-    'target_carbon_potential_score',
-    'target_kelembapan_tanah', 'target_ph_tanah'
+    'target_carbon_potential_score'
 ]
 
-assert len(FEATURE_COLS) == 38, f"FATAL: {len(FEATURE_COLS)} fitur!"
+assert len(FEATURE_COLS) == 25, f"FATAL: {len(FEATURE_COLS)} fitur!"
 
 df_final = df[FEATURE_COLS + TARGET_COLS].copy()
 df_final = df_final.replace([np.inf, -np.inf], np.nan).dropna()

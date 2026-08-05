@@ -50,27 +50,23 @@ MANIFEST_PATH = BUNDLE_DIR / "model_manifest.json"
 # Feature columns yang digunakan oleh model SVM dan XGBoost
 # Harus sinkron dengan pipeline training (agrisense_ml_prototype.py)
 SENSOR_COLS = [
-    "CO2 (ppm)", "TVOC (ppb)", "Suhu Udara (°C)", "Kelembapan Udara (%)",
-    "Tekanan (hPa)", "Cahaya (Lux)", "Kelembapan Tanah (%)",
-    "Suhu Tanah (°C)", "pH Tanah", "N (mg/kg)", "P (mg/kg)", "K (mg/kg)",
+    "CO2 (ppm)", "Suhu Udara (°C)", "Kelembapan Udara (%)",
     "Baterai (%)", "RSSI (dBm)",
 ]
 
 ENGINEERED_COLS = [
     "sin_hour", "cos_hour", "sin_dow", "cos_dow", "is_night",
-    "vpd_approx", "npk_total", "npk_balance", "ph_sm_interact",
+    "vpd_approx",
 ]
 
 # Kolom yang dikenali alias oleh model
 ALIAS_MAP = {
     "Suhu Udara (°C)": "Temp (°C)",
     "Kelembapan Udara (%)": "Humidity (%)",
-    "Kelembapan Tanah (%)": "Soil Moisture (%)",
-    "pH Tanah": "pH",
     "Baterai (%)": "Battery (%)",
 }
 
-FORECAST_TARGETS = ["Soil Moisture (%)", "pH"]
+FORECAST_TARGETS = ["CO2 (ppm)"]
 FORECAST_HORIZONS = [1, 6, 24]
 
 
@@ -262,7 +258,7 @@ def main():
     parser = argparse.ArgumentParser(description="AgriSense ML Inference")
     parser.add_argument("input_json", help="Path ke file JSON input")
     parser.add_argument("--models", default="svm,xgboost,lstm", help="Model yang dijalankan (comma-separated)")
-    parser.add_argument("--targets", default="Soil Moisture (%),pH", help="Target prediksi (comma-separated)")
+    parser.add_argument("--targets", default="CO2 (ppm)", help="Target prediksi (comma-separated)")
     parser.add_argument("--horizons", default="1,6,24", help="Horizon prediksi dalam jam (comma-separated)")
 
     args = parser.parse_args()

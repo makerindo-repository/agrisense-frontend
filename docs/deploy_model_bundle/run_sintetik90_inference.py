@@ -28,17 +28,15 @@ MODEL_DIR = BUNDLE_DIR / "artifacts" / "sintetik_90"
 HORIZON_HOURS = 0
 
 FEATURE_COLS = [
-    'suhu_udara', 'kelembapan_udara', 'tekanan_hpa', 'cahaya_lux',
-    'kelembapan_tanah', 'suhu_tanah', 'ph_tanah', 'tvoc_ppb',
-    'n_mg_kg', 'p_mg_kg', 'k_mg_kg',
-    'epsilon', 'fapar', 'par',
-    't_scalar', 'w_scalar', 'c_scalar',
+    'suhu_udara', 'kelembapan_udara',
+    'epsilon', 'fapar',
+    't_scalar', 'c_scalar',
     'gpp', 'reco', 'npp',
     'soc_baseline_gC_m2', 'c_biomass_acc', 'c_current', 'c_max',
     'elapsed_hours', 'hour_sin', 'hour_cos', 'dow_sin', 'dow_cos',
     'is_daytime', 'is_cabai', 'has_full_data',
-    'suhu_udara_lag1', 'kelembapan_tanah_lag1', 'co2_lag1',
-    'suhu_udara_roll6', 'kelembapan_tanah_roll6',
+    'suhu_udara_lag1', 'co2_lag1',
+    'suhu_udara_roll6',
     'vpd_approx'
 ]
 
@@ -46,8 +44,6 @@ TARGETS = {
     "co2_ppm": "CO2 (ppm)",
     "nee_agrisense": "Carbon Flux (NEE AgriSense)",
     "carbon_potential_score": "Carbon Potential Score",
-    "kelembapan_tanah": "Soil Moisture (%)",
-    "ph_tanah": "pH Tanah",
 }
 
 
@@ -97,10 +93,6 @@ def _load_input(input_path: str) -> pd.DataFrame:
     if 'suhu_udara' in df.columns:
         df['suhu_udara_lag1'] = df['suhu_udara'].shift(2).bfill()
         df['suhu_udara_roll6'] = df['suhu_udara'].rolling(window=12, min_periods=1).mean()
-        
-    if 'kelembapan_tanah' in df.columns:
-        df['kelembapan_tanah_lag1'] = df['kelembapan_tanah'].shift(2).bfill()
-        df['kelembapan_tanah_roll6'] = df['kelembapan_tanah'].rolling(window=12, min_periods=1).mean()
         
     if 'CO2 (ppm)' in df.columns:
         df['co2_lag1'] = df['CO2 (ppm)'].shift(2).bfill()
