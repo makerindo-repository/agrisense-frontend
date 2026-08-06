@@ -258,12 +258,12 @@ services:
       - MAIL_PASSWORD=${MAIL_PASSWORD:-}
       - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-hello@agrisense.id}
       - MAIL_FROM_NAME=${MAIL_FROM_NAME:-AgriSense}
-      - MQTT_HOST=broker.emqx.io
-      - MQTT_FORWARD_URL=http://agrisense-nginx/api/iot/agrisense/readings
-      - MQTT_PORT=1883
-      - MQTT_USERNAME=
-      - MQTT_PASSWORD=
-      - MQTT_TLS_VERIFY_PEER=false
+      - MQTT_HOST=${MQTT_HOST:-broker.emqx.io}
+      - MQTT_FORWARD_URL=${MQTT_FORWARD_URL:-http://agrisense-nginx/api/iot/agrisense/readings}
+      - MQTT_PORT=${MQTT_PORT:-1883}
+      - MQTT_USERNAME=${MQTT_USERNAME:-}
+      - MQTT_PASSWORD=${MQTT_PASSWORD:-}
+      - MQTT_TLS_VERIFY_PEER=${MQTT_TLS_VERIFY_PEER:-false}
     volumes:
       - ./backend/app/Console/Commands:/app/backend/app/Console/Commands
       - ./backend/.env:/app/backend/.env
