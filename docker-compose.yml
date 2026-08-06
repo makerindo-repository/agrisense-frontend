@@ -36,8 +36,8 @@ services:
       - DB_HOST=db
       - DB_PORT=3306
       - DB_DATABASE=${DB_DATABASE:-agrisense}
-      - DB_USERNAME=${DB_APP_USERNAME:-agrisense}
-      - DB_PASSWORD=${DB_APP_PASSWORD:-${DB_PASSWORD:-change_this_db_password}}
+      - DB_USERNAME=${DB_USERNAME:-agrisense}
+      - DB_PASSWORD=${DB_PASSWORD:-change_this_db_password}
       - CACHE_DRIVER=redis
       - CACHE_STORE=redis
       - QUEUE_CONNECTION=redis
@@ -69,6 +69,13 @@ services:
       - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-hello@agrisense.id}
       - MAIL_FROM_NAME=${MAIL_FROM_NAME:-AgriSense}
       - RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY:-}
+      - MQTT_HOST=${MQTT_HOST:-broker.emqx.io}
+      - MQTT_PORT=${MQTT_PORT:-1883}
+      - MQTT_USERNAME=${MQTT_USERNAME:-}
+      - MQTT_PASSWORD=${MQTT_PASSWORD:-}
+      - MQTT_TLS_VERIFY_PEER=${MQTT_TLS_VERIFY_PEER:-false}
+      - MQTT_TOPIC=${MQTT_TOPIC:-agrisense/iot/readings}
+      - MQTT_FORWARD_URL=${MQTT_FORWARD_URL:-http://agrisense-nginx/api/iot/agrisense/readings}
     volumes:
       - ./backend/storage:/app/backend/storage
       - ./backend/bootstrap/cache:/app/backend/bootstrap/cache
@@ -107,8 +114,8 @@ services:
       - DB_HOST=db
       - DB_PORT=3306
       - DB_DATABASE=${DB_DATABASE:-agrisense}
-      - DB_USERNAME=${DB_APP_USERNAME:-agrisense}
-      - DB_PASSWORD=${DB_APP_PASSWORD:-${DB_PASSWORD:-change_this_db_password}}
+      - DB_USERNAME=${DB_USERNAME:-agrisense}
+      - DB_PASSWORD=${DB_PASSWORD:-change_this_db_password}
       - CACHE_DRIVER=redis
       - CACHE_STORE=redis
       - QUEUE_CONNECTION=redis
@@ -168,8 +175,8 @@ services:
       - DB_HOST=db
       - DB_PORT=3306
       - DB_DATABASE=${DB_DATABASE:-agrisense}
-      - DB_USERNAME=${DB_APP_USERNAME:-agrisense}
-      - DB_PASSWORD=${DB_APP_PASSWORD:-${DB_PASSWORD:-change_this_db_password}}
+      - DB_USERNAME=${DB_USERNAME:-agrisense}
+      - DB_PASSWORD=${DB_PASSWORD:-change_this_db_password}
       - CACHE_DRIVER=redis
       - CACHE_STORE=redis
       - QUEUE_CONNECTION=redis
@@ -229,8 +236,8 @@ services:
       - DB_HOST=db
       - DB_PORT=3306
       - DB_DATABASE=${DB_DATABASE:-agrisense}
-      - DB_USERNAME=${DB_APP_USERNAME:-agrisense}
-      - DB_PASSWORD=${DB_APP_PASSWORD:-${DB_PASSWORD:-change_this_db_password}}
+      - DB_USERNAME=${DB_USERNAME:-agrisense}
+      - DB_PASSWORD=${DB_PASSWORD:-change_this_db_password}
       - CACHE_DRIVER=redis
       - CACHE_STORE=redis
       - QUEUE_CONNECTION=redis
@@ -287,8 +294,8 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: ${DB_DATABASE:-agrisense}
-      MYSQL_USER: ${DB_APP_USERNAME:-agrisense}
-      MYSQL_PASSWORD: ${DB_APP_PASSWORD:-${DB_PASSWORD:-change_this_db_password}}
+      MYSQL_USER: ${DB_USERNAME:-agrisense}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-change_this_db_password}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-change_this_root_password}
       MYSQL_ALLOW_EMPTY_PASSWORD: 'false'
     volumes:
