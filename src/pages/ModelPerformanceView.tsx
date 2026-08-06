@@ -65,7 +65,7 @@ interface TrainingHistoryPoint {
 
 const metricHeaderHelp: Record<string, string> = {
   Model: 'Nama algoritma AI yang menghasilkan prediksi, misalnya SVM, XGBoost, atau LSTM.',
-  Target: 'Variabel yang sedang diprediksi atau dievaluasi, seperti Carbon Flux, CO2, CPS, Soil Moisture, atau pH Tanah.',
+  Target: 'Variabel yang sedang diprediksi atau dievaluasi oleh model AI (contoh: Carbon Flux, CO2, atau CPS).',
   Horizon: 'Rentang proyeksi yang ditampilkan. Estimasi saat ini berasal langsung dari model, sedangkan 1/6/24 jam adalah proyeksi terkalibrasi.',
   'Pasangan Data': 'Jumlah prediksi yang berhasil dicocokkan dengan data aktual. Semakin banyak pasangan data, evaluasi semakin dapat dipercaya.',
   MAE: 'Rata-rata besar kesalahan prediksi. Semakin kecil nilainya, model semakin dekat dengan data aktual.',
