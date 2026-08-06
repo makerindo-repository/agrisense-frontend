@@ -242,7 +242,10 @@ export default function ModelPerformanceView({ nodes }: { nodes?: any[] }) {
 
   const availableTargets = useMemo(() => {
     const targets = new Set(comparisonGroups.map((g) => g.target));
-    return Array.from(targets) as string[];
+    // Force filter to ensure old cached backend data doesn't leak into the UI
+    const validTargets = ['CO2 (ppm)', 'Carbon Flux (NEE AgriSense)', 'Carbon Potential Score'];
+    const filtered = Array.from(targets).filter(t => validTargets.includes(t)) as string[];
+    return filtered.length > 0 ? filtered : validTargets;
   }, [comparisonGroups]);
 
   const availableHorizons = useMemo(() => {
