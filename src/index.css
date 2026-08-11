@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
@@ -7,7 +7,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   --radius-lg: var(--radius);
@@ -83,7 +83,7 @@
     --card-foreground: hsl(240 10% 3.9%);
     --popover: hsl(0 0% 100%);
     --popover-foreground: hsl(240 10% 3.9%);
-    --primary: hsl(142 76% 36%); /* Forest Green for AgriSense */
+    --primary: hsl(142 76% 36%); /* Premium Forest Emerald for AgriSense */
     --primary-foreground: hsl(355.7 100% 97.3%);
     --secondary: hsl(240 4.8% 95.9%);
     --secondary-foreground: hsl(240 5.9% 10%);
@@ -91,12 +91,12 @@
     --muted-foreground: hsl(240 3.8% 46.1%);
     --accent: hsl(240 4.8% 95.9%);
     --accent-foreground: hsl(240 5.9% 10%);
-    --destructive: hsl(0 84.2% 60.2%);
+    --destructive: hsl(346 84% 61%);
     --destructive-foreground: hsl(0 0% 98%);
     --border: hsl(240 5.9% 90%);
     --input: hsl(240 5.9% 90%);
     --ring: hsl(142 76% 36%);
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     --chart-1: hsl(142 76% 36%);
     --chart-2: hsl(173 58% 39%);
     --chart-3: hsl(197 37% 24%);
@@ -114,24 +114,24 @@
   }
 
   .dark {
-    --background: hsl(20 14.3% 4.1%);
-    --foreground: hsl(0 0% 95%);
-    --card: hsl(24 9.8% 10%);
-    --card-foreground: hsl(0 0% 95%);
-    --popover: hsl(0 0% 9%);
-    --popover-foreground: hsl(0 0% 95%);
+    --background: hsl(240 10% 4%);
+    --foreground: hsl(0 0% 98%);
+    --card: hsl(240 8% 7%);
+    --card-foreground: hsl(0 0% 98%);
+    --popover: hsl(240 8% 7%);
+    --popover-foreground: hsl(0 0% 98%);
     --primary: hsl(142 70% 45%);
     --primary-foreground: hsl(144.4 96.6% 11.4%);
     --secondary: hsl(240 3.7% 15.9%);
     --secondary-foreground: hsl(0 0% 98%);
-    --muted: hsl(0 0% 15%);
-    --muted-foreground: hsl(240 5% 64.9%);
-    --accent: hsl(12 6.5% 15.1%);
+    --muted: hsl(240 5% 12%);
+    --muted-foreground: hsl(240 5% 65%);
+    --accent: hsl(240 5% 15%);
     --accent-foreground: hsl(0 0% 98%);
-    --destructive: hsl(0 62.8% 30.6%);
+    --destructive: hsl(346 75% 48%);
     --destructive-foreground: hsl(0 85.7% 97.3%);
-    --border: hsl(240 3.7% 15.9%);
-    --input: hsl(240 3.7% 15.9%);
+    --border: hsl(240 5% 16%);
+    --input: hsl(240 5% 16%);
     --ring: hsl(142 70% 45%);
     --chart-1: hsl(142 70% 45%);
     --chart-2: hsl(160 60% 45%);
@@ -139,13 +139,13 @@
     --chart-4: hsl(280 65% 60%);
     --chart-5: hsl(340 75% 55%);
     
-    --sidebar-background: hsl(240 5.9% 10%);
-    --sidebar-foreground: hsl(240 5% 64.9%);
+    --sidebar-background: hsl(240 8% 6%);
+    --sidebar-foreground: hsl(240 5% 65%);
     --sidebar-primary: hsl(142 70% 45%);
     --sidebar-primary-foreground: hsl(0 0% 98%);
-    --sidebar-accent: hsl(240 3.7% 15.9%);
+    --sidebar-accent: hsl(240 5% 12%);
     --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-    --sidebar-border: hsl(240 3.7% 15.9%);
+    --sidebar-border: hsl(240 5% 16%);
     --sidebar-ring: hsl(142 70% 45%);
   }
 }
@@ -153,6 +153,7 @@
 @layer base {
   html {
     background-color: var(--background);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
   * {
     border-color: var(--border);
@@ -161,12 +162,12 @@
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
-    height: 100dvh; /* Dynamic viewport height for mobile */
+    height: 100dvh;
     margin: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    @apply antialiased;
+    @apply antialiased subpixel-antialiased;
   }
   #root {
     flex: 1;
@@ -175,6 +176,22 @@
     overflow: hidden;
     min-height: 0;
   }
+}
+
+/* Global Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 120, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 120, 0.4);
 }
 
 /* Fix missing Leaflet Draw icons in Vite/React */
@@ -186,10 +203,20 @@
   background-image: url('https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/images/spritesheet.svg') !important;
 }
 
-/* Perkecil ukuran logo reCAPTCHA di pojok kanan bawah */
+/* Sembunyikan atribusi copyright Leaflet di pojok kanan bawah */
+.leaflet-control-attribution {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Sembunyikan badge reCAPTCHA Google di pojok kanan bawah */
 .grecaptcha-badge {
-  transform: scale(0.85);
-  transform-origin: bottom right;
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* Custom Calendar Icon for date inputs */
@@ -201,3 +228,297 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 input[type="date"]::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
 }
+
+/* Clean Glassmorphic Leaflet Tooltip & Map Container Reset */
+.leaflet-tooltip.clean-map-tooltip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.leaflet-tooltip.clean-map-tooltip::before {
+  display: none !important;
+}
+
+.leaflet-container {
+  background-color: #0f172a !important;
+  font-family: var(--font-sans) !important;
+  outline: none !important;
+}
+
+/* High-Contrast Modern Styling for Leaflet Draw & Zoom Controls */
+.leaflet-top.leaflet-left {
+  margin-top: 12px !important;
+  margin-left: 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  align-items: center !important;
+  z-index: 450 !important;
+}
+
+.leaflet-top.leaflet-left .leaflet-control {
+  float: none !important;
+  margin: 0 !important;
+  clear: none !important;
+}
+
+.leaflet-bar,
+.leaflet-draw-toolbar,
+.leaflet-control-zoom,
+.leaflet-control-layers:not(.leaflet-control-layers-expanded) {
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  background: #ffffff !important;
+  border-radius: 14px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1) !important;
+  overflow: hidden !important;
+  padding: 2px !important;
+  margin: 0 !important;
+  width: 40px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.leaflet-control-layers-expanded {
+  width: auto !important;
+  min-width: 130px !important;
+  max-width: 220px !important;
+  padding: 10px 14px !important;
+  border-radius: 16px !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.3) !important;
+  color: #0f172a !important;
+}
+
+.leaflet-control-layers-expanded .leaflet-control-layers-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.leaflet-control-layers-expanded label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  margin: 0 !important;
+}
+
+.leaflet-control-layers-expanded input[type="radio"] {
+  accent-color: #10b981 !important;
+  width: 14px !important;
+  height: 14px !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+}
+
+.leaflet-draw-section:not(:first-child),
+.leaflet-draw-section + .leaflet-draw-section {
+  margin-top: 10px !important;
+}
+
+.leaflet-bar a,
+.leaflet-draw-toolbar a,
+.leaflet-control-zoom a {
+  background-color: #ffffff !important;
+  border: none !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  color: #0f172a !important;
+  width: 34px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  font-family: var(--font-sans) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 10px !important;
+  margin: 1px 0 !important;
+  text-decoration: none !important;
+}
+
+.leaflet-bar a:last-child,
+.leaflet-draw-toolbar a:last-child {
+  border-bottom: none !important;
+}
+
+.leaflet-bar a:hover,
+.leaflet-draw-toolbar a:hover,
+.leaflet-control-zoom a:hover {
+  background-color: #ecfdf5 !important;
+  color: #059669 !important;
+  transform: scale(1.06);
+}
+
+/* High-Contrast Crisp SVG Icons for Leaflet Draw Buttons & Controls (Touch-safe High Specificity) */
+.leaflet-draw-toolbar a.leaflet-draw-draw-polygon,
+.leaflet-touch .leaflet-draw-toolbar a.leaflet-draw-draw-polygon,
+.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-polygon {
+  background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%230f172a%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%202l9%207-4%2012H7L3%209z%22%2F%3E%3C%2Fsvg%3E') !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 18px 18px !important;
+}
+
+.leaflet-draw-toolbar a.leaflet-draw-draw-rectangle,
+.leaflet-touch .leaflet-draw-toolbar a.leaflet-draw-draw-rectangle,
+.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-rectangle {
+  background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%230f172a%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20width%3D%2218%22%20height%3D%2218%22%20x%3D%223%22%20y%3D%223%22%20rx%3D%222%22%2F%3E%3C%2Fsvg%3E') !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 18px 18px !important;
+}
+
+.leaflet-draw-toolbar a.leaflet-draw-edit-edit,
+.leaflet-touch .leaflet-draw-toolbar a.leaflet-draw-edit-edit,
+.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-edit-edit {
+  background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%230f172a%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2020h9%22%2F%3E%3Cpath%20d%3D%22M16.5%203.5a2.121%202.121%200%200%201%203%203L7%2019l-4%201%201-4L16.5%203.5z%22%2F%3E%3C%2Fsvg%3E') !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 18px 18px !important;
+}
+
+.leaflet-draw-toolbar a.leaflet-draw-edit-remove,
+.leaflet-touch .leaflet-draw-toolbar a.leaflet-draw-edit-remove,
+.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-edit-remove {
+  background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ef4444%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%223%206%205%206%2021%206%22%2F%3E%3Cpath%20d%3D%22M19%206v14a2%202%200%200%201-2%202H7a2%202%200%200%201-2-2V6m3%200V4a2%202%200%200%201%202-2h4a2%202%200%200%201%202%202v2%22%2F%3E%3C%2Fsvg%3E') !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 18px 18px !important;
+}
+
+.leaflet-control-layers-toggle,
+.leaflet-touch .leaflet-control-layers-toggle {
+  background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%230f172a%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolygon%20points%3D%2212%202%202%207%2012%2012%2022%207%2012%202%22%2F%3E%3Cpolyline%20points%3D%222%2017%2012%2022%2022%2017%22%2F%3E%3Cpolyline%20points%3D%222%2012%2012%2017%2022%2012%22%2F%3E%3C%2Fsvg%3E') !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 18px 18px !important;
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 10px !important;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-touch .leaflet-control-zoom-in {
+  background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%230f172a%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cline%20x1%3D%2212%22%20y1%3D%225%22%20x2%3D%2212%22%20y2%3D%2219%22%2F%3E%3Cline%20x1%3D%225%22%20y1%3D%2212%22%20x2%3D%2219%22%20y2%3D%2212%22%2F%3E%3C%2Fsvg%3E') !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 16px 16px !important;
+  font-size: 0 !important;
+  text-indent: -9999px !important;
+}
+
+.leaflet-control-zoom-out,
+.leaflet-touch .leaflet-control-zoom-out {
+  background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%230f172a%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cline%20x1%3D%225%22%20y1%3D%2212%22%20x2%3D%2219%22%20y2%3D%2212%22%2F%3E%3C%2Fsvg%3E') !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 16px 16px !important;
+  font-size: 0 !important;
+  text-indent: -9999px !important;
+}
+
+.leaflet-disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+}
+
+/* Modern styling for Leaflet Draw Actions Toolbar ("Selesai", "Hapus Titik", "Batal") */
+.leaflet-draw-actions,
+.leaflet-touch .leaflet-draw-actions {
+  background: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+  padding: 5px 6px !important;
+  left: 54px !important;
+  top: 0 !important;
+  white-space: nowrap !important;
+}
+
+.leaflet-draw-actions li {
+  display: inline-block !important;
+  margin: 0 3px !important;
+  height: auto !important;
+}
+
+.leaflet-draw-actions a {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  padding: 6px 14px !important;
+  border-radius: 10px !important;
+  text-decoration: none !important;
+  height: auto !important;
+  line-height: normal !important;
+  width: auto !important;
+  transition: all 0.2s ease !important;
+  border: none !important;
+}
+
+.leaflet-draw-actions a:hover {
+  background-color: #059669 !important;
+  color: #ffffff !important;
+  transform: scale(1.04);
+}
+
+.leaflet-draw-actions li:last-child a {
+  background-color: #ef4444 !important;
+}
+
+.leaflet-draw-actions li:last-child a:hover {
+  background-color: #dc2626 !important;
+}
+
+/* Custom Leaflet Tooltip for Lahan Induk (Blue) */
+.leaflet-tooltip.custom-leaflet-tooltip-land {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.8) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  border-radius: 12px !important;
+  padding: 6px 12px !important;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.45) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+.leaflet-tooltip.custom-leaflet-tooltip-land::before {
+  border-top-color: #2563eb !important;
+  border-bottom-color: #2563eb !important;
+  border-left-color: #2563eb !important;
+  border-right-color: #2563eb !important;
+}
+
+/* Custom Leaflet Tooltip for Kebun / Blok (Green) */
+.leaflet-tooltip.custom-leaflet-tooltip-garden {
+  background: linear-gradient(135deg, #047857, #10b981) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.8) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  border-radius: 12px !important;
+  padding: 6px 12px !important;
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.45) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+.leaflet-tooltip.custom-leaflet-tooltip-garden::before {
+  border-top-color: #10b981 !important;
+  border-bottom-color: #10b981 !important;
+  border-left-color: #10b981 !important;
+  border-right-color: #10b981 !important;
+}
+
+

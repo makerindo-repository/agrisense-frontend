@@ -3,17 +3,18 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, X } from 'lucide-react';
+import { Save, X, MapPin, Trees, Sprout } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import api from '../../lib/api';
 import { reverseGeocode } from '../../utils/geolocation';
 import { generateUniqueCode } from '../../utils/generators';
+import { useTranslation } from 'react-i18next';
 import LeafletDrawMap, { PolygonDrawResult } from '../LeafletDrawMap';
 
-// Import types if needed
-import { LandPlot, Garden } from '../../lib/mockData';
+import { LandPlot, Garden, mockLandPlots, mockGardens } from '../../lib/mockData';
 
 export interface AreaFormModalProps {
   isOpen: boolean;
@@ -84,6 +85,7 @@ export default function AreaFormModal({
   komoditiList,
   onSaveSuccess,
 }: AreaFormModalProps) {
+  const { t } = useTranslation();
   const [landForm, setLandForm] = useState(emptyLandForm);
   const [gardenForm, setGardenForm] = useState(emptyGardenForm);
   const [plantingForm, setPlantingForm] = useState(emptyPlantingForm);
@@ -98,18 +100,26 @@ export default function AreaFormModal({
     return komoditiList.filter(k => k.kategori_tanaman === selectedCategory && k.status === 'Aktif');
   }, [komoditiList, selectedCategory]);
 
+  const effectiveLandPlots = useMemo(() => {
+    return Array.isArray(landPlots) && landPlots.length > 0 ? landPlots : mockLandPlots;
+  }, [landPlots]);
+
+  const effectiveGardens = useMemo(() => {
+    return Array.isArray(gardens) && gardens.length > 0 ? gardens : mockGardens;
+  }, [gardens]);
+
   const filteredGardensForPlanting = useMemo(() => {
-    if (!plantingForm.land_plot_id) return gardens;
-    return gardens.filter(g => g.land_plot_id === plantingForm.land_plot_id);
-  }, [gardens, plantingForm.land_plot_id]);
+    if (!plantingForm.land_plot_id) return effectiveGardens;
+    return effectiveGardens.filter(g => Number(g.land_plot_id || g.lahanId || g.lahan_id) === Number(plantingForm.land_plot_id));
+  }, [effectiveGardens, plantingForm.land_plot_id]);
 
   const selectedParentPolygon = useMemo(() => {
     if (activeTab === 'kebun' && gardenForm.land_plot_id) {
-      const parent = landPlots.find(l => l.id === gardenForm.land_plot_id);
+      const parent = effectiveLandPlots.find(l => Number(l.id) === Number(gardenForm.land_plot_id));
       return parent?.polygon;
     }
     return null;
-  }, [activeTab, gardenForm.land_plot_id, landPlots]);
+  }, [activeTab, gardenForm.land_plot_id, effectiveLandPlots]);
 
   const selectedParentColor = useMemo(() => {
     if (activeTab === 'kebun' && gardenForm.land_plot_id) {
@@ -125,6 +135,12 @@ export default function AreaFormModal({
     }
     return [];
   }, [activeTab, gardenForm.land_plot_id, gardens, editingGarden]);
+
+  const searchablePlots = useMemo(() => {
+    const lands = (landPlots || []).map(l => ({ id: l.id, name: l.plot_name, code: l.plot_code, latitude: l.latitude, longitude: l.longitude, polygon: l.polygon }));
+    const kbns = (gardens || []).map(g => ({ id: g.id, name: g.garden_name, code: g.garden_code, latitude: g.latitude, longitude: g.longitude, polygon: g.polygon }));
+    return [...lands, ...kbns];
+  }, [landPlots, gardens]);
 
   useEffect(() => {
     if (isOpen) {
@@ -393,274 +409,277 @@ export default function AreaFormModal({
   return (
     <Dialog open={isOpen} onOpenChange={(val) => { if (!isSubmitting) onOpenChange(val); }}>
       <DialogContent className={cn(
-        "sm:max-w-[1100px] p-0 overflow-hidden rounded-2xl border-none shadow-2xl max-h-[92vh] flex flex-col",
-        activeTab === 'tanaman' && "sm:max-w-[600px]"
+        "sm:max-w-[1150px] p-0 overflow-hidden rounded-[28px] border border-border/80 shadow-2xl max-h-[92vh] flex flex-col bg-card",
+        activeTab === 'tanaman' && "sm:max-w-[620px]"
       )}>
-        <DialogHeader className="px-6 pt-6 pb-3 border-b border-border/50">
-          <DialogTitle className="text-xl font-bold">
-            {activeTab === 'lahan'
-              ? (editingLand ? 'Edit Data Lahan' : 'Tambah Lahan Baru')
-              : activeTab === 'kebun'
-              ? (editingGarden ? 'Edit Data Kebun' : 'Tambah Kebun Baru')
-              : (editingPlanting ? 'Edit Data Tanaman' : 'Tambah Tanaman Aktif')
-            }
-          </DialogTitle>
-          <DialogDescription>
-            {activeTab === 'lahan'
-              ? 'Gambar batas area lahan di peta, lalu isi data di sebelah kanan.'
-              : activeTab === 'kebun'
-              ? 'Pilih Lahan Induk, lalu gambar blok kebun di dalam area lahan.'
-              : 'Isi formulir untuk mendaftarkan tanaman yang sedang aktif dipantau.'
-            }
-          </DialogDescription>
+        {/* Modal Header */}
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/60 flex flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className={cn(
+              "p-3 rounded-2xl border shadow-xs shrink-0",
+              activeTab === 'lahan' ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20" :
+              activeTab === 'kebun' ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" :
+              "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+            )}>
+              {activeTab === 'lahan' ? <MapPin size={22} /> : activeTab === 'kebun' ? <Trees size={22} /> : <Sprout size={22} />}
+            </div>
+            <div>
+              <div className="flex items-center gap-2.5">
+                <DialogTitle className="text-lg font-black tracking-tight text-foreground">
+                  {activeTab === 'lahan'
+                    ? (editingLand ? 'Edit Data Lahan Induk' : 'Tambah Lahan Induk Baru')
+                    : activeTab === 'kebun'
+                    ? (editingGarden ? 'Edit Data Kebun / Blok' : 'Tambah Kebun / Blok Baru')
+                    : (editingPlanting ? 'Edit Data Tanaman Aktif' : 'Tambah Tanaman Aktif Baru')
+                  }
+                </DialogTitle>
+                <Badge variant="secondary" className="font-mono text-[10px] font-bold px-2 py-0.5">
+                  {activeTab === 'lahan' ? landForm.plot_code : activeTab === 'kebun' ? gardenForm.garden_code : 'TANAMAN'}
+                </Badge>
+              </div>
+              <DialogDescription className="text-xs font-semibold text-muted-foreground mt-0.5">
+                {activeTab === 'lahan'
+                  ? 'Gambar poligon batas lahan di peta kiri, lalu lengkapi informasi lahan di sebelah kanan.'
+                  : activeTab === 'kebun'
+                  ? 'Pilih Lahan Induk, lalu gambar blok zonasi kebun di dalam area lahan tersebut.'
+                  : 'Isi formulir untuk mendaftarkan tanaman yang sedang aktif dipantau.'
+                }
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
+        {/* Modal Main Body */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
-          {/* ── LEFT: MAP (50%) ── */}
+          {/* ── LEFT: GIS MAP VIEWPORT (50%) ── */}
           {activeTab !== 'tanaman' && (
-            <div className="w-full lg:w-[50%] relative bg-muted/10 min-h-[300px]">
-            <div className="absolute top-4 right-4 z-[1000] bg-background/80 backdrop-blur-sm px-4 py-2 rounded-md border border-border shadow-sm pointer-events-none whitespace-nowrap">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                Petunjuk: Klik tombol di kiri peta untuk menggambar poligon area
-              </p>
-            </div>
+            <div className="w-full lg:w-[50%] relative bg-slate-950 min-h-[320px] flex flex-col justify-between">
+              {/* Floating Map Top Hint */}
+              <div className="absolute top-3 left-16 right-3 z-[400] pointer-events-none">
+                <div className="bg-slate-900/90 backdrop-blur-md text-white border border-white/15 rounded-xl px-3.5 py-1.5 flex items-center gap-2 text-[11px] font-bold shadow-xl">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                  <span className="truncate">{t('Petunjuk: Gunakan toolbar di kiri peta untuk menggambar atau mengedit poligon')}</span>
+                </div>
+              </div>
 
-            {activeTab === 'lahan' ? (
-              <LeafletDrawMap
-                height="100%"
-                existingPolygon={landForm.polygon}
-                drawColor={landForm.color || '#F59E0B'}
-                onPolygonChange={async (res: PolygonDrawResult | null) => {
-                  if (res) {
-                    setLandForm(prev => ({
-                      ...prev,
-                      polygon: res.polygon,
-                      latitude: res.latitude,
-                      longitude: res.longitude,
-                      area_hectare: res.area_hectare,
-                    }));
-                    if (res.latitude && res.longitude) {
-                      const addr = await reverseGeocode(res.latitude, res.longitude);
-                      if (addr) setLandForm(prev => ({ ...prev, address: addr }));
+              {activeTab === 'lahan' ? (
+                <LeafletDrawMap
+                  height="100%"
+                  existingPolygon={landForm.polygon}
+                  drawColor="#3B82F6"
+                  onPolygonChange={async (res: PolygonDrawResult | null) => {
+                    if (res) {
+                      setLandForm(prev => ({
+                        ...prev,
+                        polygon: res.polygon,
+                        latitude: res.latitude,
+                        longitude: res.longitude,
+                        area_hectare: res.area_hectare,
+                        color: '#3B82F6',
+                      }));
+                      if (res.latitude && res.longitude) {
+                        const addr = await reverseGeocode(res.latitude, res.longitude);
+                        if (addr) setLandForm(prev => ({ ...prev, address: addr }));
+                      }
+                    } else {
+                      setLandForm(prev => ({ ...prev, polygon: null, area_hectare: 0, latitude: 0, longitude: 0 }));
                     }
-                  } else {
-                    setLandForm(prev => ({ ...prev, polygon: null, area_hectare: 0, latitude: 0, longitude: 0 }));
-                  }
-                }}
-              >
-                <div className="absolute bottom-2 left-2 z-[1000] bg-background/95 backdrop-blur-sm p-2.5 rounded-lg border border-border shadow-xl flex flex-col gap-1 text-[9px] font-semibold min-w-[130px]">
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground uppercase">Luas Area</span>
-                    <span className="text-foreground">{Number(landForm.area_hectare || 0).toFixed(3)} Ha</span>
+                  }}
+                >
+                  <div className="absolute bottom-4 left-4 z-[400] bg-card/95 backdrop-blur-md p-3 rounded-2xl border border-border/80 shadow-2xl flex flex-col gap-1 text-[11px] font-bold min-w-[170px] text-foreground">
+                    <div className="flex justify-between items-center gap-4">
+                      <span className="text-muted-foreground uppercase text-[9px]">Luas Area</span>
+                      <span className="text-blue-600 dark:text-blue-400 font-black">{Number(landForm.area_hectare || 0).toFixed(2)} Ha</span>
+                    </div>
+                    <div className="flex justify-between items-center gap-4 border-t border-border/40 pt-1">
+                      <span className="text-muted-foreground uppercase text-[9px]">Latitude</span>
+                      <span className="font-mono text-foreground">{Number(landForm.latitude || 0).toFixed(6)}</span>
+                    </div>
+                    <div className="flex justify-between items-center gap-4">
+                      <span className="text-muted-foreground uppercase text-[9px]">Longitude</span>
+                      <span className="font-mono text-foreground">{Number(landForm.longitude || 0).toFixed(6)}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground uppercase">Latitude</span>
-                    <span className="text-foreground">{Number(landForm.latitude || 0).toFixed(7)}</span>
+                </LeafletDrawMap>
+              ) : (
+                <LeafletDrawMap
+                  height="100%"
+                  existingPolygon={gardenForm.polygon}
+                  parentLandPolygon={selectedParentPolygon}
+                  parentLandColor="#3B82F6"
+                  existingGardens={siblingGardens}
+                  drawColor="#10B981"
+                  onPolygonChange={async (res: PolygonDrawResult | null) => {
+                    if (res) {
+                      setGardenForm(prev => ({
+                        ...prev,
+                        polygon: res.polygon,
+                        latitude: res.latitude,
+                        longitude: res.longitude,
+                        area_hectare: res.area_hectare,
+                        color: '#10B981',
+                      }));
+                    } else {
+                      setGardenForm(prev => ({ ...prev, polygon: null, area_hectare: 0, latitude: 0, longitude: 0 }));
+                    }
+                  }}
+                >
+                  <div className="absolute bottom-4 left-4 z-[400] bg-card/95 backdrop-blur-md p-3 rounded-2xl border border-border/80 shadow-2xl flex flex-col gap-1 text-[11px] font-bold min-w-[170px] text-foreground">
+                    <div className="flex justify-between items-center gap-4">
+                      <span className="text-muted-foreground uppercase text-[9px]">Luas Blok</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-black">{Number(gardenForm.area_hectare || 0).toFixed(2)} Ha</span>
+                    </div>
+                    <div className="flex justify-between items-center gap-4 border-t border-border/40 pt-1">
+                      <span className="text-muted-foreground uppercase text-[9px]">Latitude</span>
+                      <span className="font-mono text-foreground">{Number(gardenForm.latitude || 0).toFixed(6)}</span>
+                    </div>
+                    <div className="flex justify-between items-center gap-4">
+                      <span className="text-muted-foreground uppercase text-[9px]">Longitude</span>
+                      <span className="font-mono text-foreground">{Number(gardenForm.longitude || 0).toFixed(6)}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground uppercase">Longitude</span>
-                    <span className="text-foreground">{Number(landForm.longitude || 0).toFixed(7)}</span>
-                  </div>
-                </div>
-              </LeafletDrawMap>
-            ) : (
-              <LeafletDrawMap
-                height="100%"
-                existingPolygon={gardenForm.polygon}
-                parentLandPolygon={selectedParentPolygon}
-                parentLandColor={selectedParentColor}
-                existingGardens={siblingGardens}
-                drawColor={gardenForm.color || '#22C55E'}
-                onPolygonChange={async (res: PolygonDrawResult | null) => {
-                  if (res) {
-                    setGardenForm(prev => ({
-                      ...prev,
-                      polygon: res.polygon,
-                      latitude: res.latitude,
-                      longitude: res.longitude,
-                      area_hectare: res.area_hectare,
-                    }));
-                  } else {
-                    setGardenForm(prev => ({ ...prev, polygon: null, area_hectare: 0, latitude: 0, longitude: 0 }));
-                  }
-                }}
-              >
-                <div className="absolute bottom-2 left-2 z-[1000] bg-background/95 backdrop-blur-sm p-2.5 rounded-lg border border-border shadow-xl flex flex-col gap-1 text-[9px] font-semibold min-w-[130px]">
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground uppercase">Luas Blok</span>
-                    <span className="text-foreground">{Number(gardenForm.area_hectare || 0).toFixed(3)} Ha</span>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground uppercase">Latitude</span>
-                    <span className="text-foreground">{Number(gardenForm.latitude || 0).toFixed(7)}</span>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground uppercase">Longitude</span>
-                    <span className="text-foreground">{Number(gardenForm.longitude || 0).toFixed(7)}</span>
-                  </div>
-                </div>
-              </LeafletDrawMap>
-            )}
-          </div>
+                </LeafletDrawMap>
+              )}
+            </div>
           )}
 
           {/* ── RIGHT: FORM FIELDS (50% or 100%) ── */}
-          <div className={cn("overflow-y-auto p-6 space-y-5 bg-card border-l border-border/50", activeTab === 'tanaman' ? 'w-full' : 'w-full lg:w-[50%]')}>
+          <div className={cn("overflow-y-auto p-6 space-y-4 bg-card border-l border-border/60", activeTab === 'tanaman' ? 'w-full' : 'w-full lg:w-[50%]')}>
             {activeTab === 'lahan' ? (
               <>
                 <div className="space-y-1.5">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Nama Lahan <span className="text-destructive">*</span></Label>
+                  <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">Nama Lahan <span className="text-destructive">*</span></Label>
                   <Input
-                    placeholder="Lahan Utama Sektor Utara"
+                    placeholder="Contoh: Lahan Subang Sektor Utara"
                     value={landForm.plot_name}
                     onChange={e => setLandForm({ ...landForm, plot_name: e.target.value })}
-                    className="rounded-xl h-11 border-border/50 font-medium text-sm"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Pemilik Lahan</Label>
-                  <Input
-                    placeholder="Nama pemilik lahan"
-                    value={landForm.owner_name}
-                    onChange={e => setLandForm({ ...landForm, owner_name: e.target.value })}
-                    className="rounded-xl h-11 border-border/50 font-medium text-sm"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Alamat</Label>
-                  <Input
-                    placeholder="Alamat dapat terisi otomatis setelah membuat poligon"
-                    value={landForm.address}
-                    onChange={e => setLandForm({ ...landForm, address: e.target.value })}
-                    className="rounded-xl h-11 border-border/50 font-medium text-sm"
+                    className="rounded-2xl h-11 border-border/80 font-semibold text-xs px-3.5 bg-card shadow-xs focus:ring-2 focus:ring-blue-500/40"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Warna Area Lahan</Label>
-                  <div className="flex items-center gap-3">
-                    <div className="relative flex items-center justify-center w-8 h-8 rounded-lg border border-border bg-card shadow-sm hover:bg-muted/50 transition-colors">
-                      <input
-                        type="color"
-                        value={landForm.color || '#F59E0B'}
-                        onChange={e => setLandForm({ ...landForm, color: e.target.value })}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      />
-                      <div
-                        className="w-5 h-5 rounded-md border border-black/10 shadow-inner"
-                        style={{ backgroundColor: landForm.color || '#F59E0B' }}
-                      />
-                    </div>
-                    <span className="text-[11px] text-muted-foreground font-medium">Kosongkan untuk warna default (Oranye)</span>
-                  </div>
+                  <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">{t('Pemilik / Penanggung Jawab Lahan')}</Label>
+                  <Input
+                    placeholder="Contoh: Bpk. Ahmad Hidayat"
+                    value={landForm.owner_name}
+                    onChange={e => setLandForm({ ...landForm, owner_name: e.target.value })}
+                    className="rounded-2xl h-11 border-border/80 font-semibold text-xs px-3.5 bg-card shadow-xs focus:ring-2 focus:ring-blue-500/40"
+                  />
                 </div>
+
                 <div className="space-y-1.5">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Keterangan</Label>
+                  <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">{t('Alamat Lengkap')}</Label>
+                  <Input
+                    placeholder="Alamat akan terisi otomatis dari koordinat lokasi peta"
+                    value={landForm.address}
+                    onChange={e => setLandForm({ ...landForm, address: e.target.value })}
+                    className="rounded-2xl h-11 border-border/80 font-semibold text-xs px-3.5 bg-card shadow-xs focus:ring-2 focus:ring-blue-500/40"
+                  />
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-between text-xs font-extrabold text-blue-600 dark:text-blue-400">
+                  <span className="uppercase tracking-wider text-[10px]">Warna Poligon Lahan</span>
+                  <span className="flex items-center gap-2 font-bold text-xs text-foreground">
+                    <span className="w-3.5 h-3.5 rounded-full bg-blue-500 border border-white shadow-xs" />
+                    Biru Sistem (#3B82F6)
+                  </span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">{t('Keterangan / Catatan Lahan')}</Label>
                   <textarea
-                    placeholder="Lahan berada di dekat sungai"
+                    placeholder="Contoh: Lahan irigasi teknis dekat sungai utama"
                     value={landForm.keterangan || ''}
                     onChange={e => setLandForm({ ...landForm, keterangan: e.target.value })}
-                    className="w-full min-h-[80px] rounded-xl border border-border/50 bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="w-full min-h-[85px] rounded-2xl border border-border/80 bg-card px-3.5 py-2.5 font-medium text-xs resize-none outline-none focus:ring-2 focus:ring-blue-500/40"
                     rows={3}
                   />
                 </div>
+
                 {!editingLand && (
-                  <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/10">
-                    <p className="text-[10px] font-bold text-amber-700 mb-1">ℹ Petunjuk Menambah Lahan</p>
-                    <ul className="text-[10px] text-amber-600/80 space-y-0.5 list-disc pl-3">
-                      <li>Gambar polygon area lahan pada peta di sebelah kiri</li>
-                      <li>Alamat akan terisi otomatis berdasarkan titik koordinat</li>
-                      <li>Setelah lahan dibuat, Anda dapat menambahkan Kebun di dalamnya</li>
+                  <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-xs font-semibold text-blue-900 dark:text-blue-300 space-y-1">
+                    <p className="font-extrabold flex items-center gap-1.5 text-blue-700 dark:text-blue-400">
+                      💡 {t('Petunjuk Pemetaan Lahan')}
+                    </p>
+                    <ul className="list-disc pl-4 text-[11px] space-y-0.5 opacity-90">
+                      <li>{t('Gambar poligon area lahan pada viewport peta di sebelah kiri (Warna Biru).')}</li>
+                      <li>{t('Alamat akan terisi otomatis berdasarkan hasil reverse geocoding lokasi.')}</li>
+                      <li>{t('Setelah lahan disimpan, Anda dapat membagi lahan menjadi beberapa Blok Kebun.')}</li>
                     </ul>
                   </div>
                 )}
               </>
             ) : activeTab === 'kebun' ? (
               <>
-                <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Lahan Induk <span className="text-destructive">*</span></Label>
-                  <Select
+                <div className="space-y-1.5">
+                  <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">Lahan Induk <span className="text-destructive">*</span></Label>
+                  <select
                     value={gardenForm.land_plot_id ? gardenForm.land_plot_id.toString() : ''}
-                    onValueChange={v => setGardenForm({ ...gardenForm, land_plot_id: parseInt(v || '0') })}
+                    onChange={e => setGardenForm({ ...gardenForm, land_plot_id: parseInt(e.target.value || '0') })}
+                    className="w-full h-11 border border-border/80 font-semibold text-xs rounded-2xl px-3.5 bg-card text-foreground focus:ring-2 focus:ring-emerald-500/40 outline-none cursor-pointer"
                   >
-                    <SelectTrigger className="w-full h-20 border-none bg-muted/50 font-medium text-sm rounded-xl px-6">
-                      <SelectValue placeholder="Pilih Lahan Induk">
-                        {gardenForm.land_plot_id
-                          ? landPlots.find(l => l.id === gardenForm.land_plot_id)?.plot_name
-                          : "Pilih Lahan Induk"}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-none shadow-2xl z-[9999]" sideOffset={5}>
-                      {landPlots.length > 0 ? (
-                        landPlots.map(l => (
-                          <SelectItem key={l.id} value={l.id.toString()} className="font-medium py-2.5 text-xs hover:bg-primary/10">
-                            {l.plot_name}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <div className="p-4 text-center text-[10px] text-muted-foreground font-medium">TIDAK ADA DATA LAHAN</div>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  {landPlots.length === 0 && (
-                    <p className="text-[10px] text-destructive font-medium italic">⚠ Tambahkan Lahan Induk terlebih dahulu di tab sebelah.</p>
-                  )}
+                    <option value="" className="bg-card text-foreground">-- Pilih Lahan Induk --</option>
+                    {effectiveLandPlots.map(l => (
+                      <option key={l.id} value={l.id.toString()} className="font-bold text-xs py-2 bg-card text-foreground">
+                        {l.plot_name || l.name || l.plot_code} ({l.plot_code || `LHN-${l.id}`})
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Nama Kebun <span className="text-destructive">*</span></Label>
+                  <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">Nama Kebun / Blok <span className="text-destructive">*</span></Label>
                   <Input
-                    placeholder="Blok Tomat A1"
+                    placeholder="Contoh: Blok Kebun Jagung A1"
                     value={gardenForm.garden_name}
                     onChange={e => setGardenForm({ ...gardenForm, garden_name: e.target.value })}
-                    className="rounded-xl h-11 border-border/50 font-medium text-sm"
+                    className="rounded-2xl h-11 border-border/80 font-semibold text-xs px-3.5 bg-card shadow-xs focus:ring-2 focus:ring-emerald-500/40"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Tipe Tanah</Label>
-                  <Select value={gardenForm.soil_type} onValueChange={v => setGardenForm({ ...gardenForm, soil_type: v || '' })}>
-                    <SelectTrigger className="w-full h-20 border-none bg-muted/50 font-medium text-sm rounded-xl px-6">
-                      <SelectValue placeholder="Pilih tipe tanah" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-none shadow-2xl z-[9999]" sideOffset={5}>
-                      {[
-                        "Aluvial (Tanah Endapan)",
-                        "Andosol (Tanah Vulkanik)",
-                        "Latosol (Tanah Merah)",
-                        "Regosol (Tanah Pasir)",
-                        "Grumusol (Tanah Liat Hitam)",
-                        "Podsolik (Tanah Kuning Merah)",
-                        "Organosol (Tanah Gambut)"
-                      ].map((t) => (
-                        <SelectItem key={t} value={t} className="font-medium py-2.5 text-xs hover:bg-primary/10">
-                          {t}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-1.5">
+                  <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">{t('Tipe Tanah')}</Label>
+                  <select
+                    value={gardenForm.soil_type || ''}
+                    onChange={e => setGardenForm({ ...gardenForm, soil_type: e.target.value })}
+                    className="w-full h-11 border border-border/80 font-semibold text-xs rounded-2xl px-3.5 bg-card text-foreground focus:ring-2 focus:ring-emerald-500/40 outline-none cursor-pointer"
+                  >
+                    <option value="" className="bg-card text-foreground">-- Pilih Tipe Tanah --</option>
+                    {[
+                      "Aluvial (Tanah Endapan)",
+                      "Andosol (Tanah Vulkanik)",
+                      "Latosol (Tanah Merah)",
+                      "Regosol (Tanah Pasir)",
+                      "Grumusol (Tanah Liat Hitam)",
+                      "Podsolik (Tanah Kuning Merah)",
+                      "Organosol (Tanah Gambut)"
+                    ].map((t) => (
+                      <option key={t} value={t} className="font-bold text-xs py-2 bg-card text-foreground">
+                        {t}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Kondisi Sekitar</Label>
-                    <Select value={gardenForm.kondisi_sekitar} onValueChange={v => setGardenForm({ ...gardenForm, kondisi_sekitar: v })}>
-                      <SelectTrigger className="rounded-xl h-11 border-border/50 font-medium text-sm">
-                        <SelectValue placeholder="Pilih kondisi">
-                          {gardenForm.kondisi_sekitar ? gardenForm.kondisi_sekitar.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : "Pilih kondisi"}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-none shadow-2xl">
-                        <SelectItem value="area_industri">Area Industri</SelectItem>
-                        <SelectItem value="pemukiman_padat">Pemukiman Padat</SelectItem>
-                        <SelectItem value="hutan_lindung">Hutan Lindung</SelectItem>
-                        <SelectItem value="pertanian_terbuka">Pertanian Terbuka</SelectItem>
-                        <SelectItem value="pesisir_pantai">Pesisir Pantai</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">{t('Kondisi Sekitar')}</Label>
+                    <select
+                      value={gardenForm.kondisi_sekitar || ''}
+                      onChange={e => setGardenForm({ ...gardenForm, kondisi_sekitar: e.target.value })}
+                      className="w-full h-11 border border-border/80 font-semibold text-xs rounded-2xl px-3.5 bg-card text-foreground focus:ring-2 focus:ring-emerald-500/40 outline-none cursor-pointer"
+                    >
+                      <option value="" className="bg-card text-foreground">-- Pilih Kondisi --</option>
+                      <option value="area_industri" className="font-bold text-xs bg-card text-foreground">Area Industri</option>
+                      <option value="pemukiman_padat" className="font-bold text-xs bg-card text-foreground">Pemukiman Padat</option>
+                      <option value="hutan_lindung" className="font-bold text-xs bg-card text-foreground">Hutan Lindung</option>
+                      <option value="pertanian_terbuka" className="font-bold text-xs bg-card text-foreground">Pertanian Terbuka</option>
+                      <option value="pesisir_pantai" className="font-bold text-xs bg-card text-foreground">Pesisir Pantai</option>
+                    </select>
                   </div>
+
                   <div className="space-y-1.5">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Radius (m)</Label>
+                    <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">{t('Radius Buffer (m)')}</Label>
                     <Input
                       type="number"
                       min={30}
@@ -668,85 +687,59 @@ export default function AreaFormModal({
                       placeholder="60"
                       value={gardenForm.radius_konteks_m}
                       onChange={e => setGardenForm({ ...gardenForm, radius_konteks_m: parseInt(e.target.value) || 60 })}
-                      className="rounded-xl h-11 border-border/50 font-medium text-sm"
+                      className="rounded-2xl h-11 border-border/80 font-semibold text-xs px-3.5 bg-card shadow-xs"
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Jarak Jalan (m)</Label>
-                    <div className="h-11 rounded-xl border border-border/50 bg-muted/30 flex items-center px-3 cursor-not-allowed">
-                      <span className="text-sm font-medium text-muted-foreground/80">
-                        {gardenForm.jarak_jalan_m ? `${gardenForm.jarak_jalan_m} m` : 'Otomatis (AI)'}
-                      </span>
-                    </div>
-                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-xs font-extrabold text-emerald-600 dark:text-emerald-400">
+                  <span className="uppercase tracking-wider text-[10px]">Warna Poligon Kebun</span>
+                  <span className="flex items-center gap-2 font-bold text-xs text-foreground">
+                    <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 border border-white shadow-xs" />
+                    Hijau Sistem (#10B981)
+                  </span>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Warna Area Kebun</Label>
-                  <div className="flex items-center gap-3">
-                    <div className="relative flex items-center justify-center w-8 h-8 rounded-lg border border-border bg-card shadow-sm hover:bg-muted/50 transition-colors">
-                      <input
-                        type="color"
-                        value={gardenForm.color || '#22C55E'}
-                        onChange={e => setGardenForm({ ...gardenForm, color: e.target.value })}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      />
-                      <div
-                        className="w-5 h-5 rounded-md border border-black/10 shadow-inner"
-                        style={{ backgroundColor: gardenForm.color || '#22C55E' }}
-                      />
-                    </div>
-                    <span className="text-[11px] text-muted-foreground font-medium">Kosongkan untuk warna default (Hijau)</span>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Keterangan</Label>
+                  <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">{t('Keterangan / Catatan Kebun')}</Label>
                   <textarea
-                    placeholder="Kebun ini digunakan untuk rotasi tanaman"
+                    placeholder="Catatan zonasi blok kebun..."
                     value={gardenForm.keterangan || ''}
                     onChange={e => setGardenForm({ ...gardenForm, keterangan: e.target.value })}
-                    className="w-full min-h-[80px] rounded-xl border border-border/50 bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="w-full min-h-[75px] rounded-2xl border border-border/80 bg-card px-3.5 py-2.5 font-medium text-xs resize-none outline-none focus:ring-2 focus:ring-emerald-500/40"
                     rows={3}
                   />
                 </div>
               </>
             ) : (
               <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Kategori Tanaman <span className="text-destructive">*</span></Label>
-                    <Select
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">Kategori Tanaman <span className="text-destructive">*</span></Label>
+                    <select
                       value={selectedCategory}
-                      onValueChange={v => {
-                        setSelectedCategory(v || '');
+                      onChange={e => {
+                        setSelectedCategory(e.target.value || '');
                         setPlantingForm({ ...plantingForm, komoditi_id: 0 });
                       }}
+                      className="w-full h-11 border border-border/80 font-semibold text-xs rounded-2xl px-3.5 bg-card text-foreground focus:ring-2 focus:ring-emerald-500/40 outline-none cursor-pointer"
                     >
-                      <SelectTrigger className="w-full h-11 border-border/50 font-medium text-sm rounded-xl">
-                        <SelectValue placeholder={komoditiList.length > 0 ? "Pilih Kategori" : "Memuat data..."} />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-none shadow-2xl z-[9999]">
-                        {uniqueCategories.length > 0 ? (
-                          uniqueCategories.map(cat => (
-                            <SelectItem key={cat} value={cat} className="font-medium py-2 text-xs">
-                              {cat}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="none" disabled className="text-[10px] italic">Data komoditi tidak tersedia</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
+                      <option value="" className="bg-card text-foreground">-- {komoditiList.length > 0 ? "Pilih Kategori" : "Memuat Kategori..."} --</option>
+                      {uniqueCategories.map(cat => (
+                        <option key={cat} value={cat} className="font-bold text-xs py-2 bg-card text-foreground">
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Pilih Komoditi Tanaman <span className="text-destructive">*</span></Label>
-                    <Select
+                  <div className="space-y-1.5">
+                    <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">Komoditi Tanaman <span className="text-destructive">*</span></Label>
+                    <select
                       disabled={!selectedCategory}
                       value={plantingForm.komoditi_id ? plantingForm.komoditi_id.toString() : ''}
-                      onValueChange={v => {
-                        const kId = parseInt(v || '0');
+                      onChange={e => {
+                        const kId = parseInt(e.target.value || '0');
                         const selectedK = komoditiList.find(k => k.id === kId);
                         setPlantingForm(prev => ({
                           ...prev,
@@ -754,141 +747,105 @@ export default function AreaFormModal({
                           nama_tanaman: prev.nama_tanaman || (selectedK ? `${selectedK.nama_komoditi} - ${new Date().toLocaleString('id-ID', { month: 'short', year: 'numeric' })}` : '')
                         }));
                       }}
+                      className="w-full h-11 border border-border/80 font-semibold text-xs rounded-2xl px-3.5 bg-card text-foreground focus:ring-2 focus:ring-emerald-500/40 outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <SelectTrigger className="w-full h-11 border-border/50 font-medium text-sm rounded-xl">
-                        <SelectValue placeholder={selectedCategory ? "Pilih Komoditi" : "Pilih Kategori Dulu"}>
-                          {plantingForm.komoditi_id
-                            ? komoditiList.find(k => k.id === plantingForm.komoditi_id)?.nama_komoditi
-                            : (selectedCategory ? "Pilih Komoditi" : "Pilih Kategori Dulu")}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-none shadow-2xl z-[9999]">
-                        {filteredKomoditi.map(k => (
-                          <SelectItem key={k.id} value={k.id.toString()} className="font-medium py-2 text-xs">
-                            <div className="flex flex-col">
-                              <span>{k.nama_komoditi}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <option value="" className="bg-card text-foreground">-- {selectedCategory ? "Pilih Komoditi" : "Pilih Kategori Dulu"} --</option>
+                      {filteredKomoditi.map(k => (
+                        <option key={k.id} value={k.id.toString()} className="font-bold text-xs py-2 bg-card text-foreground">
+                          {k.nama_komoditi}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
-
-
-                {/* Identitas Penanaman dihapus sesuai permintaan, auto-generated di background */}
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Lokasi Lahan Induk <span className="text-destructive">*</span></Label>
-                    <Select
-                      value={plantingForm.land_plot_id ? plantingForm.land_plot_id.toString() : ''}
-                      onValueChange={v => setPlantingForm({ ...plantingForm, land_plot_id: parseInt(v || '0'), garden_id: 0 })}
-                    >
-                      <SelectTrigger className="w-full h-11 border-border/50 font-medium text-sm rounded-xl">
-                        <SelectValue placeholder="Pilih Lahan Induk">
-                          {plantingForm.land_plot_id
-                            ? landPlots.find(l => l.id === plantingForm.land_plot_id)?.plot_name
-                            : "Pilih Lahan"}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-none shadow-2xl z-[9999]">
-                        {landPlots.length > 0 ? (
-                          landPlots.map(l => (
-                            <SelectItem key={l.id} value={l.id.toString()} className="font-medium py-2.5 text-xs">
-                              {l.plot_name}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <div className="p-4 text-center text-[10px] text-muted-foreground font-medium">TIDAK ADA DATA LAHAN</div>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Lokasi Kebun <span className="text-destructive">*</span></Label>
-                    <Select
-                      disabled={!plantingForm.land_plot_id}
-                      value={plantingForm.garden_id ? plantingForm.garden_id.toString() : ''}
-                      onValueChange={v => setPlantingForm({ ...plantingForm, garden_id: parseInt(v || '0') })}
-                    >
-                      <SelectTrigger className="w-full h-11 border-border/50 font-medium text-sm rounded-xl">
-                        <SelectValue placeholder={plantingForm.land_plot_id ? "Pilih Kebun" : "Pilih Lahan Dulu"}>
-                          {plantingForm.garden_id
-                            ? gardens.find(g => g.id === plantingForm.garden_id)?.garden_name
-                            : (plantingForm.land_plot_id ? "Pilih Kebun" : "Pilih Lahan Dulu")}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-none shadow-2xl z-[9999]">
-                        {filteredGardensForPlanting.length > 0 ? (
-                          filteredGardensForPlanting.map(g => (
-                            <SelectItem key={g.id} value={g.id.toString()} className="font-medium py-2.5 text-xs">
-                              {g.garden_name}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <div className="p-4 text-center text-[10px] text-muted-foreground font-medium">KEBUN KOSONG PADA LAHAN INI</div>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Perangkat IoT</Label>
-                    <Select
-                      value={plantingForm.device_id ? plantingForm.device_id.toString() : 'none'}
-                      onValueChange={v => setPlantingForm({ ...plantingForm, device_id: v === 'none' ? 0 : parseInt(v || '0') })}
-                    >
-                      <SelectTrigger className="w-full h-11 border-border/50 font-medium text-sm rounded-xl">
-                        <SelectValue placeholder="Pilih Perangkat (Opsional)">
-                          {plantingForm.device_id > 0
-                            ? nodes.find(n => n.db_id === plantingForm.device_id)?.name
-                            : "Belum dipasang"}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-none shadow-2xl z-[9999]">
-                        <SelectItem value="none" className="font-medium py-2.5 text-xs italic text-muted-foreground">
-                          Belum dipasang / Tidak ada
-                        </SelectItem>
-                        {nodes.length > 0 ? (
-                          nodes.map((n: any) => (
-                            <SelectItem key={n.db_id} value={n.db_id.toString()} className="font-medium py-2.5 text-xs">
-                              {n.name} - {n.id}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <div className="p-4 text-center text-[10px] text-muted-foreground font-medium">TIDAK ADA DATA PERANGKAT</div>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
 
                 <div className="space-y-1.5">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Tanggal Tanam</Label>
+                  <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">Nama Tanaman / Varietas <span className="text-destructive">*</span></Label>
                   <Input
-                    type="date"
-                    value={plantingForm.tanggal_tanam}
-                    onChange={e => setPlantingForm({ ...plantingForm, tanggal_tanam: e.target.value })}
-                    className="rounded-xl h-11 border-border/50 font-medium text-sm"
+                    placeholder="Contoh: Jagung Hibrida Pioneer P35"
+                    value={plantingForm.nama_tanaman}
+                    onChange={e => setPlantingForm({ ...plantingForm, nama_tanaman: e.target.value })}
+                    className="rounded-2xl h-11 border border-border/80 font-semibold text-xs px-3.5 bg-card shadow-xs"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Status / Fase Tanaman</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">Lahan Induk <span className="text-destructive">*</span></Label>
+                    <select
+                      value={plantingForm.land_plot_id ? plantingForm.land_plot_id.toString() : ''}
+                      onChange={e => setPlantingForm({ ...plantingForm, land_plot_id: parseInt(e.target.value || '0'), garden_id: 0 })}
+                      className="w-full h-11 border border-border/80 font-semibold text-xs rounded-2xl px-3.5 bg-card text-foreground focus:ring-2 focus:ring-emerald-500/40 outline-none cursor-pointer"
+                    >
+                      <option value="" className="bg-card text-foreground">-- Pilih Lahan --</option>
+                      {effectiveLandPlots.map(l => (
+                        <option key={l.id} value={l.id.toString()} className="font-bold text-xs py-2 bg-card text-foreground">
+                          {l.plot_name || l.name || l.plot_code}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">Kebun / Blok <span className="text-destructive">*</span></Label>
+                    <select
+                      disabled={!plantingForm.land_plot_id}
+                      value={plantingForm.garden_id ? plantingForm.garden_id.toString() : ''}
+                      onChange={e => setPlantingForm({ ...plantingForm, garden_id: parseInt(e.target.value || '0') })}
+                      className="w-full h-11 border border-border/80 font-semibold text-xs rounded-2xl px-3.5 bg-card text-foreground focus:ring-2 focus:ring-emerald-500/40 outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <option value="" className="bg-card text-foreground">-- {plantingForm.land_plot_id ? "Pilih Kebun" : "Pilih Lahan Dulu"} --</option>
+                      {filteredGardensForPlanting.map(g => (
+                        <option key={g.id} value={g.id.toString()} className="font-bold text-xs py-2 bg-card text-foreground">
+                          {g.garden_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">Perangkat IoT</Label>
+                    <select
+                      value={plantingForm.device_id ? plantingForm.device_id.toString() : 'none'}
+                      onChange={e => setPlantingForm({ ...plantingForm, device_id: e.target.value === 'none' ? 0 : parseInt(e.target.value || '0') })}
+                      className="w-full h-11 border border-border/80 font-semibold text-xs rounded-2xl px-3.5 bg-card text-foreground focus:ring-2 focus:ring-emerald-500/40 outline-none cursor-pointer"
+                    >
+                      <option value="none" className="bg-card text-muted-foreground italic font-medium">-- {t('Belum dipasang / Tidak ada')} --</option>
+                      {nodes.map((n: any) => (
+                        <option key={n.db_id || n.id} value={(n.db_id || n.id).toString()} className="font-bold text-xs py-2 bg-card text-foreground">
+                          {n.name} ({n.device_code || n.id})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">{t('Tanggal Tanam')}</Label>
+                    <Input
+                      type="date"
+                      value={plantingForm.tanggal_tanam}
+                      onChange={e => setPlantingForm({ ...plantingForm, tanggal_tanam: e.target.value })}
+                      className="rounded-2xl h-11 border border-border/80 font-semibold text-xs px-3.5 bg-card shadow-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">{t('Status / Fase Tumbuh')}</Label>
                   <Select
                     value={plantingForm.status_fase}
                     onValueChange={v => setPlantingForm({ ...plantingForm, status_fase: v })}
                   >
-                    <SelectTrigger className="w-full h-11 border-border/50 font-medium text-sm rounded-xl">
+                    <SelectTrigger className="w-full h-11 border border-border/80 font-semibold text-xs rounded-2xl px-3.5 bg-card shadow-xs">
                       <SelectValue placeholder="Pilih Fase" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl border-none shadow-2xl z-[9999]">
-                      <SelectItem value="Persiapan">Persiapan (Lahan/Bibit)</SelectItem>
-                      <SelectItem value="Vegetatif">Vegetatif (Pertumbuhan Daun/Akar)</SelectItem>
-                      <SelectItem value="Generatif">Generatif (Pembungaan/Pembuahan)</SelectItem>
-                      <SelectItem value="Panen">Panen</SelectItem>
+                    <SelectContent className="rounded-2xl border border-border/80 shadow-2xl z-[10005]">
+                      <SelectItem value="Persiapan">{t('Persiapan (Lahan/Bibit)')}</SelectItem>
+                      <SelectItem value="Vegetatif">{t('Vegetatif (Pertumbuhan Daun/Akar)')}</SelectItem>
+                      <SelectItem value="Generatif">{t('Generatif (Pembungaan/Pembuahan)')}</SelectItem>
+                      <SelectItem value="Panen">{t('Panen')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -897,21 +854,17 @@ export default function AreaFormModal({
           </div>
         </div>
 
-        <DialogFooter className="px-6 pt-4 pb-8 sm:pb-6 bg-muted/30 border-t border-border/50 flex-row justify-end gap-3">
-          <Button variant="outline" className="rounded-xl h-11 font-bold" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-            <X size={16} className="mr-2" /> Batal
+        {/* Modal Footer */}
+        <DialogFooter className="px-6 py-4 bg-muted/20 border-t border-border/60 flex flex-row items-center justify-end gap-3 rounded-b-[28px]">
+          <Button variant="outline" className="rounded-2xl h-11 font-extrabold text-xs px-5 border-border/80 hover:bg-muted" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+            <X size={16} className="mr-1.5" /> Batal
           </Button>
           <Button
             disabled={isSubmitting}
-            className={cn(
-              "rounded-xl h-11 font-bold px-8 shadow-lg gap-2",
-              activeTab === 'kebun' ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20" : 
-              activeTab === 'tanaman' ? "bg-blue-600 hover:bg-blue-700 shadow-blue-500/20" : "shadow-primary/20",
-              isSubmitting && "opacity-50 cursor-not-allowed"
-            )}
+            className="rounded-2xl h-11 font-black text-xs px-7 bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/25 transition-all cursor-pointer gap-2"
             onClick={activeTab === 'lahan' ? handleSaveLand : activeTab === 'kebun' ? handleSaveGarden : handleSavePlanting}
           >
-            <Save size={16} /> {isSubmitting ? 'Menyimpan...' : 'Simpan Data'}
+            <Save size={16} /> {isSubmitting ? 'Menyimpan Data...' : 'Simpan Data'}
           </Button>
         </DialogFooter>
       </DialogContent>

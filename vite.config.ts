@@ -51,7 +51,11 @@ export default defineConfig(({mode}) => {
       },
       proxy: {
         '/api': {
-          target: 'http://localhost:8000',
+          target: 'http://localhost',
+          changeOrigin: true,
+        },
+        '/storage': {
+          target: 'http://localhost',
           changeOrigin: true,
         },
       },

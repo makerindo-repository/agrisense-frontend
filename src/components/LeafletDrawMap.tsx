@@ -1,9 +1,11 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import { toast } from 'sonner';
+import { Search, X, MapPin } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // Fix default marker icon paths for Leaflet in bundlers
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -125,6 +127,8 @@ interface LeafletDrawMapProps {
   parentLandColor?: string;
   /** Other existing gardens to show as polygons */
   existingGardens?: Array<{ name: string; polygon: any; color?: string }>;
+  /** Searchable land plots / gardens list for in-map search */
+  searchablePlots?: Array<{ id: number; name: string; code?: string; latitude?: number; longitude?: number; polygon?: any }>;
   /** Draw color */
   drawColor?: string;
   /** Children elements to overlay on the map */
@@ -138,37 +142,92 @@ export default function LeafletDrawMap({
   parentLandPolygon,
   parentLandColor = '#3b82f6',
   existingGardens,
+  searchablePlots = [],
   drawColor = '#10b981',
   children,
 }: LeafletDrawMapProps) {
+  const { t } = useTranslation();
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const drawnItemsRef = useRef<L.FeatureGroup>(new L.FeatureGroup());
   const parentLayerRef = useRef<L.GeoJSON | null>(null);
   const gardensLayerRef = useRef<L.LayerGroup>(L.layerGroup());
 
+  const [mapSearch, setMapSearch] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const searchResults = useMemo(() => {
+    if (!mapSearch.trim() || !searchablePlots.length) return [];
+    const q = mapSearch.toLowerCase();
+    return searchablePlots.filter(p =>
+      (p.name || '').toLowerCase().includes(q) ||
+      (p.code || '').toLowerCase().includes(q)
+    );
+  }, [mapSearch, searchablePlots]);
+
+  const handleSelectSearchResult = (item: any) => {
+    setMapSearch(item.name);
+    setIsSearchOpen(false);
+    if (!mapRef.current) return;
+
+    if (item.latitude && item.longitude) {
+      mapRef.current.flyTo([item.latitude, item.longitude], 16, { duration: 1.5 });
+    } else if (item.polygon) {
+      try {
+        const geom = typeof item.polygon === 'string' ? JSON.parse(item.polygon) : item.polygon;
+        if (geom?.coordinates?.[0]?.length) {
+          const positions = geom.coordinates[0].map((c: number[]) => [c[1], c[0]] as [number, number]);
+          const bounds = L.latLngBounds(positions);
+          mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 17 });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+
   // Calculate polygon info from a layer
   const calculatePolygonInfo = useCallback((layer: L.Polygon) => {
-    const geojson = layer.toGeoJSON();
-    const bounds = layer.getBounds();
-    const center = bounds.getCenter();
-    const latlngs = layer.getLatLngs()[0] as L.LatLng[];
-    const areaSquareMeters = L.GeometryUtil.geodesicArea(latlngs);
-    const areaHectares = areaSquareMeters / 10000;
+    try {
+      const geojson = layer.toGeoJSON();
+      const bounds = layer.getBounds();
+      const center = bounds.getCenter();
 
-    return {
-      polygon: geojson.geometry,
-      latitude: parseFloat(center.lat.toFixed(7)),
-      longitude: parseFloat(center.lng.toFixed(7)),
-      area_hectare: parseFloat(areaHectares.toFixed(3)),
-    };
+      const rawLatLngs = layer.getLatLngs();
+      let latlngs: L.LatLng[] = [];
+
+      if (Array.isArray(rawLatLngs)) {
+        if (Array.isArray(rawLatLngs[0])) {
+          latlngs = rawLatLngs[0] as L.LatLng[];
+        } else {
+          latlngs = rawLatLngs as unknown as L.LatLng[];
+        }
+      }
+
+      let areaSquareMeters = 0;
+      if (latlngs && latlngs.length >= 3 && (L as any).GeometryUtil) {
+        areaSquareMeters = (L as any).GeometryUtil.geodesicArea(latlngs);
+      }
+
+      const areaHectares = areaSquareMeters / 10000;
+
+      return {
+        polygon: geojson.geometry,
+        latitude: parseFloat(center.lat.toFixed(7)),
+        longitude: parseFloat(center.lng.toFixed(7)),
+        area_hectare: parseFloat(areaHectares.toFixed(3)),
+      };
+    } catch (err) {
+      console.error('Error calculating polygon info:', err);
+      return null;
+    }
   }, []);
 
   // Initialize the map
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
-    // Center over Indonesia (Java region) with a provincial zoom of 9
+    // Center over Indonesia (Java region) with a provincial zoom of 13
     const map = L.map(mapContainerRef.current).setView([-6.8315, 107.9160], 13);
     mapRef.current = map;
 
@@ -191,10 +250,36 @@ export default function LeafletDrawMap({
     });
     labels.addTo(map);
 
-    L.control.layers({
-      "Satelit": satellite,
-      "Peta Jalan": streets
-    }, undefined, { position: 'topleft' }).addTo(map);
+    // 1-Click Layer Toggle Control (Satellite <-> Street Map)
+    const isSatelliteRef = { current: true };
+    const LayerToggleControl = L.Control.extend({
+      options: { position: 'topleft' },
+      onAdd: function() {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+        const link = L.DomUtil.create('a', 'leaflet-control-layers-toggle', container);
+        link.href = '#';
+        link.title = 'Sekali Klik: Beralih Peta Jalan / Satelit';
+        link.role = 'button';
+
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.on(link, 'click', (e) => {
+          L.DomEvent.preventDefault(e);
+          if (isSatelliteRef.current) {
+            map.removeLayer(satellite);
+            streets.addTo(map);
+            isSatelliteRef.current = false;
+            toast.info('Tampilan Peta Jalan', { duration: 1500 });
+          } else {
+            map.removeLayer(streets);
+            satellite.addTo(map);
+            isSatelliteRef.current = true;
+            toast.info('Tampilan Peta Satelit', { duration: 1500 });
+          }
+        });
+        return container;
+      }
+    });
+    map.addControl(new LayerToggleControl());
 
     // Add drawn items layer
     map.addLayer(drawnItemsRef.current);
@@ -210,12 +295,11 @@ export default function LeafletDrawMap({
         polygon: {
           allowIntersection: true,
           showArea: true,
-          shapeOptions: { color: drawColor },
+          metric: true,
+          shapeOptions: { color: drawColor, weight: 3, opacity: 0.9, fillOpacity: 0.25 },
         },
         polyline: false,
-        rectangle: {
-          shapeOptions: { color: drawColor },
-        },
+        rectangle: false,
         circle: false,
         marker: false,
         circlemarker: false,
@@ -223,29 +307,29 @@ export default function LeafletDrawMap({
     });
     map.addControl(drawControl);
 
-    // Handle polygon creation
+    // Handle polygon / rectangle creation
     map.on(L.Draw.Event.CREATED, (e: any) => {
       const layer = e.layer as L.Polygon;
-      const latlngs = layer.getLatLngs()[0] as L.LatLng[];
+      const result = calculatePolygonInfo(layer);
 
-      if (latlngs.length < 3) {
-        toast.error('Area harus mempunyai minimal 3 titik sudut!');
+      if (!result || result.area_hectare < 0.005) {
+        toast.warning('Area terlalu kecil! Silahkan klik dan seret mouse lebih lebar untuk membuat area kotak/poligon.');
         return;
       }
 
       drawnItemsRef.current.clearLayers();
       drawnItemsRef.current.addLayer(layer);
-
-      const result = calculatePolygonInfo(layer);
       onPolygonChange(result);
     });
 
-    // Handle polygon edit
+    // Handle polygon / rectangle edit & drag
     map.on(L.Draw.Event.EDITED, (e: any) => {
       const layers = e.layers;
       layers.eachLayer((layer: L.Polygon) => {
         const result = calculatePolygonInfo(layer);
-        onPolygonChange(result);
+        if (result) {
+          onPolygonChange(result);
+        }
       });
     });
 
@@ -380,31 +464,31 @@ export default function LeafletDrawMap({
   }, []);
 
   return (
-    <div className="flex flex-col h-full min-h-[300px] w-full gap-2 relative">
-      <div className="relative flex-1 rounded-xl border border-border/50 overflow-hidden z-0">
-        <div
-          ref={mapContainerRef}
-          style={{ minHeight: height === '100%' ? '300px' : height, width: '100%', height: '100%' }}
-          className="absolute inset-0"
-        />
-        {children}
-      </div>
-      <div className="flex flex-wrap items-center gap-4 text-[10px] font-medium text-muted-foreground mt-2">
+    <div className="relative w-full h-full min-h-[320px] rounded-2xl overflow-hidden z-0">
+      <div
+        ref={mapContainerRef}
+        style={{ minHeight: height === '100%' ? '320px' : height, width: '100%', height: '100%' }}
+        className="absolute inset-0"
+      />
+      {children}
+
+      {/* Glassmorphic Map Legend Overlay */}
+      <div className="absolute bottom-3 right-3 z-[400] bg-slate-900/85 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-xl shadow-xl flex items-center gap-3 text-[10px] font-bold text-white pointer-events-none">
         {parentLandPolygon && (
-          <span className="flex items-center gap-1">
-            <span className="w-3 h-0.5 inline-block" style={{ borderTop: `2px dashed ${parentLandColor}` }} />
-            Batas Lahan Induk
+          <span className="flex items-center gap-1.5">
+            <span className="w-3.5 h-0.5 inline-block" style={{ borderTop: `2px dashed ${parentLandColor}` }} />
+            <span>{t('Lahan Induk')}</span>
           </span>
         )}
         {existingGardens && existingGardens.length > 0 && (
-          <span className="flex items-center gap-1">
-            <span className="w-3 h-2 bg-amber-500/30 border border-amber-500 inline-block rounded-sm" />
-            Kebun yang sudah ada
+          <span className="flex items-center gap-1.5">
+            <span className="w-3 h-2 bg-emerald-500/30 border border-emerald-400 inline-block rounded-sm" />
+            <span>{t('Kebun Lain')}</span>
           </span>
         )}
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-2 inline-block rounded-sm" style={{ backgroundColor: drawColor + '30', border: `1px solid ${drawColor}` }} />
-          Area baru / yang diedit
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-2 inline-block rounded-sm" style={{ backgroundColor: drawColor + '50', border: `1.5px solid ${drawColor}` }} />
+          <span>{t('Poligon Ditargetkan')}</span>
         </span>
       </div>
     </div>

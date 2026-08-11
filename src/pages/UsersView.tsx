@@ -1,43 +1,30 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
-  LayoutDashboard, Radio, Database, CloudSun, Map as MapIcon, BarChart3, 
-  FileText, Settings, Users, Bell, Search, Menu, X, Droplets, Thermometer, 
-  Wind, Battery, Signal, AlertTriangle, Leaf, LogIn, LogOut, Calendar as CalendarIcon, 
-  FlaskConical, Zap, Activity, Filter, Plus, Save, MoreVertical, Edit, Trash2, 
-  Download, CheckCircle2, Eye, EyeOff, Trees, Layers, Sprout, MapPin, SearchIcon, Share2, Map as MapIconS
+  Users, Search, Plus, Save, Edit, Trash2, Download, CheckCircle2, 
+  ShieldCheck, UserCheck, Shield, KeyRound, Lock, UserCog, UserPlus, AlertCircle
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { formatDateTimeShort, formatDateTimeLong } from '@/utils/formatters';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, ScatterChart, Scatter, ZAxis, Legend } from 'recharts';
-import { IoTNode, User, UserRole } from '../lib/mockData';
+import { formatDateTimeShort } from '@/utils/formatters';
+import { User, UserRole } from '../lib/mockData';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-
-// Map related overrides
-import { MapContainer, TileLayer, Marker, Popup, useMap, Polygon, Tooltip as LeafletTooltip } from 'react-leaflet';
-import L from 'leaflet';
-import LeafletDrawMap, { PolygonDrawResult } from '../components/LeafletDrawMap';
-
-// App specific imports
+import { useTranslation } from 'react-i18next';
 import api from '../lib/api';
 import { toast } from 'sonner';
 
 export default function UsersView({ users, setUsers }: { users: User[], setUsers: React.Dispatch<React.SetStateAction<User[]>> }) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
@@ -53,6 +40,29 @@ export default function UsersView({ users, setUsers }: { users: User[], setUsers
     password: ""
   });
 
+  // Fetch users from API if needed
+  useEffect(() => {
+    if (users.length === 0) {
+      api.get('/users')
+        .then(res => {
+          const fetchedData = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+          if (Array.isArray(fetchedData) && fetchedData.length > 0) {
+            const mappedUsers: User[] = fetchedData.map((u: any) => ({
+              id: u.id?.startsWith?.('USR-') ? u.id : `USR-${u.real_id || u.id}`,
+              name: u.name,
+              email: u.email,
+              role: (u.role || 'viewer') as UserRole,
+              status: u.status || 'active',
+              lastLogin: u.created_at || u.updated_at || new Date().toISOString(),
+              real_id: u.real_id || u.id
+            }));
+            setUsers(mappedUsers);
+          }
+        })
+        .catch(err => console.error("UsersView fetch error", err));
+    }
+  }, [users.length, setUsers]);
+
   const filteredUsers = useMemo(() => {
     return users.filter(user => 
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -62,7 +72,7 @@ export default function UsersView({ users, setUsers }: { users: User[], setUsers
 
   const handleAddUser = async () => {
     if (!newUser.name || !newUser.email || !newUser.password) {
-      toast.error('Nama, email, dan password wajib diisi!');
+      toast.error(t('Nama, email, dan password wajib diisi!'));
       return;
     }
     setIsSubmitting(true);
@@ -88,10 +98,10 @@ export default function UsersView({ users, setUsers }: { users: User[], setUsers
       setUsers([...users, userToAdd]);
       setIsAddUserOpen(false);
       setNewUser({ name: "", email: "", role: "viewer", status: "active", password: "" });
-      toast.success('Pengguna baru berhasil ditambahkan!');
+      toast.success(t('Pengguna baru berhasil ditambahkan!'));
     } catch (err: any) {
       console.error("Failed to add user", err);
-      toast.error(err.response?.data?.message || 'Gagal menambahkan pengguna');
+      toast.error(err.response?.data?.message || t('Gagal menambahkan pengguna'));
     } finally {
       setIsSubmitting(false);
     }
@@ -101,7 +111,7 @@ export default function UsersView({ users, setUsers }: { users: User[], setUsers
     if (!editingUser) return;
     const dbId = (editingUser as any).real_id;
     if (!dbId) {
-      toast.error('Pengguna ini tidak memiliki ID database.');
+      toast.error(t('Pengguna ini tidak memiliki ID database.'));
       return;
     }
     setIsSubmitting(true);
@@ -110,14 +120,15 @@ export default function UsersView({ users, setUsers }: { users: User[], setUsers
         name: editingUser.name,
         email: editingUser.email,
         role: editingUser.role,
+        status: editingUser.status,
       });
       setUsers(users.map(u => u.id === editingUser.id ? editingUser : u));
       setIsEditUserOpen(false);
       setEditingUser(null);
-      toast.success('Data pengguna berhasil diperbarui!');
+      toast.success(t('Data pengguna berhasil diperbarui!'));
     } catch (err: any) {
       console.error("Failed to edit user", err);
-      toast.error(err.response?.data?.message || 'Gagal memperbarui pengguna');
+      toast.error(err.response?.data?.message || t('Gagal memperbarui pengguna'));
     } finally {
       setIsSubmitting(false);
     }
@@ -134,12 +145,12 @@ export default function UsersView({ users, setUsers }: { users: User[], setUsers
         await api.delete(`/users/${dbId}`);
       }
       setUsers(users.filter(u => u.id !== userToDelete.id));
-      toast.success('Pengguna berhasil dihapus');
+      toast.success(t('Pengguna berhasil dihapus'));
       setIsDeleteDialogOpen(false);
       setUserToDelete(null);
     } catch (err: any) {
       console.error("Failed to delete user", err);
-      toast.error(err.response?.data?.message || 'Gagal menghapus pengguna');
+      toast.error(err.response?.data?.message || t('Gagal menghapus pengguna'));
     } finally {
       setIsSubmitting(false);
     }
@@ -178,105 +189,146 @@ export default function UsersView({ users, setUsers }: { users: User[], setUsers
       body: tableData,
       startY: 20,
       theme: 'grid',
-      headStyles: { fillColor: [16, 185, 129] } // AgriSense Emerald
+      headStyles: { fillColor: [16, 185, 129] }
     });
 
     doc.save("AgriSense_Users.pdf");
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Manajemen Pengguna</h1>
-          <p className="text-muted-foreground">Kelola akses dan peran pengguna dalam sistem AgriSense</p>
+    <div className="w-full space-y-6 max-w-5xl mx-auto pb-24 select-none block">
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-border/60">
+        <div className="flex items-center gap-3.5">
+          <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-xs shrink-0">
+            <Users size={24} />
+          </div>
+          <div>
+            <h1 className="text-xl font-black tracking-tight text-foreground">
+              {t('Manajemen Pengguna')}
+            </h1>
+            <p className="text-xs font-semibold text-muted-foreground mt-0.5">
+              {t('Kelola akses, daftar pengguna, peran sistem, dan otentikasi akun')}
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto shrink-0">
           <DropdownMenu>
             <DropdownMenuTrigger>
-              <Button variant="outline" className="h-11 rounded-md font-bold gap-2">
-                <Download size={18} />
-                Ekspor Data
-              </Button>
+              <div className="h-11 w-full sm:w-auto px-4 rounded-2xl border border-border/80 bg-card font-extrabold text-xs shadow-sm cursor-pointer gap-2 flex items-center justify-center hover:bg-muted/50 transition-colors">
+                <Download size={16} />
+                {t('Ekspor Data')}
+              </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 rounded-md">
-              <DropdownMenuItem onClick={exportToExcel} className="font-medium cursor-pointer">
-                Export ke Excel (.xlsx)
+            <DropdownMenuContent align="end" className="w-52 rounded-2xl border-border shadow-2xl p-1.5">
+              <DropdownMenuItem onClick={exportToExcel} className="font-extrabold text-xs rounded-xl cursor-pointer py-2.5">
+                {t('Export ke Excel (.xlsx)')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={exportToPDF} className="font-medium cursor-pointer">
-                Export ke PDF (.pdf)
+              <DropdownMenuItem onClick={exportToPDF} className="font-extrabold text-xs rounded-xl cursor-pointer py-2.5">
+                {t('Export ke PDF (.pdf)')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* DIALOG: TAMBAH PENGGUNA BARU */}
           <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
             <DialogTrigger>
-              <Button className="h-11 rounded-md font-bold gap-2 shadow-sm shadow-primary/20">
-                <Plus size={18} />
-                Tambah Pengguna
-              </Button>
+              <div className="h-11 w-full sm:w-auto px-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md shadow-emerald-600/20 cursor-pointer gap-2 flex items-center justify-center transition-all">
+                <Plus size={16} />
+                {t('Tambah Pengguna')}
+              </div>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] rounded-lg">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-bold">Tambah Pengguna Baru</DialogTitle>
-                <DialogDescription>
-                  Masukkan detail pengguna baru untuk memberikan akses ke sistem.
-                </DialogDescription>
+            <DialogContent className="sm:max-w-[480px] rounded-[28px] border border-border/80 shadow-2xl p-6 sm:p-7 bg-card gap-0 overflow-hidden">
+              <DialogHeader className="flex flex-row items-start gap-4 pb-5 mb-5 border-b border-border/60 space-y-0 text-left">
+                <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0 shadow-xs">
+                  <UserPlus size={22} />
+                </div>
+                <div className="flex flex-col gap-1 pr-6">
+                  <DialogTitle className="text-xl font-black tracking-tight text-foreground leading-snug">
+                    {t('Tambah Pengguna Baru')}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs font-semibold text-muted-foreground leading-relaxed">
+                    {t('Masukkan detail pengguna baru untuk memberikan akses ke sistem.')}
+                  </DialogDescription>
+                </div>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name" className="font-bold text-xs uppercase tracking-wider">Nama Lengkap</Label>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground block">
+                    {t('Nama Lengkap')}
+                  </Label>
                   <Input 
                     id="name" 
-                    placeholder="Nama lengkap" 
-                    className="rounded-xl h-11"
+                    placeholder={t('Nama lengkap')} 
+                    className="w-full rounded-2xl h-11 px-4 border-border/80 bg-muted/20 font-semibold text-xs focus:bg-background focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all shadow-xs"
                     value={newUser.name}
                     onChange={(e) => setNewUser({...newUser, name: e.target.value})}
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email" className="font-bold text-xs uppercase tracking-wider">Email</Label>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground block">
+                    {t('Alamat Email')}
+                  </Label>
                   <Input 
                     id="email" 
                     type="email" 
                     placeholder="pengguna@agrisense.id" 
-                    className="rounded-xl h-11"
+                    className="w-full rounded-2xl h-11 px-4 border-border/80 bg-muted/20 font-semibold text-xs focus:bg-background focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all shadow-xs"
                     value={newUser.email}
                     onChange={(e) => setNewUser({...newUser, email: e.target.value})}
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="password" className="font-bold text-xs uppercase tracking-wider">Password <span className="text-destructive">*</span></Label>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground block">
+                    {t('Kata Sandi')} <span className="text-rose-500">*</span>
+                  </Label>
                   <Input 
                     id="password" 
                     type="password" 
-                    placeholder="Minimal 8 karakter" 
-                    className="rounded-xl h-11"
+                    placeholder={t('Minimal 8 karakter')} 
+                    className="w-full rounded-2xl h-11 px-4 border-border/80 bg-muted/20 font-semibold text-xs focus:bg-background focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all shadow-xs"
                     value={newUser.password || ''}
                     onChange={(e) => setNewUser({...newUser, password: e.target.value})}
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="role" className="font-bold text-xs uppercase tracking-wider">Peran (Role)</Label>
-                  <Select 
-                    value={newUser.role} 
-                    onValueChange={(value) => setNewUser({...newUser, role: value as UserRole})}
+
+                <div className="space-y-2">
+                  <Label htmlFor="role" className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground block">
+                    {t('Peran Akses')}
+                  </Label>
+                  <select
+                    id="role"
+                    value={newUser.role || 'viewer'}
+                    onChange={(e) => setNewUser({...newUser, role: e.target.value as UserRole})}
+                    className="w-full rounded-2xl h-11 px-4 border border-border/80 bg-muted/20 font-semibold text-xs text-foreground focus:bg-background focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all shadow-xs cursor-pointer"
                   >
-                    <SelectTrigger className="rounded-xl h-11">
-                      <SelectValue placeholder="Pilih role" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="operator">Operator</SelectItem>
-                      <SelectItem value="viewer">Viewer</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <option value="admin" className="bg-background text-foreground font-bold py-2">Administrator ({t('Akses Penuh')})</option>
+                    <option value="operator" className="bg-background text-foreground font-bold py-2">Operator ({t('Manajemen Data')})</option>
+                    <option value="viewer" className="bg-background text-foreground font-bold py-2">Viewer ({t('Hanya Lihat')})</option>
+                  </select>
                 </div>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddUserOpen(false)} className="rounded-xl h-11 font-bold">Batal</Button>
-                <Button onClick={handleAddUser} disabled={isSubmitting} className="rounded-xl h-11 font-bold">
-                  {isSubmitting ? 'Menyimpan...' : 'Simpan Pengguna'}
+
+              <DialogFooter className="-mx-6 -mb-6 sm:-mx-7 sm:-mb-7 mt-6 px-6 py-4 sm:px-8 sm:py-5 border-t border-border/60 bg-muted/30 rounded-b-[28px] flex flex-row items-center justify-end gap-3 space-x-0">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  onClick={() => setIsAddUserOpen(false)} 
+                  className="h-11 px-6 rounded-2xl border-border/80 font-extrabold text-xs bg-card hover:bg-muted transition-all cursor-pointer m-0"
+                >
+                  {t('Batal')}
+                </Button>
+                <Button 
+                  type="button"
+                  onClick={handleAddUser} 
+                  disabled={isSubmitting} 
+                  className="h-11 px-7 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md shadow-emerald-600/25 transition-all cursor-pointer m-0"
+                >
+                  {isSubmitting ? t('Menyimpan...') : t('Simpan Pengguna')}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -284,96 +336,105 @@ export default function UsersView({ users, setUsers }: { users: User[], setUsers
         </div>
       </div>
 
-      <Card className="border-none shadow-sm shadow-black/5 overflow-hidden">
-        <CardHeader className="border-b border-border/50 bg-muted/20 py-4 px-6">
+      {/* Main Table Card */}
+      <Card className="bg-card border-border/80 shadow-md rounded-3xl overflow-hidden w-full">
+        <CardHeader className="bg-muted/30 border-b border-border/60 p-6 py-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
               <Input 
-                placeholder="Cari nama atau email..." 
-                className="pl-10 h-10 bg-white border-none shadow-sm rounded-md"
+                placeholder={t('Cari nama atau email...')} 
+                className="pl-10 h-11 bg-card border-border/80 font-bold text-xs rounded-2xl shadow-xs"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="bg-white font-bold">{filteredUsers.length} Total Pengguna</Badge>
+              <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-black text-xs px-3 py-1 rounded-full">
+                {filteredUsers.length} {t('Total Pengguna')}
+              </Badge>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader className="bg-muted/30">
+            <TableHeader className="bg-muted/40 border-b border-border/60">
               <TableRow>
-                <TableHead className="pl-8 font-black uppercase text-[10px] tracking-widest">Pengguna</TableHead>
-                <TableHead className="font-black uppercase text-[10px] tracking-widest">Role</TableHead>
-                <TableHead className="font-black uppercase text-[10px] tracking-widest">Status</TableHead>
-                <TableHead className="font-black uppercase text-[10px] tracking-widest">Login Terakhir</TableHead>
-                <TableHead className="text-right pr-8 font-black uppercase text-[10px] tracking-widest">Aksi</TableHead>
+                <TableHead className="pl-6 font-black uppercase text-[10px] tracking-widest text-muted-foreground">{t('Pengguna')}</TableHead>
+                <TableHead className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">{t('Peran Akses')}</TableHead>
+                <TableHead className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">{t('Dibuat Pada')}</TableHead>
+                <TableHead className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">{t('Status Akun')}</TableHead>
+                <TableHead className="text-right pr-6 font-black uppercase text-[10px] tracking-widest text-muted-foreground">{t('Aksi')}</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="divide-y divide-border/50">
               {filteredUsers.map((u) => (
-                <TableRow key={u.id} className="group hover:bg-muted/20 transition-colors">
-                  <TableCell className="pl-8">
-                        <div className="flex items-center gap-2">
-                          <div className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
-                            u.role === 'admin' ? "bg-primary/20 text-primary" : 
-                            u.role === 'operator' ? "bg-amber-100 text-amber-600" : 
-                            "bg-slate-100 text-slate-600"
-                          )}>
-                            {u.name.charAt(0)}
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="font-bold text-sm">{u.name}</span>
-                            <span className="text-[10px] text-muted-foreground uppercase tracking-widest">{u.role}</span>
-                          </div>
-                        </div>
-                  </TableCell>
-                  <TableCell>
-                      <Badge variant="secondary" className={cn(
-                        "rounded-lg font-bold text-[10px] uppercase tracking-wider py-0.5",
-                        u.role === 'admin' ? "bg-primary/10 text-primary border-primary/20" : 
-                        u.role === 'operator' ? "bg-amber-100 text-amber-600 border-amber-200" : 
-                        "bg-slate-100 text-slate-600 border-slate-200"
-                      )}>
-                        {u.role}
-                      </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
+                <TableRow key={u.id} className="group hover:bg-muted/30 transition-colors">
+                  <TableCell className="pl-6 py-4">
+                    <div className="flex items-center gap-3">
                       <div className={cn(
-                        "w-2 h-2 rounded-full",
-                        u.status === 'active' ? "bg-emerald-500" : "bg-slate-300"
-                      )} />
-                      <span className="text-xs font-medium capitalize">{u.status === 'active' ? 'Aktif' : u.status === 'inactive' ? 'Nonaktif' : u.status}</span>
+                        "w-9 h-9 rounded-2xl flex items-center justify-center text-xs font-black shrink-0 border shadow-xs",
+                        u.role === 'admin' ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" : 
+                        u.role === 'operator' ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20" : 
+                        "bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20"
+                      )}>
+                        {u.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-xs text-foreground">{u.name}</span>
+                        <span className="text-[11px] font-semibold text-muted-foreground">{u.email}</span>
+                      </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground font-medium">
-                    {formatDateTimeLong(u.lastLogin)}
+                  <TableCell className="py-4">
+                    <Badge className={cn(
+                      "rounded-xl font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-0.5 border-none",
+                      u.role === 'admin' ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400" : 
+                      u.role === 'operator' ? "bg-amber-500/15 text-amber-700 dark:text-amber-400" : 
+                      "bg-slate-500/15 text-slate-700 dark:text-slate-400"
+                    )}>
+                      {u.role === 'admin' ? 'Administrator' : u.role === 'operator' ? 'Operator' : 'Viewer'}
+                    </Badge>
                   </TableCell>
-                  <TableCell className="text-right pr-8">
-                    <div className="flex items-center justify-end gap-1">
+                  <TableCell className="text-xs text-muted-foreground font-semibold py-4">
+                    {formatDateTimeShort(u.lastLogin)}
+                  </TableCell>
+                  <TableCell className="py-4 whitespace-nowrap">
+                    <div className="flex items-center gap-2 shrink-0 whitespace-nowrap min-w-[90px]">
+                      <div className={cn(
+                        "w-2 h-2 rounded-full shrink-0",
+                        u.status === 'active' ? "bg-emerald-500" : "bg-rose-500"
+                      )} />
+                      <span className={cn("text-xs font-extrabold whitespace-nowrap shrink-0", u.status === 'active' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
+                        {u.status === 'active' ? t('Aktif') : t('Nonaktif')}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right pr-6 py-4">
+                    <div className="flex items-center justify-end gap-2">
                       <Button 
                         size="icon" 
-                        className="h-8 w-8 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm" 
+                        variant="outline"
+                        className="h-8.5 w-8.5 rounded-xl border-border/80 bg-background hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer shadow-xs transition-all" 
                         onClick={() => {
                           setEditingUser({...u});
                           setIsEditUserOpen(true);
                         }}
+                        title={t('Edit')}
                       >
-                        <Edit size={15}/>
+                        <Edit size={14} />
                       </Button>
                       <Button 
                         size="icon" 
-                        className="h-8 w-8 bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow-sm" 
+                        variant="outline"
+                        className="h-8.5 w-8.5 rounded-xl border-rose-200 dark:border-rose-900/60 bg-rose-50/80 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 cursor-pointer shadow-xs transition-all" 
                         onClick={() => {
                           setUserToDelete(u);
                           setIsDeleteDialogOpen(true);
                         }}
+                        title={t('Hapus')}
                       >
-                        <Trash2 size={15}/>
+                        <Trash2 size={14} />
                       </Button>
                     </div>
                   </TableCell>
@@ -384,117 +445,175 @@ export default function UsersView({ users, setUsers }: { users: User[], setUsers
         </CardContent>
       </Card>
 
-      {/* Role Access Matrix Hint */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border-none shadow-sm shadow-black/5 bg-primary/5 border border-primary/10">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold flex items-center gap-2">
-              Admin
-            </CardTitle>
+      {/* Role Access Matrix Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+        <Card className="bg-card border-border/80 shadow-md rounded-3xl overflow-hidden w-full">
+          <CardHeader className="bg-muted/30 border-b border-border/60 p-5 py-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                <ShieldCheck size={18} />
+              </div>
+              <CardTitle className="text-sm font-black text-foreground">Administrator</CardTitle>
+            </div>
           </CardHeader>
-          <CardContent className="text-[11px] text-muted-foreground leading-relaxed">
-            Akses penuh ke seluruh sistem, termasuk manajemen pengguna, pengaturan perangkat, dan konfigurasi sistem.
+          <CardContent className="p-5 text-xs font-semibold text-muted-foreground leading-relaxed">
+            {t('Akses penuh ke seluruh sistem, termasuk manajemen pengguna, pengaturan perangkat, dan konfigurasi sistem.')}
           </CardContent>
         </Card>
-        <Card className="border-none shadow-sm shadow-black/5 bg-amber-50/50 border border-amber-100">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold flex items-center gap-2 text-amber-700">
-              Operator
-            </CardTitle>
+
+        <Card className="bg-card border-border/80 shadow-md rounded-3xl overflow-hidden w-full">
+          <CardHeader className="bg-muted/30 border-b border-border/60 p-5 py-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
+                <UserCog size={18} />
+              </div>
+              <CardTitle className="text-sm font-black text-foreground">Operator</CardTitle>
+            </div>
           </CardHeader>
-          <CardContent className="text-[11px] text-amber-800/70 leading-relaxed">
-            Akses ke dashboard, analitik, dan laporan. Dapat mengelola perangkat tetapi tidak dapat mengelola pengguna.
+          <CardContent className="p-5 text-xs font-semibold text-muted-foreground leading-relaxed">
+            {t('Akses ke dashboard, analitik, dan laporan. Dapat mengelola perangkat tetapi tidak dapat mengelola pengguna.')}
           </CardContent>
         </Card>
-        <Card className="border-none shadow-sm shadow-black/5 bg-slate-50 border border-slate-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-700">
-              Viewer
-            </CardTitle>
+
+        <Card className="bg-card border-border/80 shadow-md rounded-3xl overflow-hidden w-full">
+          <CardHeader className="bg-muted/30 border-b border-border/60 p-5 py-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20 shrink-0">
+                <UserCheck size={18} />
+              </div>
+              <CardTitle className="text-sm font-black text-foreground">Viewer</CardTitle>
+            </div>
           </CardHeader>
-          <CardContent className="text-[11px] text-slate-800/70 leading-relaxed">
-            Akses terbatas untuk memantau data sensor dan status perangkat secara real-time. Tidak dapat mengubah konfigurasi.
+          <CardContent className="p-5 text-xs font-semibold text-muted-foreground leading-relaxed">
+            {t('Akses terbatas untuk memantau data sensor dan status perangkat secara real-time. Tidak dapat mengubah konfigurasi.')}
           </CardContent>
         </Card>
       </div>
 
-      {/* ══ DIALOG: EDIT PENGGUNA ══ */}
+      {/* DIALOG: EDIT USER */}
       <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
-        <DialogContent className="sm:max-w-[425px] rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Edit Pengguna</DialogTitle>
-            <DialogDescription>
-              Ubah detail pengguna <strong>{editingUser?.name}</strong>.
-            </DialogDescription>
+        <DialogContent className="sm:max-w-[480px] rounded-[28px] border border-border/80 shadow-2xl p-6 sm:p-7 bg-card gap-0 overflow-hidden">
+          <DialogHeader className="flex flex-row items-start gap-4 pb-5 mb-5 border-b border-border/60 space-y-0 text-left">
+            <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shrink-0 shadow-xs">
+              <UserCog size={22} />
+            </div>
+            <div className="flex flex-col gap-1 pr-6">
+              <DialogTitle className="text-xl font-black tracking-tight text-foreground leading-snug">
+                {t('Edit Pengguna')}
+              </DialogTitle>
+              <DialogDescription className="text-xs font-semibold text-muted-foreground leading-relaxed">
+                Ubah detail pengguna <strong>{editingUser?.name}</strong>.
+              </DialogDescription>
+            </div>
           </DialogHeader>
+
           {editingUser && (
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label className="font-bold text-xs uppercase tracking-wider">Nama Lengkap</Label>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground block">
+                  {t('Nama Lengkap')}
+                </Label>
                 <Input 
                   value={editingUser.name}
                   onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
-                  className="rounded-xl h-11"
+                  className="w-full rounded-2xl h-11 px-4 border-border/80 bg-muted/20 font-semibold text-xs focus:bg-background focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600 transition-all shadow-xs"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label className="font-bold text-xs uppercase tracking-wider">Email</Label>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground block">
+                  {t('Alamat Email')}
+                </Label>
                 <Input 
                   type="email"
                   value={editingUser.email}
                   onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
-                  className="rounded-xl h-11"
+                  className="w-full rounded-2xl h-11 px-4 border-border/80 bg-muted/20 font-semibold text-xs focus:bg-background focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600 transition-all shadow-xs"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label className="font-bold text-xs uppercase tracking-wider">Peran (Role)</Label>
-                <Select 
-                  value={editingUser.role} 
-                  onValueChange={(value) => setEditingUser({...editingUser, role: value as UserRole})}
+
+              <div className="space-y-2">
+                <Label className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground block">
+                  {t('Peran Akses')}
+                </Label>
+                <select
+                  value={editingUser.role || 'viewer'}
+                  onChange={(e) => setEditingUser({...editingUser, role: e.target.value as UserRole})}
+                  className="w-full rounded-2xl h-11 px-4 border border-border/80 bg-muted/20 font-semibold text-xs text-foreground focus:bg-background focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600 transition-all shadow-xs cursor-pointer"
                 >
-                  <SelectTrigger className="rounded-xl h-11">
-                    <SelectValue />
-                  </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="operator">Operator</SelectItem>
-                      <SelectItem value="viewer">Viewer</SelectItem>
-                    </SelectContent>
-                </Select>
+                  <option value="admin" className="bg-background text-foreground font-bold py-2">Administrator ({t('Akses Penuh')})</option>
+                  <option value="operator" className="bg-background text-foreground font-bold py-2">Operator ({t('Manajemen Data')})</option>
+                  <option value="viewer" className="bg-background text-foreground font-bold py-2">Viewer ({t('Hanya Lihat')})</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground block">
+                  {t('Status Akun')}
+                </Label>
+                <select
+                  value={editingUser.status || 'active'}
+                  onChange={(e) => setEditingUser({...editingUser, status: e.target.value as 'active' | 'inactive'})}
+                  className="w-full rounded-2xl h-11 px-4 border border-border/80 bg-muted/20 font-semibold text-xs text-foreground focus:bg-background focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600 transition-all shadow-xs cursor-pointer"
+                >
+                  <option value="active" className="bg-background text-foreground font-bold py-2">🟢 {t('Aktif')} — {t('Dapat login ke sistem')}</option>
+                  <option value="inactive" className="bg-background text-foreground font-bold py-2">🔴 {t('Nonaktif')} — {t('Tidak dapat login')}</option>
+                </select>
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditUserOpen(false)} className="rounded-xl h-11 font-bold">Batal</Button>
-            <Button onClick={handleEditUser} disabled={isSubmitting} className="rounded-xl h-11 font-bold">
-              {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
+
+          <DialogFooter className="-mx-6 -mb-6 sm:-mx-7 sm:-mb-7 mt-6 px-6 py-4 sm:px-8 sm:py-5 border-t border-border/60 bg-muted/30 rounded-b-[28px] flex flex-row items-center justify-end gap-3 space-x-0">
+            <Button 
+              type="button"
+              variant="outline" 
+              onClick={() => setIsEditUserOpen(false)} 
+              className="h-11 px-6 rounded-2xl border-border/80 font-extrabold text-xs bg-card hover:bg-muted transition-all cursor-pointer m-0"
+            >
+              {t('Batal')}
+            </Button>
+            <Button 
+              type="button"
+              onClick={handleEditUser} 
+              disabled={isSubmitting} 
+              className="h-11 px-7 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs shadow-md shadow-indigo-600/25 transition-all cursor-pointer m-0"
+            >
+              {isSubmitting ? t('Menyimpan...') : t('Simpan Perubahan')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* ══ DIALOG: KONFIRMASI HAPUS ══ */}
+
+      {/* DIALOG: DELETE USER */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={(open) => { if (!isSubmitting) setIsDeleteDialogOpen(open); }}>
-        <AlertDialogContent className="rounded-2xl border-none shadow-2xl">
-          <AlertDialogHeader>
-            <div className="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mb-2">
-              <Trash2 size={24} />
+        <AlertDialogContent className="sm:max-w-[460px] rounded-[28px] border border-border/80 shadow-2xl p-6 sm:p-7 bg-card gap-0 overflow-hidden">
+          <AlertDialogHeader className="flex flex-row items-start gap-4 pb-5 mb-5 border-b border-border/60 space-y-0 text-left">
+            <div className="p-3 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 shrink-0 shadow-xs">
+              <Trash2 size={22} />
             </div>
-            <AlertDialogTitle className="text-xl font-bold">Hapus Pengguna?</AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground">
-              Tindakan ini tidak dapat dibatalkan. Ini akan menghapus akun <strong>{userToDelete?.name}</strong> secara permanen dari sistem.
-            </AlertDialogDescription>
+            <div className="flex flex-col gap-1 pr-6">
+              <AlertDialogTitle className="text-xl font-black tracking-tight text-foreground leading-snug">
+                {t('Hapus Pengguna?')}
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-xs font-semibold text-muted-foreground leading-relaxed">
+                {t('Tindakan ini tidak dapat dibatalkan. Ini akan menghapus akun')} <strong>{userToDelete?.name}</strong> {t('secara permanen dari sistem.')}
+              </AlertDialogDescription>
+            </div>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-3 mt-4">
-            <AlertDialogCancel className="rounded-xl h-11 font-bold flex-1 border-none bg-muted hover:bg-muted/80">Batal</AlertDialogCancel>
+
+          <AlertDialogFooter className="mt-2 flex flex-row items-center justify-end gap-3 space-x-0">
+            <AlertDialogCancel className="h-11 px-6 rounded-2xl border-border/80 font-extrabold text-xs bg-muted/30 hover:bg-muted transition-all m-0">
+              {t('Batal')}
+            </AlertDialogCancel>
             <AlertDialogAction 
               onClick={(e) => {
                 e.preventDefault();
                 if (!isSubmitting) handleDeleteUser();
               }} 
               disabled={isSubmitting}
-              className="rounded-xl h-11 font-bold flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-lg shadow-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-11 px-7 rounded-2xl font-black text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-md shadow-rose-600/25 transition-all cursor-pointer m-0"
             >
-              {isSubmitting ? "Menghapus..." : "Ya, Hapus"}
+              {isSubmitting ? t('Menghapus...') : t('Ya, Hapus')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -77,6 +77,8 @@ services:
       - MQTT_TOPIC=${MQTT_TOPIC:-agrisense/iot/readings}
       - MQTT_FORWARD_URL=${MQTT_FORWARD_URL:-http://agrisense-nginx/api/iot/agrisense/readings}
     volumes:
+      - ./backend/app:/app/backend/app
+      - ./backend/routes:/app/backend/routes
       - ./backend/storage:/app/backend/storage
       - ./backend/bootstrap/cache:/app/backend/bootstrap/cache
       - ./docs/deploy_model_bundle:/app/docs/deploy_model_bundle:ro
@@ -336,11 +338,12 @@ services:
     container_name: agrisense-nginx
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-8443}:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./backend/public:/app/public:ro
+      - ./backend/storage/app/public:/app/public/storage:ro
       - ./dist:/app/dist:ro
       - ./ssl:/etc/nginx/ssl:ro
     depends_on:

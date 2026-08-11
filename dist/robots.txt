@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://agrisense.web.id/sitemap.xml

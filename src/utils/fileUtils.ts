@@ -48,3 +48,17 @@ export const validateAndReadImage = (
     reader.readAsDataURL(file);
   });
 };
+
+/**
+ * Mengubah path relatif penyimpanan backend Laravel menjadi URL statis yang dapat dibaca browser.
+ * @param path - Relative path (misal: 'komoditi/xyz.jpg' atau '/storage/komoditi/xyz.jpg')
+ * @returns string - Storage URL (misal: '/storage/komoditi/xyz.jpg')
+ */
+export const getStorageUrl = (path?: string | null): string => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+    return path;
+  }
+  const cleanPath = path.replace(/^\/?storage\//, '').replace(/^\//, '');
+  return `/storage/${cleanPath}`;
+};

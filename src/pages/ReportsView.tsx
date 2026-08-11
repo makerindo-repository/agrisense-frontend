@@ -1,59 +1,53 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
-  LayoutDashboard, Radio, Database, CloudSun, Map as MapIcon, BarChart3, 
-  FileText, Settings, Users, Bell, Search, Menu, X, Droplets, Thermometer, 
-  Wind, Battery, Signal, AlertTriangle, Leaf, LogIn, LogOut, Calendar as CalendarIcon, 
-  FlaskConical, Zap, Activity, Filter, Plus, Save, MoreVertical, Edit, Trash2, 
-  Download, CheckCircle2, Eye, EyeOff, Trees, Layers, Sprout, MapPin, SearchIcon, Share2, Map as MapIconS
+  FileText, Download, Eye, Calendar as CalendarIcon, Activity, CheckCircle2, 
+  FileCheck, SlidersHorizontal, Radio, FileSpreadsheet, BarChart3, ShieldCheck,
+  TableProperties
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { formatFileDateOnly, format, addDays, id } from '@/utils/formatters';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, ScatterChart, Scatter, ZAxis, Legend } from 'recharts';
 import { toast } from 'sonner';
-import { IoTNode, User, UserRole } from '../lib/mockData';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { cn } from '@/lib/utils';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useTranslation } from 'react-i18next';
 import api from '../lib/api';
 
-// Map related overrides
-import { MapContainer, TileLayer, Marker, Popup, useMap, Polygon, Tooltip as LeafletTooltip } from 'react-leaflet';
-import L from 'leaflet';
-import LeafletDrawMap, { PolygonDrawResult } from '../components/LeafletDrawMap';
-
-// App specific imports
-
 export default function ReportsView() {
-  const [dateRange, setDateRange] = React.useState<{ from: Date; to: Date | undefined }>({
+  const { t, i18n } = useTranslation();
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date | undefined }>({
     from: addDays(new Date(), -7),
     to: new Date(),
   });
-  const [reportType, setReportType] = React.useState("raw-data");
-  const [fileFormat, setFileFormat] = React.useState("pdf");
-  const [selectedNode, setSelectedNode] = React.useState("all");
-  const [nodes, setNodes] = React.useState<any[]>([]);
-  const [previewData, setPreviewData] = React.useState<any[]>([]);
-  const [isGenerating, setIsGenerating] = React.useState(false);
+  const [reportType, setReportType] = useState("raw-data");
+  const [fileFormat, setFileFormat] = useState("pdf");
+  const [selectedNode, setSelectedNode] = useState("all");
+  const [nodes, setNodes] = useState<any[]>([]);
+  const [previewData, setPreviewData] = useState<any[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Label dictionary for report types
+  const reportTypeLabels: Record<string, string> = {
+    'raw-data': t('Laporan Data Historis'),
+    'analysis': t('Interpretasi dan Analisis'),
+    'maintenance': t('Laporan Pemeliharaan'),
+    'system-logs': t('Log Aktivitas Sistem')
+  };
 
   useEffect(() => {
     // Fetch nodes for dropdown using authenticated api
     api.get('/nodes')
       .then(res => {
-        if(Array.isArray(res.data)) setNodes(res.data);
+        if (Array.isArray(res.data)) setNodes(res.data);
       })
       .catch(err => console.error(err));
   }, []);
@@ -87,7 +81,7 @@ export default function ReportsView() {
         a.click();
         window.URL.revokeObjectURL(downloadUrl);
         a.remove();
-        toast.success("CSV berhasil diunduh!");
+        toast.success(t('CSV berhasil diunduh!'));
       } else {
         const res = await api.get(url);
         const exportData = res.data.data || [];
@@ -98,7 +92,7 @@ export default function ReportsView() {
           const workbook = XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
           XLSX.writeFile(workbook, `${filename}.xlsx`);
-          toast.success("Excel berhasil diunduh!");
+          toast.success(t('Excel berhasil diunduh!'));
         } else if (fileFormat === 'pdf') {
           const doc = new jsPDF();
           doc.text(`Laporan AgriSense - ${activeNodeName}`, 14, 15);
@@ -122,12 +116,30 @@ export default function ReportsView() {
           }
           
           doc.save(`${filename}.pdf`);
-          toast.success("PDF berhasil diunduh!");
+          toast.success(t('PDF berhasil diunduh!'));
         }
       }
     } catch (err) {
       console.error("Export error:", err);
-      toast.error("Gagal melakukan ekspor data. Pastikan rentang tanggal benar.");
+      toast.error(t('Gagal melakukan ekspor data. Pastikan rentang tanggal benar.'));
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleQuickPreview = async () => {
+    setIsGenerating(true);
+    try {
+      let url = `/reports/export?format=json&type=${reportType}`;
+      if (dateRange.from) url += `&start_date=${format(dateRange.from, 'yyyy-MM-dd')}`;
+      if (dateRange.to) url += `&end_date=${format(dateRange.to, 'yyyy-MM-dd')}`;
+      if (selectedNode !== 'all') url += `&device_id=${selectedNode}`;
+      
+      const res = await api.get(url);
+      setPreviewData(res.data.data || []);
+      toast.success(t('Pratinjau berhasil dimuat. Silakan cek tabel di sebelah kanan.'));
+    } catch (err) {
+      toast.error(t('Gagal memuat pratinjau. Periksa koneksi atau rentang tanggal.'));
     } finally {
       setIsGenerating(false);
     }
@@ -135,11 +147,9 @@ export default function ReportsView() {
 
   const estimatedSize = useMemo(() => {
     if (!previewData || previewData.length === 0) return '-';
-    // Approx base size in bytes
     const str = JSON.stringify(previewData);
     const bytes = new Blob([str]).size;
     
-    // Add overhead multiplier depending on the format
     let multiplier = 1; // csv
     if (fileFormat === 'excel') multiplier = 1.5;
     if (fileFormat === 'pdf') multiplier = 2.0;
@@ -151,74 +161,130 @@ export default function ReportsView() {
     return `${(finalBytes / (1024 * 1024)).toFixed(2)} MB`;
   }, [previewData, fileFormat]);
 
+  const selectedNodeLabel = useMemo(() => {
+    if (selectedNode === 'all') return t('Semua Node');
+    const target = nodes.find(n => (n.device_code || n.name || n.id).toString() === selectedNode.toString());
+    return target ? (target.name || target.device_code || target.id) : selectedNode;
+  }, [selectedNode, nodes, t]);
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Laporan & Ekspor</h1>
-          <p className="text-muted-foreground">Pusat dokumentasi dan ekspor data sistem AgriSense</p>
+    <div className="w-full space-y-6 max-w-5xl mx-auto pb-24 select-none">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-border/60">
+        <div className="flex items-center gap-3.5">
+          <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-xs shrink-0">
+            <FileText size={24} />
+          </div>
+          <div>
+            <h1 className="text-xl font-black tracking-tight text-foreground">
+              {t('Laporan dan Ekspor')}
+            </h1>
+            <p className="text-xs font-semibold text-muted-foreground mt-0.5">
+              {t('Pusat dokumentasi dan ekspor data sistem AgriSense')}
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-1 border-none shadow-sm shadow-black/5">
-          <CardHeader>
-            <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Konfigurasi Laporan</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+      {/* Top Configuration Card (Full Width) */}
+      <Card className="bg-card border-border/80 shadow-md rounded-3xl overflow-hidden w-full">
+        <CardHeader className="bg-muted/30 border-b border-border/60 p-6 py-5">
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0 border border-emerald-500/20 shadow-xs">
+              <FileCheck size={22} />
+            </div>
+            <div>
+              <CardTitle className="text-base font-black tracking-tight text-foreground">
+                {t('Konfigurasi Laporan')}
+              </CardTitle>
+              <CardDescription className="text-xs font-semibold text-muted-foreground mt-0.5">
+                {t('Atur jenis laporan, rentang tanggal, dan format berkas luaran')}
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-6 space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+            {/* 1. Jenis Laporan */}
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Jenis Laporan</Label>
+              <Label className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <SlidersHorizontal size={13} />
+                {t('Jenis Laporan')}
+              </Label>
               <Select value={reportType} onValueChange={(v) => setReportType(v || 'raw-data')}>
-                <SelectTrigger className="bg-card border-none h-12 rounded-md shadow-md font-semibold text-xs transition-all">
-                <SelectValue placeholder="Pilih Jenis Laporan" />
-              </SelectTrigger>
-              <SelectContent className="rounded-md border-none shadow-2xl min-w-[280px]">
-                  <SelectItem value="raw-data" className="font-semibold text-xs">Laporan Data Historis</SelectItem>
-                  <SelectItem value="analysis" className="font-semibold text-xs">Interpretasi & Analisis</SelectItem>
-                  <SelectItem value="maintenance" className="font-semibold text-xs">Laporan Pemeliharaan</SelectItem>
-                  <SelectItem value="system-logs" className="font-semibold text-xs">Log Aktivitas Sistem</SelectItem>
+                <SelectTrigger className="h-11 w-full rounded-2xl bg-card border-border/80 font-extrabold text-xs shadow-sm">
+                  <SelectValue>{reportTypeLabels[reportType] || reportTypeLabels['raw-data']}</SelectValue>
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-border shadow-xl">
+                  <SelectItem value="raw-data" className="text-xs font-bold cursor-pointer">{t('Laporan Data Historis')}</SelectItem>
+                  <SelectItem value="analysis" className="text-xs font-bold cursor-pointer">{t('Interpretasi dan Analisis')}</SelectItem>
+                  <SelectItem value="maintenance" className="text-xs font-bold cursor-pointer">{t('Laporan Pemeliharaan')}</SelectItem>
+                  <SelectItem value="system-logs" className="text-xs font-bold cursor-pointer">{t('Log Aktivitas Sistem')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {reportType !== 'system-logs' && (
-            <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Pilih Perangkat (Node)
-              </Label>
-              <Select value={selectedNode} onValueChange={(v) => setSelectedNode(v || 'all')}>
-                <SelectTrigger className="bg-card border-none h-12 rounded-md shadow-md font-semibold text-xs transition-all">
-                <SelectValue placeholder="Pilih Node" />
-              </SelectTrigger>
-              <SelectContent className="rounded-md border-none shadow-2xl min-w-[280px]">
-                <SelectItem value="all" className="font-semibold text-xs">Semua Node</SelectItem>
-                {nodes.map(node => (
-                  <SelectItem key={node.id} value={node.device_code || node.name || node.id} className="font-semibold text-xs uppercase">{node.name || node.device_code || node.id}</SelectItem>
-                ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* 2. Pilih Perangkat (Node) */}
+            {reportType !== 'system-logs' ? (
+              <div className="space-y-2">
+                <Label className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Radio size={13} />
+                  {t('Pilih Perangkat (Node)')}
+                </Label>
+                <Select value={selectedNode} onValueChange={(v) => setSelectedNode(v || 'all')}>
+                  <SelectTrigger className="h-11 w-full rounded-2xl bg-card border-border/80 font-extrabold text-xs shadow-sm">
+                    <SelectValue>{selectedNodeLabel}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border-border shadow-xl">
+                    <SelectItem value="all" className="text-xs font-bold cursor-pointer">{t('Semua Node')}</SelectItem>
+                    {nodes.map(node => (
+                      <SelectItem key={node.id} value={node.device_code || node.name || node.id} className="text-xs font-bold uppercase cursor-pointer">
+                        {node.name || node.device_code || node.id}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="space-y-2 opacity-50">
+                <Label className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Radio size={13} />
+                  {t('Pilih Perangkat (Node)')}
+                </Label>
+                <div className="h-11 px-4 rounded-2xl bg-muted/50 border border-border/60 font-bold text-xs flex items-center text-muted-foreground">
+                  {t('Seluruh Sistem')}
+                </div>
+              </div>
             )}
 
+            {/* 3. Rentang Waktu */}
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Rentang Waktu</Label>
+              <Label className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <CalendarIcon size={13} />
+                {t('Rentang Waktu')}
+              </Label>
               <Popover>
-                <PopoverTrigger className="w-full inline-flex items-center justify-start text-left bg-card border-none h-10 rounded-md shadow-md font-semibold text-xs hover:bg-slate-50 transition-all px-4">
-                    <img src="https://cdn-icons-png.flaticon.com/512/833/833593.png" alt="calendar" className="w-4 h-4 object-contain opacity-75 mr-2" />
-                    {dateRange?.from ? (
-                      dateRange.to ? (
-                        <>
-                          {format(dateRange.from, "dd MMM yyyy", { locale: id })} -{" "}
-                          {format(dateRange.to, "dd MMM yyyy", { locale: id })}
-                        </>
+                <PopoverTrigger>
+                  <div className="w-full h-11 px-4 rounded-2xl bg-card border border-border/80 font-extrabold text-xs flex items-center justify-start text-left shadow-sm gap-2 cursor-pointer hover:bg-muted/50 transition-colors">
+                    <CalendarIcon size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="truncate">
+                      {dateRange?.from ? (
+                        dateRange.to ? (
+                          <>
+                            {format(dateRange.from, "dd MMM yyyy", { locale: id })} -{" "}
+                            {format(dateRange.to, "dd MMM yyyy", { locale: id })}
+                          </>
+                        ) : (
+                          format(dateRange.from, "dd MMM yyyy", { locale: id })
+                        )
                       ) : (
-                        format(dateRange.from, "dd MMM yyyy", { locale: id })
-                      )
-                    ) : (
-                      <span>Pilih rentang tanggal</span>
-                    )}
+                        <span>{t('Pilih rentang tanggal')}</span>
+                      )}
+                    </span>
+                  </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 rounded-md border-none shadow-2xl" align="start">
+                <PopoverContent className="w-auto p-0 rounded-2xl border-border shadow-2xl" align="start">
                   <Calendar
                     initialFocus
                     mode="range"
@@ -226,192 +292,191 @@ export default function ReportsView() {
                     selected={dateRange as any}
                     onSelect={setDateRange as any}
                     numberOfMonths={2}
-                    className="rounded-md"
+                    className="rounded-2xl p-3"
                   />
                 </PopoverContent>
               </Popover>
             </div>
 
+            {/* 4. Format Berkas Luaran */}
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Format File Luaran</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {['pdf', 'excel', 'csv'].map((format) => (
+              <Label className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <FileSpreadsheet size={13} />
+                {t('Format Berkas Luaran')}
+              </Label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {['pdf', 'excel', 'csv'].map((fmt) => (
                   <Button 
-                    key={format}
-                    variant={fileFormat === format ? "default" : "outline"}
-                    onClick={() => setFileFormat(format)}
+                    key={fmt}
+                    variant={fileFormat === fmt ? "default" : "outline"}
+                    onClick={() => setFileFormat(fmt)}
                     className={cn(
-                      "h-10 rounded-md font-bold text-[10px] uppercase transition-all",
-                      fileFormat === format ? "shadow-lg shadow-primary/20" : "bg-card border-none shadow-sm hover:bg-slate-50"
+                      "h-11 rounded-2xl font-extrabold text-xs uppercase transition-all cursor-pointer",
+                      fileFormat === fmt ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20" : "border-border/60 hover:bg-muted"
                     )}
                   >
-                    {format === 'excel' ? 'XLSX' : format}
+                    {fmt === 'excel' ? 'XLSX' : fmt}
                   </Button>
                 ))}
               </div>
             </div>
+          </div>
 
-            <div className="flex gap-2 mt-4 pb-1">
-              <Button 
-                variant="outline"
-                className="flex-1 h-11 rounded-md font-bold gap-2 bg-muted/50 border-border/50 hover:bg-muted text-xs"
-                onClick={async () => {
-                  setIsGenerating(true);
-                  try {
-                    let url = `/reports/export?format=json&type=${reportType}`;
-                    if (dateRange.from) url += `&start_date=${format(dateRange.from, 'yyyy-MM-dd')}`;
-                    if (dateRange.to) url += `&end_date=${format(dateRange.to, 'yyyy-MM-dd')}`;
-                    if (selectedNode !== 'all') url += `&device_id=${selectedNode}`;
-                    
-                    const res = await api.get(url);
-                    setPreviewData(res.data.data || []);
-                    toast.success("Pratinjau berhasil dimuat. Silakan cek tabel di sebelah kanan.");
-                  } catch (err) {
-                    toast.error("Gagal memuat pratinjau. Periksa koneksi atau rentang tanggal.");
-                  } finally {
-                    setIsGenerating(false);
-                  }
-                }}
-                disabled={isGenerating}
-              >
-                {isGenerating ? (
-                  <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <Eye size={16} />
-                )}
-                Pratinjau Cepat
-              </Button>
-              <Button 
-                className="flex-1 h-11 rounded-md font-bold gap-2 shadow-sm shadow-primary/20 text-xs"
-                onClick={handleGenerate}
-                disabled={isGenerating}
-              >
-                {isGenerating ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <Download size={16} />
-                )}
-                Unduh Laporan
-              </Button>
+          {/* Action Buttons Row */}
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-border/60">
+            <Button 
+              variant="outline"
+              className="w-full sm:w-auto h-11 px-6 rounded-2xl font-extrabold gap-2 border-border/80 hover:bg-muted text-xs cursor-pointer"
+              onClick={handleQuickPreview}
+              disabled={isGenerating}
+            >
+              {isGenerating ? (
+                <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <Eye size={16} />
+              )}
+              {t('Pratinjau Cepat')}
+            </Button>
+            <Button 
+              className="w-full sm:w-auto h-11 px-6 rounded-2xl font-extrabold gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20 text-xs cursor-pointer"
+              onClick={handleGenerate}
+              disabled={isGenerating}
+            >
+              {isGenerating ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <Download size={16} />
+              )}
+              {t('Unduh Laporan')}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Main Preview Table Card (Full Width) */}
+      <Card className="bg-card border-border/80 shadow-md rounded-3xl overflow-hidden w-full">
+        <CardHeader className="bg-muted/30 border-b border-border/60 p-6 py-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3.5">
+              <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0 border border-emerald-500/20 shadow-xs">
+                <TableProperties size={22} />
+              </div>
+              <div>
+                <CardTitle className="text-base font-black tracking-tight text-foreground flex items-center gap-2">
+                  {t('Pratinjau Laporan')}
+                </CardTitle>
+                <CardDescription className="text-xs font-semibold text-muted-foreground mt-0.5">
+                  {t('Pratinjau struktur data untuk jenis laporan:')}{' '}
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-extrabold text-[11px] border border-emerald-500/20">
+                    {reportTypeLabels[reportType] || reportTypeLabels['raw-data']}
+                  </span>
+                </CardDescription>
+              </div>
             </div>
-          </CardContent>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="rounded-2xl border border-border/60 overflow-hidden min-h-[220px]">
+            <Table className="w-full">
+              <TableHeader className="bg-muted/40">
+                <TableRow className="border-border/60">
+                  {previewData.length > 0 ? (
+                    Object.keys(previewData[0]).map((key) => (
+                      <TableHead key={key} className="text-[10px] font-black uppercase tracking-wider whitespace-nowrap text-muted-foreground">{key}</TableHead>
+                    ))
+                  ) : (
+                    reportType === 'raw-data' ? (
+                      <>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Stempel Waktu')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('ID Perangkat')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">CO2 (PPM)</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">CH4 (PPM)</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Suhu (°C)</TableHead>
+                      </>
+                    ) : reportType === 'maintenance' ? (
+                      <>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Tanggal</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('ID Perangkat')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Teknisi</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Status Hardware</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Tindakan</TableHead>
+                      </>
+                    ) : reportType === 'system-logs' ? (
+                      <>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('ID Log')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Stempel Waktu')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Pengguna')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Aktivitas')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Modul Sistem')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Status')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Alamat IP')}</TableHead>
+                      </>
+                    ) : (
+                      <>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Periode</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('ID Perangkat')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Tren Analisis</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Rekomendasi</TableHead>
+                      </>
+                    )
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {previewData.length > 0 ? (
+                  previewData.slice(0, 5).map((reading: any, idx: number) => (
+                    <TableRow key={idx} className="border-border/40 hover:bg-muted/30">
+                      {Object.values(reading).map((val: any, ci: number) => (
+                        <TableCell key={ci} className="text-xs font-semibold whitespace-nowrap text-foreground">
+                          {val !== null && val !== undefined ? String(val) : '-'}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground font-medium">
+                      {t('Klik "Pratinjau Cepat" untuk melihat data pratinjau.')}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Bottom Export Statistics & Document Status Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="bg-card border-border/80 shadow-md rounded-3xl p-5">
+          <div className="flex items-center gap-4">
+            <div className="p-3.5 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0 border border-emerald-500/20 shadow-xs">
+              <BarChart3 size={22} />
+            </div>
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">{t('Total Baris')}</p>
+              <h3 className="text-2xl font-black text-foreground">{previewData.length > 0 ? previewData.length : '-'}</h3>
+            </div>
+            <div className="ml-auto text-right">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">{t('Estimasi Ukuran')}</p>
+              <h3 className="text-2xl font-black text-foreground">{estimatedSize}</h3>
+            </div>
+          </div>
         </Card>
 
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="border-none shadow-sm shadow-black/5">
-            <CardHeader className="flex flex-row items-center justify-between pt-4">
-              <div>
-                <CardTitle className="text-lg font-bold">Preview Laporan</CardTitle>
-                <CardDescription>Pratinjau struktur data untuk jenis laporan: <span className="text-primary font-bold">{
-                  reportType === 'raw-data' ? 'Data Historis' :
-                  reportType === 'analysis' ? 'Interpretasi & Analisis' :
-                  reportType === 'maintenance' ? 'Pemeliharaan Perangkat' :
-                  reportType === 'system-logs' ? 'Log Aktivitas Sistem' : 'Lainnya'
-                }</span></CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="pb-10">
-              <div className="rounded-md border border-border overflow-hidden flex flex-col min-h-[220px]">
-                <Table className="flex-1">
-                  <TableHeader className="bg-muted/50">
-                    <TableRow>
-                      {previewData.length > 0 ? (
-                        Object.keys(previewData[0]).map((key) => (
-                          <TableHead key={key} className="text-[10px] font-black uppercase whitespace-nowrap">{key}</TableHead>
-                        ))
-                      ) : (
-                        reportType === 'raw-data' ? (
-                          <>
-                            <TableHead className="text-[10px] font-black uppercase">Timestamp</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase">Node ID</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase">CO2 (ppm)</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase">CH4 (ppm)</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase">Temp (°C)</TableHead>
-                          </>
-                        ) : reportType === 'maintenance' ? (
-                          <>
-                            <TableHead className="text-[10px] font-black uppercase">Tanggal</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase">Node ID</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase">Teknisi</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase">Status Hardware</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase">Tindakan</TableHead>
-                          </>
-                        ) : reportType === 'system-logs' ? (
-                          <>
-                            <TableHead className="text-[10px] font-black uppercase">Waktu</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase">User</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase">Tindakan</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase">Modul</TableHead>
-                          </>
-                        ) : (
-                          <>
-                            <TableHead className="text-[10px] font-black uppercase">Periode</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase">Node ID</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase">Tren Analisis</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase">Rekomendasi</TableHead>
-                          </>
-                        )
-                      )}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {previewData.length > 0 ? (
-                      previewData.slice(0, 5).map((reading: any, idx: number) => (
-                        <TableRow key={idx}>
-                          {Object.values(reading).map((val: any, ci: number) => (
-                            <TableCell key={ci} className="text-[10px] font-medium whitespace-nowrap">
-                              {val !== null && val !== undefined ? String(val) : '-'}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={reportType === 'raw-data' || reportType === 'maintenance' ? 5 : 4} className="text-center py-6 text-muted-foreground font-medium">Klik "Pratinjau Cepat" untuk melihat data pratinjau.</TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="border-none shadow-sm shadow-black/5 bg-card border border-border">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-bold flex items-center gap-2">
-                  <Activity size={16} />
-                  Statistik Ekspor
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-2">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Total Baris</p>
-                    <p className="text-xl font-black">{previewData.length > 0 ? previewData.length : '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Estimasi Ukuran</p>
-                    <p className="text-xl font-black">{estimatedSize}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-none shadow-sm shadow-black/5 bg-card border border-border">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-bold flex items-center gap-2">
-                  <FileText size={16} />
-                  Status Dokumen
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-2">
-                <p className="text-[11px] leading-relaxed text-muted-foreground">
-                  Laporan akan di-generate secara asinkron. Tautan unduhan akan dikirimkan ke notifikasi sistem setelah proses selesai.
-                </p>
-              </CardContent>
-            </Card>
+        <Card className="bg-card border-border/80 shadow-md rounded-3xl p-5">
+          <div className="flex items-center gap-4">
+            <div className="p-3.5 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0 border border-blue-500/20 shadow-xs">
+              <ShieldCheck size={22} />
+            </div>
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">{t('Status Dokumen')}</p>
+              <p className="text-xs font-semibold text-muted-foreground mt-0.5 leading-snug">
+                {t('Laporan di-generate secara langsung. Tautan unduhan tersedia untuk format CSV, Excel, dan PDF.')}
+              </p>
+            </div>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

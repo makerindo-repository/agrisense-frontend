@@ -4,8 +4,8 @@
 // ============================================================
 
 export const KATEGORI_OPTIONS = [
-  'Tanaman Pangan (Biji & Umbi)',
-  'Hortikultura (Sayur & Bumbu)',
+  'Tanaman Pangan (Biji dan Umbi)',
+  'Hortikultura (Sayur dan Bumbu)',
   'Perkebunan',
   'Buah-buahan',
   'Tanaman Obat (Herbal)',
@@ -14,8 +14,8 @@ export const KATEGORI_OPTIONS = [
 ];
 
 export const PRESET_KOMODITI_MAP: Record<string, string[]> = {
-  'Tanaman Pangan (Biji & Umbi)': ["Padi", "Jagung", "Kedelai", "Kacang Tanah", "Singkong", "Ubi Jalar"].sort(),
-  'Hortikultura (Sayur & Bumbu)': ["Cabai", "Tomat", "Kangkung", "Bayam", "Sawi", "Buncis", "Mentimun", "Terong", "Bawang Merah", "Wortel", "Kentang", "Kubis", "Selada"].sort(),
+  'Tanaman Pangan (Biji dan Umbi)': ["Padi", "Jagung", "Kedelai", "Kacang Tanah", "Singkong", "Ubi Jalar"].sort(),
+  'Hortikultura (Sayur dan Bumbu)': ["Cabai", "Tomat", "Kangkung", "Bayam", "Sawi", "Buncis", "Mentimun", "Terong", "Bawang Merah", "Wortel", "Kentang", "Kubis", "Selada"].sort(),
   'Buah-buahan': ["Pisang", "Mangga", "Pepaya", "Jeruk", "Semangka", "Strawberry"].sort(),
   'Perkebunan': ["Kopi", "Teh", "Kelapa Sawit", "Tebu", "Kakao"].sort(),
   'Tanaman Obat (Herbal)': ["Jahe", "Kunyit", "Serai"].sort(),

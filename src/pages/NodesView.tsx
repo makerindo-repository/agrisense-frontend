@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard, Radio, Database, CloudSun, Map as MapIcon, BarChart3,
   FileText, Settings, Users, Bell, Search, Menu, X, Droplets, Thermometer,
@@ -20,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, ScatterChart, Scatter, ZAxis, Legend } from 'recharts';
-import { IoTNode, User, UserRole } from '../lib/mockData';
+import { IoTNode, User, UserRole, normalizeNode, mockLandPlots, mockGardens, formatEYDDeviceName } from '../lib/mockData';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -37,10 +38,8 @@ import NodeTable from '../components/NodesManagement/NodeTable';
 // App specific imports
 import { Html5Qrcode } from 'html5-qrcode';
 
-// --- Helper Components Moved Outside ---
-
-
 export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTNode[], userRole?: string }) {
+  const { t } = useTranslation();
   const [nodes, setNodes] = useState<IoTNode[]>(propNodes || []);
   const [landPlots, setLandPlots] = useState<any[]>([]);
   const [gardens, setGardens] = useState<any[]>([]);
@@ -79,8 +78,9 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
   const fetchNodes = useCallback(async () => {
     try {
       const res = await api.get('/nodes');
-      if (Array.isArray(res.data)) {
-        setNodes(res.data);
+      const data = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+      if (Array.isArray(data)) {
+        setNodes(data.map(normalizeNode));
       }
     } catch (e) {
       console.error('Failed to fetch nodes', e);
@@ -90,47 +90,58 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
   const fetchLandPlots = useCallback(async () => {
     try {
       const res = await api.get('/land-plots');
-      const data = Array.isArray(res.data) ? res.data : res.data?.data;
+      const rawData = Array.isArray(res.data) ? res.data : (res.data?.data || res.data?.land_plots || []);
 
-      if (Array.isArray(data)) {
-        const formatted = data.map((d: any) => {
-          let polygonData: any[] = [];
-          if (d.polygon) {
-            try {
-              const poly = typeof d.polygon === 'string' ? JSON.parse(d.polygon) : d.polygon;
-              if (poly.coordinates) {
-                polygonData = Array.isArray(poly.coordinates[0]) && typeof poly.coordinates[0][0] === 'number'
-                  ? poly.coordinates
-                  : poly.coordinates[0];
-              } else {
-                polygonData = poly;
-              }
-            } catch { polygonData = []; }
-          }
-          return {
-            id: String(d.id),
-            name: d.plot_name || d.name || "Tanpa Nama",
-            polygon: polygonData,
-            latitude: d.latitude,
-            longitude: d.longitude
-          };
-        });
-        setLandPlots(formatted);
-      }
+      let dataToFormat = Array.isArray(rawData) && rawData.length > 0 ? rawData : mockLandPlots;
+
+      const formatted = dataToFormat.map((d: any) => {
+        let polygonData: any[] = [];
+        if (d.polygon) {
+          try {
+            const poly = typeof d.polygon === 'string' ? JSON.parse(d.polygon) : d.polygon;
+            if (poly.coordinates) {
+              polygonData = Array.isArray(poly.coordinates[0]) && typeof poly.coordinates[0][0] === 'number'
+                ? poly.coordinates
+                : poly.coordinates[0];
+            } else {
+              polygonData = poly;
+            }
+          } catch { polygonData = []; }
+        }
+        return {
+          id: String(d.id),
+          name: d.plot_name || d.name || d.plot_code || `Lahan #${d.id}`,
+          polygon: polygonData,
+          latitude: d.latitude,
+          longitude: d.longitude
+        };
+      });
+      setLandPlots(formatted);
     } catch (e) {
-      console.error('Failed to fetch land plots', e);
+      console.error('Failed to fetch land plots, using fallback', e);
+      if (mockLandPlots && mockLandPlots.length > 0) {
+        setLandPlots(mockLandPlots.map((d: any) => ({
+          id: String(d.id),
+          name: d.plot_name || d.name || d.plot_code || `Lahan #${d.id}`,
+          polygon: d.polygon || [],
+          latitude: d.latitude,
+          longitude: d.longitude
+        })));
+      }
     }
   }, []);
 
   const fetchGardens = useCallback(async () => {
     try {
       const res = await api.get('/gardens');
-      const data = Array.isArray(res.data) ? res.data : res.data?.data;
-      if (Array.isArray(data)) {
-        setGardens(data);
-      }
+      const rawData = Array.isArray(res.data) ? res.data : (res.data?.data || res.data?.gardens || []);
+      let dataToSet = Array.isArray(rawData) && rawData.length > 0 ? rawData : mockGardens;
+      setGardens(dataToSet);
     } catch (e) {
-      console.error('Failed to fetch gardens', e);
+      console.error('Failed to fetch gardens, using fallback', e);
+      if (mockGardens && mockGardens.length > 0) {
+        setGardens(mockGardens);
+      }
     }
   }, []);
   const [searchQuery, setSearchQuery] = useState('');
@@ -189,25 +200,30 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
 
   const handleOpenAdd = () => {
     resetForm();
+    fetchLandPlots();
+    fetchGardens();
     setIsDialogOpen(true);
   };
   const handleOpenEdit = (node: IoTNode) => {
+    fetchLandPlots();
+    fetchGardens();
     setEditingNode(node);
+    const rawCode = (node as any).device_code || (node as any).code || node.id;
     setFormData({
-      id: node.id,
+      id: String(rawCode),
       name: node.name,
       location: node.location,
-      latitude: node.coords?.[0]?.toString() || '-6.831500',
-      longitude: node.coords?.[1]?.toString() || '107.916000',
+      latitude: node.coords?.[0]?.toString() || (node as any).latitude?.toString() || '-6.831500',
+      longitude: node.coords?.[1]?.toString() || (node as any).longitude?.toString() || '107.916000',
       altitude: node.altitude?.toString() || '720',
-      lahanId: String(node.lahanId || ''),
-      gardenId: String(node.gardenId || ''),
+      lahanId: String(node.lahanId || (node as any).lahan_id || ''),
+      gardenId: String(node.gardenId || (node as any).garden_id || ''),
       firmware_version: node.firmware_version || 'V 1.0.0'
     });
 
     // Fallback safe coordinates
-    const lat = node.coords?.[0] ? Number(node.coords[0]) : -6.8315;
-    const lng = node.coords?.[1] ? Number(node.coords[1]) : 107.9160;
+    const lat = node.coords?.[0] ? Number(node.coords[0]) : ((node as any).latitude ? Number((node as any).latitude) : -6.8315);
+    const lng = node.coords?.[1] ? Number(node.coords[1]) : ((node as any).longitude ? Number((node as any).longitude) : 107.9160);
 
     setNodeLocation([lat, lng]);
     setMapCenter([lat, lng]);
@@ -222,6 +238,8 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
     try {
       await api.delete(`/nodes/${db_id}`);
       toast.success("Perangkat berhasil dihapus");
+      setNodes(prev => prev.filter(n => (n as any).db_id !== db_id && n.id !== String(db_id)));
+      window.dispatchEvent(new CustomEvent('nodes:updated'));
       fetchNodes();
       setIsDeleteDialogOpen(false);
     } catch (e: any) {
@@ -234,30 +252,87 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.id) {
-      toast.error('Gagal: ID Perangkat wajib diisi!');
+    const serialCode = formData.id.trim();
+    if (!serialCode) {
+      toast.error('Gagal: Kode / Nomor Seri Perangkat wajib diisi!');
       return;
     }
 
     setIsSubmitting(true);
     try {
+      const eydName = formatEYDDeviceName(formData.name || `Perangkat ${serialCode}`, serialCode);
+
       const payload = {
-        ...formData,
+        id: serialCode,
+        device_code: serialCode,
+        code: serialCode,
+        name: eydName,
+        location: formData.location || 'Subang',
+        latitude: parseFloat(formData.latitude) || -6.8315,
+        longitude: parseFloat(formData.longitude) || 107.9160,
+        altitude: parseFloat(formData.altitude) || 720,
         lahanId: formData.lahanId || null,
-        gardenId: formData.gardenId || null
+        lahan_id: formData.lahanId || null,
+        gardenId: formData.gardenId || null,
+        garden_id: formData.gardenId || null,
+        firmware_version: formData.firmware_version
       };
 
       const url = editingNode
-        ? `/nodes/${(editingNode as any).db_id}`
+        ? `/nodes/${(editingNode as any).db_id || editingNode.id}`
         : '/nodes';
 
       if (editingNode) {
         await api.put(url, payload);
       } else {
-        await api.post(url, { ...payload, garden_id: formData.gardenId || null });
+        await api.post(url, payload);
       }
 
-      toast.success(editingNode ? "Perangkat berhasil diperbarui!" : "Perangkat baru berhasil didaftarkan!");
+      // Update local state nodes immediately for instant UI responsiveness
+      setNodes(prevNodes => {
+        if (editingNode) {
+          return prevNodes.map(n => {
+            if (n.id === editingNode.id || (n as any).db_id === (editingNode as any).db_id) {
+              return {
+                ...n,
+                id: serialCode,
+                device_code: serialCode,
+                code: serialCode,
+                name: eydName,
+                location: formData.location || 'Subang',
+                coords: [parseFloat(formData.latitude) || -6.8315, parseFloat(formData.longitude) || 107.9160],
+                latitude: parseFloat(formData.latitude) || -6.8315,
+                longitude: parseFloat(formData.longitude) || 107.9160,
+                altitude: parseFloat(formData.altitude) || 720,
+                lahanId: formData.lahanId ? Number(formData.lahanId) : undefined,
+                gardenId: formData.gardenId ? Number(formData.gardenId) : undefined,
+                firmware_version: formData.firmware_version
+              } as IoTNode;
+            }
+            return n;
+          });
+        } else {
+          const newNode: IoTNode = {
+            id: serialCode,
+            device_code: serialCode,
+            db_id: Date.now(),
+            name: eydName,
+            location: formData.location || 'Subang',
+            status: 'online',
+            coords: [parseFloat(formData.latitude) || -6.8315, parseFloat(formData.longitude) || 107.9160],
+            altitude: parseFloat(formData.altitude) || 720,
+            battery_percent: 100,
+            battery_voltage: 4.2,
+            lahanId: formData.lahanId ? Number(formData.lahanId) : undefined,
+            gardenId: formData.gardenId ? Number(formData.gardenId) : undefined,
+            firmware_version: formData.firmware_version
+          } as any;
+          return [newNode, ...prevNodes];
+        }
+      });
+
+      toast.success(editingNode ? "Kode / Nomor Seri Perangkat berhasil diperbarui!" : "Perangkat baru berhasil didaftarkan!");
+      window.dispatchEvent(new CustomEvent('nodes:updated'));
       fetchNodes();
       setIsDialogOpen(false);
       resetForm();
@@ -265,7 +340,7 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
       console.error("Save Exception:", e);
       let msg = e.response?.data?.message || e.message;
       if (e.response?.status === 422 && e.response?.data?.errors) {
-        msg = Object.values(e.response.data.errors).flat().join('\\n');
+        msg = Object.values(e.response.data.errors).flat().join('\n');
       }
       toast.error('Gagal menyimpan Node: ' + msg);
     } finally {
@@ -301,35 +376,55 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
 
   return (
     <div className="space-y-6 px-4 md:px-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Manajemen Perangkat</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-border/60">
+        <div className="flex items-center gap-3.5">
+          <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shadow-xs shrink-0">
+            <Radio size={24} />
+          </div>
+          <div>
+            <h1 className="text-xl font-black tracking-tight text-foreground">{t("Manajemen Perangkat")}</h1>
+            <p className="text-xs font-semibold text-muted-foreground mt-0.5">
+              {t("Kelola registrasi node IoT, lokasi geografis GIS, dan status telemetri perangkat.")}
+            </p>
+          </div>
         </div>
         {userRole !== 'viewer' && (
-          <Button className="gap-2 h-11 px-6 shadow-lg shadow-primary/20" onClick={handleOpenAdd}>
-            <Plus size={18} /> Tambah Node Baru
+          <Button className="gap-2 h-11 px-6 rounded-2xl font-black text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/25 transition-all cursor-pointer" onClick={handleOpenAdd}>
+            <Plus size={18} /> {t("Tambah Node Baru")}
           </Button>
         )}
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+      </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={(open) => {
           if (isSubmitting) return;
           setIsDialogOpen(open);
           if (!open) resetForm();
         }}>
-          <DialogContent className="sm:max-w-[1100px] p-0 overflow-hidden rounded-2xl border-none shadow-2xl max-h-[95vh] flex flex-col">
-            <DialogHeader className="p-6 pb-2 border-b border-border/50 bg-muted/20">
-              <DialogTitle>{editingNode ? 'Edit Perangkat IoT' : 'Daftarkan Perangkat Baru'}</DialogTitle>
-              <DialogDescription>
-                Tentukan lokasi perangkat pada peta dan lengkapi detail identitas di sebelah kanan.
-              </DialogDescription>
+          <DialogContent className="sm:max-w-[1150px] w-[92vw] p-0 overflow-hidden rounded-[28px] border border-border/80 shadow-2xl max-h-[92vh] flex flex-col bg-card">
+            {/* ── Dialog Header Bar ── */}
+            <DialogHeader className="p-6 sm:p-7 pb-5 border-b border-border/60 bg-muted/20 flex flex-row items-start gap-4 space-y-0 text-left shrink-0">
+              <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0 shadow-xs">
+                <Radio size={22} />
+              </div>
+              <div className="flex flex-col gap-1 pr-8">
+                <DialogTitle className="text-xl font-black tracking-tight text-foreground leading-snug">
+                  {editingNode ? t('Edit Perangkat IoT') : t('Daftarkan Perangkat Baru')}
+                </DialogTitle>
+                <DialogDescription className="text-xs font-semibold text-muted-foreground leading-relaxed">
+                  {t('Tentukan lokasi perangkat pada peta GIS dan lengkapi identitas node telemetri.')}
+                </DialogDescription>
+              </div>
             </DialogHeader>
 
-            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
-              {/* ── LEFT: MAP PANEL (50%) ── */}
-              <div className="w-full lg:w-[55%] relative bg-muted/10 min-h-[400px]">
+            {/* ── Main Split View Body ── */}
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-y-auto lg:overflow-hidden min-h-[440px]">
+              {/* ── LEFT: MAP PANEL (7 Cols) ── */}
+              <div className="lg:col-span-7 relative bg-muted/10 h-full min-h-[380px]">
                 {/* Petunjuk Penggunaan Map */}
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-background/80 backdrop-blur-sm px-4 py-2 rounded-full border border-border shadow-sm pointer-events-none whitespace-nowrap">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                    Petunjuk: Klik pada peta untuk menentukan lokasi perangkat
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-card/90 backdrop-blur-md px-4 py-2 rounded-full border border-border/80 shadow-md pointer-events-none whitespace-nowrap">
+                  <p className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                    <MapPin size={12} className="text-emerald-600" />
+                    {t('Klik pada peta untuk menentukan koordinat perangkat')}
                   </p>
                 </div>
 
@@ -353,7 +448,7 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
                       ...prev,
                       latitude: lat.toFixed(7),
                       longitude: lng.toFixed(7),
-                      altitude: 'Memuat...'
+                      altitude: t('Memuat...')
                     }));
 
                     try {
@@ -379,26 +474,31 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
                   <Button
                     variant="secondary"
                     size="sm"
-                    className="h-9 shadow-lg gap-2 text-xs font-bold px-4"
+                    className="h-10 shadow-lg gap-2 text-xs font-black px-4 rounded-xl border border-border/80 bg-card hover:bg-muted transition-all cursor-pointer"
                     onClick={handleGetCurrentLocation}
                   >
-                    <MapPin size={14} /> Lokasi Saya
+                    <MapPin size={14} className="text-emerald-600" /> {t('Lokasi Saya')}
                   </Button>
                 </div>
               </div>
 
-              {/* ── RIGHT: FORM PANEL (45%) ── */}
-              <div className="w-full lg:w-[45%] flex flex-col bg-card border-l border-border/50 overflow-hidden">
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                  {/* Placement Section - NOW AT TOP */}
+              {/* ── RIGHT: FORM PANEL (5 Cols) ── */}
+              <div className="lg:col-span-5 flex flex-col bg-card border-l border-border/60 h-full overflow-hidden">
+                <div className="flex-1 overflow-y-auto p-6 space-y-5">
+                  {/* Penempatan dan Lokasi */}
                   <div className="space-y-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Penempatan & Lokasi</p>
-                    <div className="grid grid-cols-2 gap-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
+                      {t('Penempatan dan Lokasi')}
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2 block">Pilih Lahan</Label>
-                        <Select
+                        <Label className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground block mb-2">
+                          {t('Pilih Lahan')}
+                        </Label>
+                        <select
                           value={formData.lahanId}
-                          onValueChange={(val) => {
+                          onChange={(e) => {
+                            const val = e.target.value;
                             const lahan = landPlots.find(l => String(l.id) === val);
                             if (lahan && lahan.polygon && Array.isArray(lahan.polygon)) {
                               try {
@@ -407,8 +507,8 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
                                   .map((c: any) => [Number(c[1]), Number(c[0])])
                                   .filter((c: any) => !isNaN(c[0]) && !isNaN(c[1]));
                                 if (validBounds.length > 0) setMapBounds(validBounds);
-                              } catch (e) {
-                                console.error("Error setting map bounds for lahan", e);
+                              } catch (err) {
+                                console.error("Error setting map bounds for lahan", err);
                               }
                             }
                             setFormData(prev => ({
@@ -418,38 +518,30 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
                               location: lahan?.name || prev.location
                             }));
                           }}
+                          className="w-full rounded-2xl h-11 px-4 border border-border/80 bg-muted/20 font-semibold text-xs text-foreground focus:bg-background focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all shadow-xs cursor-pointer"
                         >
-                          <SelectTrigger className="w-full h-12 border-none bg-muted/50 font-black text-xs uppercase tracking-wider rounded-xl px-4">
-                            <SelectValue>
-                              {landPlots.find(l => String(l.id) === formData.lahanId)?.name || (landPlots.length > 0 ? "Pilih Lahan Utama" : "Belum Ada Lahan")}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent className="rounded-xl border-none shadow-2xl z-[2000]">
-                            {landPlots.length === 0 && (
-                              <div className="p-4 text-xs font-bold text-muted-foreground text-center">
-                                Belum ada data lahan.<br />Silakan buat lahan di manajemen area.
-                              </div>
-                            )}
-                            {landPlots.map(lahan => (
-                              <SelectItem key={lahan.id} value={String(lahan.id)} className="font-bold py-3 text-xs uppercase hover:bg-primary/10">
-                                {lahan.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          <option value="" className="bg-background text-foreground">-- {t("Pilih Lahan Utama")} --</option>
+                          {landPlots.map(lahan => (
+                            <option key={lahan.id} value={String(lahan.id)} className="font-bold py-2 text-xs uppercase bg-background text-foreground">
+                              {lahan.name}
+                            </option>
+                          ))}
+                        </select>
                       </div>
 
                       <div>
-                        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2 block">Pilih Kebun (Sub-Lahan)</Label>
-                        <Select
+                        <Label className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground block mb-2">
+                          {t('Pilih Kebun (Sub-Lahan)')}
+                        </Label>
+                        <select
                           disabled={!formData.lahanId}
                           value={formData.gardenId}
-                          onValueChange={(val) => {
+                          onChange={(e) => {
+                            const val = e.target.value;
                             const garden = gardens.find(g => String(g.id) === val);
                             if (garden && garden.polygon) {
                               try {
                                 const poly = typeof garden.polygon === 'string' ? JSON.parse(garden.polygon) : garden.polygon;
-                                // Handle deeply nested GeoJSON coords safely
                                 const coords = poly.coordinates ?
                                   (Array.isArray(poly.coordinates[0]) && typeof poly.coordinates[0][0] === 'number' ? poly.coordinates : poly.coordinates[0])
                                   : poly;
@@ -460,8 +552,8 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
                                     .filter((c: any) => !isNaN(c[0]) && !isNaN(c[1]));
                                   if (validBounds.length > 0) setMapBounds(validBounds as any);
                                 }
-                              } catch (e) {
-                                console.error("Error setting map bounds for garden", e);
+                              } catch (err) {
+                                console.error("Error setting map bounds for garden", err);
                               }
                             }
                             setFormData(prev => ({
@@ -470,56 +562,57 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
                               location: garden?.garden_name || prev.location
                             }));
                           }}
+                          className="w-full rounded-2xl h-11 px-4 border border-border/80 bg-muted/20 font-semibold text-xs text-foreground focus:bg-background focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <SelectTrigger className="w-full h-12 border-none bg-muted/50 font-black text-xs uppercase tracking-wider rounded-xl px-4">
-                            <SelectValue>
-                              {(() => {
-                                const g = gardens.find(g => String(g.id) === formData.gardenId);
-                                if (!g) return gardens.length > 0 ? "Pilih Kebun" : "Belum Ada Kebun";
-                                return `${g.garden_name} ${g.plant?.name ? `(${g.plant.name})` : ''}`;
-                              })()}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent className="rounded-xl border-none shadow-2xl z-[2000]">
-                            {gardens.filter(g => String(g.land_plot_id) === formData.lahanId).length === 0 && (
-                              <div className="p-4 text-xs font-bold text-muted-foreground text-center">
-                                Belum ada kebun.
-                              </div>
-                            )}
-                            {gardens
-                              .filter(g => String(g.land_plot_id) === formData.lahanId)
-                              .map(garden => (
-                                  <SelectItem key={garden.id} value={String(garden.id)} className="font-bold py-3 text-xs uppercase hover:bg-primary/10">
-                                    {garden.garden_name} {garden.plant?.name ? `(${garden.plant.name})` : ''}
-                                  </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
+                          <option value="" className="bg-background text-foreground">-- {t("Pilih Kebun (Sub-Lahan)")} --</option>
+                          {gardens
+                            .filter(g => String(g.land_plot_id || g.lahanId || g.lahan_id) === String(formData.lahanId))
+                            .map(garden => (
+                              <option key={garden.id} value={String(garden.id)} className="font-bold py-2 text-xs uppercase bg-background text-foreground">
+                                {garden.garden_name} {garden.plant?.name ? `(${garden.plant.name})` : ''}
+                              </option>
+                            ))}
+                        </select>
                       </div>
                     </div>
                   </div>
 
-                  {/* Identity Section - NOW BELOW PLACEMENT */}
+                  {/* Identitas Perangkat */}
                   <div className="space-y-4 pt-2">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Identitas Perangkat</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
+                      {t('Identitas Perangkat')}
+                    </p>
                     <div className="grid gap-4">
-                      <div className="grid gap-1.5">
-                        <Label className="text-[11px] font-bold text-muted-foreground uppercase">Nomor Seri Perangkat *</Label>
+                      <div className="grid gap-2">
+                        <Label className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground block">
+                          {t('Nama Perangkat')} <span className="text-rose-500">*</span>
+                        </Label>
+                        <Input
+                          placeholder="Contoh: NODE Kebun Subang Blok A"
+                          value={formData.name}
+                          className="w-full rounded-2xl h-11 px-4 border-border/80 bg-muted/20 font-semibold text-xs focus:bg-background focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all shadow-xs"
+                          onChange={e => setFormData({ ...formData, name: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="grid gap-2">
+                        <Label className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground block">
+                          {t('Kode / Nomor Seri (RH)')} <span className="text-rose-500">*</span>
+                        </Label>
                         <div className="flex gap-2">
                           <Input
-                            placeholder="AGRISENSE-NODE-001"
+                            placeholder="RH-001"
                             value={formData.id}
-                            className="h-11 rounded-xl bg-muted/20 border-border/50 focus:bg-background transition-all flex-1"
+                            className="w-full rounded-2xl h-11 px-4 border-border/80 bg-muted/20 font-semibold text-xs focus:bg-background focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all shadow-xs flex-1"
                             onChange={e => setFormData({ ...formData, id: e.target.value })}
-                            disabled={!!editingNode && userRole !== 'admin'}
                           />
                           {!editingNode && (
                             <Button
                               type="button"
                               variant="outline"
                               size="icon"
-                              className="h-11 w-11 rounded-xl border-primary/30 hover:bg-primary/10 shrink-0"
-                              title="Scan QR Code"
+                              className="h-11 w-11 rounded-2xl border-emerald-500/30 hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0 cursor-pointer transition-all"
+                              title={t('Scan QR Code')}
                               onClick={() => {
                                 if (isQrScannerOpen && qrScannerRef.current) {
                                   try {
@@ -532,20 +625,23 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
                                 setIsQrScannerOpen(!isQrScannerOpen);
                               }}
                             >
-                              <QrCode size={18} className="text-primary" />
+                              <QrCode size={18} />
                             </Button>
                           )}
                         </div>
+
                         {/* QR Scanner Panel */}
                         {isQrScannerOpen && !editingNode && (
-                          <div className="mt-2 p-3 rounded-xl bg-muted/30 border border-border/50 space-y-3">
-                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Scan QR Code Perangkat</p>
+                          <div className="mt-2 p-4 rounded-2xl bg-muted/30 border border-border/60 space-y-3">
+                            <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+                              {t('Scan QR Code Perangkat')}
+                            </p>
                             <div className="flex gap-2">
                               <Button
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                className="gap-2 text-xs flex-1 rounded-lg"
+                                className="gap-2 text-xs flex-1 rounded-xl font-bold"
                                 onClick={async () => {
                                   try {
                                     const scanner = new Html5Qrcode('qr-reader-node');
@@ -590,16 +686,16 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
                                   }
                                 }}
                               >
-                                <Camera size={14} /> Buka Kamera
+                                <Camera size={14} /> {t('Buka Kamera')}
                               </Button>
                               <Button
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                className="gap-2 text-xs flex-1 rounded-lg"
+                                className="gap-2 text-xs flex-1 rounded-xl font-bold"
                                 onClick={() => qrFileInputRef.current?.click()}
                               >
-                                <Upload size={14} /> Upload Gambar
+                                <Upload size={14} /> {t('Upload Gambar')}
                               </Button>
                               <input
                                 ref={qrFileInputRef}
@@ -646,100 +742,152 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
                                 }}
                               />
                             </div>
-                            <div id="qr-reader-node" className="w-full rounded-lg overflow-hidden" />
-                            <p className="text-[9px] text-muted-foreground text-center">
-                              Arahkan kamera ke QR Code pada perangkat atau unggah foto QR Code
-                            </p>
+                            <div id="qr-reader-node" className="w-full rounded-xl overflow-hidden" />
                           </div>
                         )}
                       </div>
-                      {/* Field Nama Alias Node dihapus sesuai permintaan */}
-                      <div className="grid gap-1.5">
-                        <Label className="text-[10px] font-black text-muted-foreground uppercase opacity-70">Versi Firmware</Label>
+
+                      <div className="grid gap-2">
+                        <Label className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground block">
+                          {t('Versi Firmware')}
+                        </Label>
                         <Input
                           placeholder="V 1.0.0"
                           value={formData.firmware_version}
-                          className="h-10 rounded-xl bg-muted/20 border-border/50 focus:bg-background transition-all text-xs font-bold"
+                          className="w-full rounded-2xl h-11 px-4 border-border/80 bg-muted/20 font-semibold text-xs focus:bg-background focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all shadow-xs"
                           onChange={e => setFormData({ ...formData, firmware_version: e.target.value })}
                         />
                       </div>
 
-                      {/* Node Status Indicator - Simple Text */}
-                      <div className="flex items-center gap-2 pt-1 px-1">
-                        <Label className="text-[10px] font-black text-muted-foreground uppercase opacity-60">Status:</Label>
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                          <span className="text-[10px] font-black text-amber-600 uppercase tracking-[0.1em]">Offline</span>
+                      {editingNode && (
+                        <div className="flex items-center gap-3 pt-2 px-1">
+                          <Label className="text-xs font-black text-muted-foreground uppercase opacity-70">{t('Status')}:</Label>
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full animate-pulse ${
+                              editingNode.status === 'online' ? 'bg-emerald-500' :
+                              editingNode.status === 'warning' ? 'bg-amber-500' : 'bg-rose-500'
+                            }`}></span>
+                            <span className={`text-xs font-black uppercase tracking-widest ${
+                              editingNode.status === 'online' ? 'text-emerald-600 dark:text-emerald-400' :
+                              editingNode.status === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'
+                            }`}>
+                              {editingNode.status === 'online' ? 'ONLINE' : editingNode.status === 'warning' ? 'WARNING' : 'OFFLINE'}
+                            </span>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
-
-                <div className="p-6 bg-muted/30 border-t border-border/50 mt-auto">
-                  <Button type="button" onClick={handleSubmit} disabled={isSubmitting} className="w-full h-12 gap-2 rounded-xl text-sm font-bold shadow-xl shadow-primary/20">
-                    <Save size={18} /> {isSubmitting ? 'Menyimpan...' : (editingNode ? 'Simpan Perubahan Node' : 'Daftarkan Node Sekarang')}
-                  </Button>
-                </div>
               </div>
             </div>
+
+            {/* ── Full-Width Dialog Footer ── */}
+            <DialogFooter className="px-6 py-4 sm:px-8 sm:py-5 border-t border-border/60 bg-muted/30 flex flex-row items-center justify-end gap-3 shrink-0 rounded-b-[28px] space-x-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                className="h-11 px-6 rounded-2xl border-border/80 font-extrabold text-xs bg-card hover:bg-muted transition-all cursor-pointer m-0"
+              >
+                {t('Batal')}
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="h-11 px-7 rounded-2xl font-black text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/25 transition-all cursor-pointer gap-2 m-0"
+              >
+                <Save size={16} />
+                {isSubmitting ? t('Menyimpan...') : editingNode ? t('Simpan Perubahan Node') : t('Daftarkan Node Sekarang')}
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-card p-4 rounded-lg shadow-sm border border-border flex flex-col gap-1">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Perangkat</span>
-          <span className="text-2xl font-black">{nodes.length}</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-card p-5 rounded-[24px] shadow-sm border border-border/80 flex items-center justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group">
+          <div className="flex flex-col gap-1">
+            <span className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider">{t("Total Perangkat")}</span>
+            <span className="text-3xl font-black tracking-tight text-foreground">{nodes.length}</span>
+            <span className="text-[11px] font-semibold text-muted-foreground">{t("Node IoT Terintegrasi")}</span>
+          </div>
+          <div className="p-3.5 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 group-hover:scale-105 transition-transform">
+            <Radio size={24} />
+          </div>
         </div>
-        <div className="bg-card p-4 rounded-lg shadow-sm border border-border flex flex-col gap-1">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Aktif</span>
-          <span className="text-2xl font-black">{nodes.filter(n => n.status === 'online').length}</span>
+
+        <div className="bg-card p-5 rounded-[24px] shadow-sm border border-border/80 flex items-center justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group">
+          <div className="flex flex-col gap-1">
+            <span className="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">{t("Aktif")}</span>
+            <span className="text-3xl font-black tracking-tight text-emerald-600 dark:text-emerald-400">{nodes.filter(n => n.status === 'online').length}</span>
+            <span className="text-[11px] font-semibold text-emerald-700/80 dark:text-emerald-400/80">{t("Koneksi Telemetri Normal")}</span>
+          </div>
+          <div className="p-3.5 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 group-hover:scale-105 transition-transform">
+            <CheckCircle2 size={24} />
+          </div>
         </div>
-        <div className="bg-card p-4 rounded-lg shadow-sm border border-border flex flex-col gap-1">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Peringatan</span>
-          <span className="text-2xl font-black">{nodes.filter(n => n.status === 'warning').length}</span>
+
+        <div className="bg-card p-5 rounded-[24px] shadow-sm border border-border/80 flex items-center justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group">
+          <div className="flex flex-col gap-1">
+            <span className="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider">{t("Peringatan")}</span>
+            <span className="text-3xl font-black tracking-tight text-amber-600 dark:text-amber-400">{nodes.filter(n => n.status === 'warning').length}</span>
+            <span className="text-[11px] font-semibold text-amber-700/80 dark:text-amber-400/80">{t("Baterai dan Sinyal Lemah")}</span>
+          </div>
+          <div className="p-3.5 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 group-hover:scale-105 transition-transform">
+            <AlertTriangle size={24} />
+          </div>
         </div>
-        <div className="bg-card p-4 rounded-lg shadow-sm border border-border flex flex-col gap-1">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tidak Aktif</span>
-          <span className="text-2xl font-black">{nodes.filter(n => n.status === 'offline').length}</span>
+
+        <div className="bg-card p-5 rounded-[24px] shadow-sm border border-border/80 flex items-center justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group">
+          <div className="flex flex-col gap-1">
+            <span className="text-[11px] font-extrabold text-rose-600 dark:text-rose-400 uppercase tracking-wider">{t("Tidak Aktif")}</span>
+            <span className="text-3xl font-black tracking-tight text-rose-600 dark:text-rose-400">{nodes.filter(n => n.status === 'offline').length}</span>
+            <span className="text-[11px] font-semibold text-rose-700/80 dark:text-rose-400/80">{t("Terputus dari Jaringan")}</span>
+          </div>
+          <div className="p-3.5 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 group-hover:scale-105 transition-transform">
+            <Zap size={24} />
+          </div>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center bg-card p-3 rounded-lg shadow-sm border border-border">
+      <div className="flex flex-col sm:flex-row gap-4 items-center bg-card p-4 rounded-2xl shadow-sm border border-border/80">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
           <Input
-            placeholder="Cari ID atau Nama Node..."
-            className="pl-10 bg-muted/50 border-none h-11"
+            placeholder={t("Cari ID atau Nama Node...")}
+            className="pl-10 bg-muted/20 border-border/60 focus:bg-background h-11 rounded-2xl font-semibold text-xs transition-all"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Filter size={18} className="text-muted-foreground shrink-0" />
-          <Select value={nodeFilter} onValueChange={(v) => setNodeFilter(v || 'all')}>
-            <SelectTrigger className="w-full sm:w-[200px] h-11 bg-muted/50 border-none">
-              <SelectValue placeholder="Pilih Node" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua Node</SelectItem>
-              {nodes.map(node => (
-                <SelectItem key={node.id} value={node.id}>{node.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select
+            value={nodeFilter}
+            onChange={(e) => setNodeFilter(e.target.value || 'all')}
+            className="w-full sm:w-[220px] h-11 bg-muted/20 border border-border/60 focus:bg-background rounded-2xl font-bold text-xs px-3.5 outline-none cursor-pointer text-foreground"
+          >
+            <option value="all" className="font-bold text-xs bg-card text-foreground">{t("Semua Perangkat")}</option>
+            {nodes.map(node => (
+              <option key={node.id} value={node.id} className="font-bold text-xs bg-card text-foreground">
+                {formatEYDDeviceName(node.name, node.device_code || node.id)}
+              </option>
+            ))}
+          </select>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v || 'all')}>
-            <SelectTrigger className="w-full sm:w-[160px] h-11 bg-muted/50 border-none">
-              <SelectValue placeholder="Status" />
+            <SelectTrigger className="w-full sm:w-[160px] h-11 bg-muted/20 border-border/60 focus:bg-background rounded-2xl font-bold text-xs">
+              <SelectValue>
+                {statusFilter === 'all' ? t('Semua Status') : statusFilter === 'online' ? t('Aktif') : statusFilter === 'warning' ? t('Peringatan') : t('Tidak Aktif')}
+              </SelectValue>
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua Status</SelectItem>
-              <SelectItem value="online">Online</SelectItem>
-              <SelectItem value="warning">Warning</SelectItem>
-              <SelectItem value="offline">Offline</SelectItem>
+            <SelectContent className="rounded-2xl border-border/80 shadow-2xl">
+              <SelectItem value="all" className="font-bold text-xs">{t("Semua Status")}</SelectItem>
+              <SelectItem value="online" className="font-bold text-xs">{t("Aktif")}</SelectItem>
+              <SelectItem value="warning" className="font-bold text-xs">{t("Peringatan")}</SelectItem>
+              <SelectItem value="offline" className="font-bold text-xs">{t("Tidak Aktif")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -759,22 +907,32 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
 
       {/* Global Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={(open) => { if (!isSubmitting) setIsDeleteDialogOpen(open); }}>
-        <AlertDialogContent className="rounded-2xl border-none shadow-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-bold">Hapus Perangkat?</AlertDialogTitle>
-            <AlertDialogDescription className="text-sm">
-              Tindakan ini tidak dapat dibatalkan. Seluruh data historis dari perangkat ini akan hilang secara permanen dari sistem AgriSense.
-            </AlertDialogDescription>
+        <AlertDialogContent className="sm:max-w-[460px] rounded-[28px] border border-border/80 shadow-2xl p-6 sm:p-7 bg-card gap-0 overflow-hidden">
+          <AlertDialogHeader className="flex flex-row items-start gap-4 pb-5 mb-5 border-b border-border/60 space-y-0 text-left">
+            <div className="p-3 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 shrink-0 shadow-xs">
+              <Trash2 size={22} />
+            </div>
+            <div className="flex flex-col gap-1 pr-6">
+              <AlertDialogTitle className="text-xl font-black tracking-tight text-foreground leading-snug">
+                Hapus Perangkat?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-xs font-semibold text-muted-foreground leading-relaxed">
+                Tindakan ini tidak dapat dibatalkan. Seluruh data historis dari perangkat ini akan hilang secara permanen dari sistem AgriSense.
+              </AlertDialogDescription>
+            </div>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel className="rounded-xl border-border bg-muted/20 font-bold" disabled={isSubmitting}>Batal</AlertDialogCancel>
+
+          <AlertDialogFooter className="mt-2 flex flex-row items-center justify-end gap-3 space-x-0">
+            <AlertDialogCancel className="h-11 px-6 rounded-2xl border-border/80 font-extrabold text-xs bg-muted/30 hover:bg-muted transition-all m-0" disabled={isSubmitting}>
+              Batal
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
                 if (nodeToDelete && !isSubmitting) handleDelete(nodeToDelete);
               }}
               disabled={isSubmitting}
-              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold px-8 shadow-lg shadow-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-11 px-7 rounded-2xl font-black text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-md shadow-rose-600/25 transition-all cursor-pointer m-0"
             >
               {isSubmitting ? "Menghapus..." : "Hapus Selamanya"}
             </AlertDialogAction>

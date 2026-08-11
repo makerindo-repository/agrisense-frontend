@@ -12,6 +12,8 @@ export interface SensorEnvironment {
   air_temperature_c?: number;
   air_humidity_percent?: number;
   wind_speed_kmh?: number;
+  light_lux?: number;
+  air_pressure_hpa?: number;
 }
 
 export interface CarbonReading {
@@ -35,11 +37,17 @@ export interface SensorReading {
   };
   co2_ppm?: number;
   cci_value?: number | string;
+  light_lux?: number;
+  soil_7in1?: {
+    soil_moisture_percent?: number;
+    soil_ph?: number;
+  };
 }
 
 // --- Analytics Node ---
 export interface AnalyticsNode {
   id?: string | number;
+  db_id?: string | number;
   device_code?: string | number;
   name?: string;
   plot_name?: string;

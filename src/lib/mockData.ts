@@ -1,13 +1,20 @@
 export interface IoTNode {
   id: string;
   db_id?: number;
+  device_code?: string;
+  code?: string;
   name: string;
   location: string;
   coords: [number, number];
+  latitude: number;
+  longitude: number;
   altitude: number;
   status: 'online' | 'offline' | 'warning';
   battery: number;
+  battery_percent: number;
+  battery_voltage: number;
   rssi: number;
+  wind_speed: number;
   lastSeen: string;
   firmware_version: string;
   gardenId?: number;
@@ -116,6 +123,74 @@ export interface LahanArea {
   polygon?: [number, number][];
 }
 
+// Formatter Nama Perangkat Sesuai Format "NODE ..."
+export const formatEYDDeviceName = (name?: string, code?: string): string => {
+  const rawCode = code || '01';
+
+  if (!name || name.trim() === '') {
+    return `NODE ${rawCode}`;
+  }
+
+  let cleaned = name.trim();
+
+  // Jika sudah berawalan NODE (case-insensitive), pastikan prefix kapital "NODE "
+  if (/^node\b/i.test(cleaned)) {
+    return cleaned.replace(/^node\b/i, 'NODE');
+  }
+
+  // Jika berawalan "Perangkat", ubah prefix menjadi "NODE"
+  if (/^perangkat\s+(sensor|telemetri)?/i.test(cleaned)) {
+    cleaned = cleaned.replace(/^perangkat\s+(sensor|telemetri)?/i, '').trim();
+    return cleaned ? `NODE ${cleaned}` : `NODE ${rawCode}`;
+  }
+
+  return `NODE ${cleaned}`;
+};
+
+// Helper function to normalize any raw API device response into a compliant IoTNode
+export const normalizeNode = (n: any): IoTNode => {
+  if (!n) return null as any;
+  const dbId = n.db_id || n.dbId || n.id || 1;
+  const devCode = n.device_code || n.deviceCode || n.code || n.id || `NODE-${dbId}`;
+
+  const lat = typeof n.latitude === 'number' ? n.latitude : (n.coords?.[0] ? Number(n.coords[0]) : (n.lat ? Number(n.lat) : -6.831500));
+  const lng = typeof n.longitude === 'number' ? n.longitude : (n.coords?.[1] ? Number(n.coords[1]) : (n.lng ? Number(n.lng) : 107.916000));
+  const alt = n.altitude ? Number(n.altitude) : 720;
+
+  const bat = Math.min(100, Math.max(0, n.battery_percent ?? n.battery ?? 85));
+  const volt = n.battery_voltage ?? n.voltage ?? Number((3.2 + (bat / 100) * 1.0).toFixed(2));
+
+  const rawName = n.name || n.device_name || `Perangkat ${devCode}`;
+  const eydName = formatEYDDeviceName(rawName, String(devCode));
+
+  return {
+    id: String(devCode),
+    device_code: String(devCode),
+    code: String(devCode),
+    db_id: Number(dbId),
+    name: eydName,
+    location: n.location || n.address || 'Subang',
+    coords: [lat, lng],
+    latitude: lat,
+    longitude: lng,
+    altitude: alt,
+    status: n.status || 'online',
+    battery: bat,
+    battery_percent: bat,
+    battery_voltage: Number(volt),
+    rssi: n.rssi ?? -72,
+    wind_speed: n.wind_speed ?? n.windSpeed ?? 12.5,
+    lastSeen: n.last_seen_at || n.updated_at || new Date().toISOString(),
+    firmware_version: n.firmware_version || n.firmware || n.firmwareVersion || '1.0.0',
+    lahanId: n.lahanId ? Number(n.lahanId) : (n.lahan_id ? Number(n.lahan_id) : undefined),
+    gardenId: n.gardenId ? Number(n.gardenId) : (n.garden_id ? Number(n.garden_id) : undefined),
+    garden_name: n.garden_name || n.garden?.garden_name,
+    plant_name: n.plant_name || n.garden?.plant?.name,
+    plot_name: n.plot_name || n.land_plot?.plot_name,
+    address: n.address || n.location,
+  };
+};
+
 // All data starts empty - will be populated via API or user interaction
 export const mockUsers: User[] = [
   { id: 'USR-001', name: 'AgriSense Dev', email: 'dev@agrisense.id', role: 'admin', status: 'active', lastLogin: new Date().toISOString() }
@@ -136,6 +211,69 @@ export const mockBMKG = {
 export const mockActivityLogs: ActivityLog[] = [];
 export const mockLahanArea: LahanArea[] = [];
 
-// Live state arrays for Land Plots and Gardens
-export const mockLandPlots: LandPlot[] = [];
-export const mockGardens: Garden[] = [];
+// Live state arrays for Land Plots and Gardens with fallback default plantations
+export const mockLandPlots: LandPlot[] = [
+  {
+    id: 1,
+    plot_code: "LHN-SBG-01",
+    plot_name: "Lahan Subang Utama",
+    owner_name: "Kelompok Tani Subang",
+    address: "Padasuka, Sumedang, Jawa Barat",
+    latitude: -6.8315,
+    longitude: 107.9160,
+    polygon: [
+      [-6.8300, 107.9140],
+      [-6.8300, 107.9180],
+      [-6.8330, 107.9180],
+      [-6.8330, 107.9140]
+    ],
+    area_hectare: 4.5,
+    soil_type: "Andosol",
+    plant_types: "Jagung, Kopi"
+  },
+  {
+    id: 2,
+    plot_code: "LHN-SMD-02",
+    plot_name: "Lahan Pasirhuni Sumedang",
+    owner_name: "Kelompok Tani Pasirhuni",
+    address: "Pasirhuni, Sumedang, Jawa Barat",
+    latitude: -6.8350,
+    longitude: 107.9200,
+    polygon: [
+      [-6.8340, 107.9180],
+      [-6.8340, 107.9220],
+      [-6.8370, 107.9220],
+      [-6.8370, 107.9180]
+    ],
+    area_hectare: 3.2,
+    soil_type: "Latosol",
+    plant_types: "Padi, Sayuran"
+  }
+];
+
+export const mockGardens: Garden[] = [
+  {
+    id: 1,
+    land_plot_id: 1,
+    garden_code: "KBN-01",
+    garden_name: "Blok A - Kebun Jagung",
+    latitude: -6.8315,
+    longitude: 107.9160,
+    polygon: [],
+    area_hectare: 2.0,
+    soil_type: "Andosol",
+    plant_types: "Jagung Hybrid"
+  },
+  {
+    id: 2,
+    land_plot_id: 1,
+    garden_code: "KBN-02",
+    garden_name: "Blok B - Kebun Kopi",
+    latitude: -6.8320,
+    longitude: 107.9170,
+    polygon: [],
+    area_hectare: 2.5,
+    soil_type: "Andosol",
+    plant_types: "Kopi Arabika"
+  }
+];

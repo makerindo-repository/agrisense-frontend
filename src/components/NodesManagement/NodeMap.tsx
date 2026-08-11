@@ -103,6 +103,7 @@ export default function NodeMap({
       zoom={zoom}
       style={{ height: '100%', width: '100%' }}
       scrollWheelZoom={true}
+      attributionControl={false}
     >
       <LayersControl position="topleft">
         <LayersControl.BaseLayer checked name="Satelit">
@@ -136,7 +137,7 @@ export default function NodeMap({
           return (
             <Polygon
               positions={validCoords}
-              pathOptions={{ color: lahan.color || '#F59E0B', fillColor: lahan.color || '#F59E0B', fillOpacity: 0.35, weight: 5 }}
+              pathOptions={{ color: '#2563eb', fillColor: '#3b82f6', fillOpacity: 0.25, weight: 4 }}
             />
           );
         } catch (e) { return null; }
@@ -161,7 +162,7 @@ export default function NodeMap({
           return (
             <Polygon
               positions={validCoords}
-              pathOptions={{ color: garden.color || '#22C55E', fillColor: garden.color || '#22C55E', fillOpacity: 0.3, weight: 3 }}
+              pathOptions={{ color: '#059669', fillColor: '#10b981', fillOpacity: 0.35, weight: 3 }}
             />
           );
         } catch (e) { return null; }
