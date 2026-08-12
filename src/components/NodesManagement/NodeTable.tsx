@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, Search, Wind } from 'lucide-react';
 import { IoTNode, formatEYDDeviceName } from '../../lib/mockData';
+import { cn } from '@/lib/utils';
 
 export interface NodeTableProps {
   nodes: IoTNode[];
@@ -44,7 +45,7 @@ const NodeTable = React.memo(({ nodes, onEdit, onDelete, userRole }: NodeTablePr
 
               return (
                 <TableRow key={node.id} className="hover:bg-muted/20 transition-colors border-b border-border/50">
-                  <TableCell className="text-sm font-bold py-3 pl-6 text-foreground">{dbId}</TableCell>
+                  <TableCell className="text-sm font-extrabold py-3 pl-6 text-foreground whitespace-nowrap">{rawCode}</TableCell>
                   <TableCell className="py-3 whitespace-nowrap">
                     <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-black text-xs px-2.5 py-0.5 rounded-full">
                       {rawCode}
@@ -67,12 +68,30 @@ const NodeTable = React.memo(({ nodes, onEdit, onDelete, userRole }: NodeTablePr
                     </div>
                   </TableCell>
                   <TableCell className="py-3 whitespace-nowrap">
-                    <Badge 
-                      variant={node.status === 'online' ? 'default' : node.status === 'warning' ? 'outline' : 'destructive'} 
-                      className="capitalize text-xs font-black px-3 py-1 rounded-full border-none shadow-xs"
-                    >
-                      {node.status === 'online' ? t('Aktif') : node.status === 'warning' ? t('Peringatan') : t('Tidak Aktif')}
-                    </Badge>
+                    {(() => {
+                      const st = (node.status || '').toString().toLowerCase();
+                      const isOnline = st === 'online' || st === 'aktif' || st === 'active';
+                      const isWarning = st === 'warning' || st === 'peringatan' || st === 'alert';
+
+                      return (
+                        <Badge 
+                          className={cn(
+                            "text-xs font-extrabold px-3 py-1 rounded-full border shadow-xs flex items-center w-fit gap-1.5 transition-all",
+                            isOnline 
+                              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40" 
+                              : isWarning 
+                              ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40" 
+                              : "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/40"
+                          )}
+                        >
+                          <span className={cn(
+                            "w-2.5 h-2.5 rounded-full shrink-0",
+                            isOnline ? "bg-emerald-500 animate-pulse" : isWarning ? "bg-amber-500 animate-pulse" : "bg-rose-500"
+                          )} />
+                          {isOnline ? t('Aktif') : isWarning ? t('Peringatan') : t('Tidak Aktif')}
+                        </Badge>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell className="py-3 whitespace-nowrap">
                     {(() => {

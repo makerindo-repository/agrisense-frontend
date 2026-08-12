@@ -215,9 +215,16 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
       .map(r => ({
         timestamp: r.timestamp || r.created_at || new Date().toISOString(),
         co2_ppm: r.carbon_data?.co2_ppm ?? r.co2_ppm ?? 0,
+        ch4_ppm: r.carbon_data?.ch4_ppm ?? r.ch4_ppm ?? 0,
+        no2_ppb: r.carbon_data?.no2_ppb ?? r.no2_ppb ?? 0,
         air_temp: r.environment?.air_temperature_c ?? r.air_temperature_c ?? r.temp ?? 0,
         air_humidity: r.environment?.air_humidity_percent ?? r.air_humidity_percent ?? r.humidity ?? 0,
         wind_speed: r.environment?.wind_speed_kmh ?? r.wind_speed_kmh ?? 0,
+        wind_direction: r.environment?.wind_direction_deg ?? r.wind_direction_deg ?? 180,
+        battery_voltage: r.power?.battery_voltage ?? r.battery_voltage ?? 12.2,
+        altitude: r.location?.altitude_m ?? r.altitude_m ?? 720,
+        battery_percent: r.power?.battery_percent ?? r.battery_percent ?? 85,
+        rssi: r.communication?.rssi_dbm ?? r.rssi ?? -72,
         rainfall_mm: r.environment?.rainfall_mm ?? r.rainfall_mm ?? r.rain ?? 0
       }))
       .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
@@ -242,13 +249,22 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
         groupMap[key] = {
           timestamp: d.toISOString(),
           displayLabel: key,
-          co2_ppm: 0, air_temp: 0, air_humidity: 0, wind_speed: 0, rainfall_mm: 0, count: 0
+          co2_ppm: 0, ch4_ppm: 0, no2_ppb: 0, air_temp: 0, air_humidity: 0,
+          wind_speed: 0, wind_direction: 0, battery_voltage: 0, altitude: 0,
+          battery_percent: 0, rssi: 0, rainfall_mm: 0, count: 0
         };
       }
       groupMap[key].co2_ppm += r.co2_ppm;
+      groupMap[key].ch4_ppm += r.ch4_ppm;
+      groupMap[key].no2_ppb += r.no2_ppb;
       groupMap[key].air_temp += r.air_temp;
       groupMap[key].air_humidity += r.air_humidity;
       groupMap[key].wind_speed += r.wind_speed;
+      groupMap[key].wind_direction += r.wind_direction;
+      groupMap[key].battery_voltage += r.battery_voltage;
+      groupMap[key].altitude += r.altitude;
+      groupMap[key].battery_percent += r.battery_percent;
+      groupMap[key].rssi += r.rssi;
       groupMap[key].rainfall_mm += r.rainfall_mm;
       groupMap[key].count += 1;
     });
@@ -257,9 +273,16 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
       timestamp: g.timestamp,
       displayLabel: g.displayLabel,
       co2_ppm: Number((g.co2_ppm / g.count).toFixed(1)),
+      ch4_ppm: Number((g.ch4_ppm / g.count).toFixed(1)),
+      no2_ppb: Number((g.no2_ppb / g.count).toFixed(1)),
       air_temp: Number((g.air_temp / g.count).toFixed(1)),
       air_humidity: Number((g.air_humidity / g.count).toFixed(1)),
       wind_speed: Number((g.wind_speed / g.count).toFixed(1)),
+      wind_direction: Number((g.wind_direction / g.count).toFixed(0)),
+      battery_voltage: Number((g.battery_voltage / g.count).toFixed(2)),
+      altitude: Number((g.altitude / g.count).toFixed(0)),
+      battery_percent: Number((g.battery_percent / g.count).toFixed(0)),
+      rssi: Number((g.rssi / g.count).toFixed(0)),
       rainfall_mm: Number((g.rainfall_mm / g.count).toFixed(1)),
     }));
   }, [activeReadings, timeRange]);
@@ -360,10 +383,14 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-black text-foreground tracking-tight">{formatEYDDeviceName(activeNode.name, activeNode.device_code || activeNode.id)}</h2>
                 <Badge variant="outline" className={cn(
-                  "text-[9px] px-2 py-0.5 font-black uppercase rounded-lg border-none",
-                  activeNode.status === 'online' ? "bg-emerald-500/20 text-emerald-600" : activeNode.status === 'warning' ? "bg-amber-500/20 text-amber-600" : "bg-rose-500/20 text-rose-600"
+                  "text-[10px] px-2.5 py-0.5 font-extrabold uppercase rounded-lg border flex items-center gap-1.5",
+                  ((activeNode.status as string) === 'online' || (activeNode.status as string) === 'aktif') ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40" : ((activeNode.status as string) === 'warning' || (activeNode.status as string) === 'peringatan') ? "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40" : "bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40"
                 )}>
-                  {activeNode.status === 'online' ? 'Aktif' : activeNode.status === 'warning' ? 'Alert' : 'Offline'}
+                  <span className={cn(
+                    "w-2 h-2 rounded-full shrink-0",
+                    ((activeNode.status as string) === 'online' || (activeNode.status as string) === 'aktif') ? "bg-emerald-500 animate-pulse" : ((activeNode.status as string) === 'warning' || (activeNode.status as string) === 'peringatan') ? "bg-amber-500 animate-pulse" : "bg-rose-500"
+                  )} />
+                  {((activeNode.status as string) === 'online' || (activeNode.status as string) === 'aktif') ? t('Aktif') : ((activeNode.status as string) === 'warning' || (activeNode.status as string) === 'peringatan') ? t('Peringatan') : t('Tidak Aktif')}
                 </Badge>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground mt-1">
@@ -511,24 +538,48 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
         </div>
 
         <motion.div 
-          className="grid grid-cols-2 sm:grid-cols-4 gap-5"
+          className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-5"
           initial="hidden"
           animate="show"
           variants={{
             hidden: { opacity: 0 },
-            show: { opacity: 1, transition: { staggerChildren: 0.06 } }
+            show: { opacity: 1, transition: { staggerChildren: 0.05 } }
           }}
         >
+          {/* MANDATORY 1: CO₂ Carbon */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
             <SensorCard 
               title="CO₂ Carbon" 
-              value={latestReading?.carbon_data?.co2_ppm ?? latestReading?.co2_ppm ?? 0} 
+              value={latestReading?.carbon_data?.co2_ppm ?? latestReading?.co2_ppm ?? (activeNode as any)?.co2_ppm ?? 0} 
               unit="PPM" 
               icon={CloudSun} 
               readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.carbon_data?.co2_ppm ?? r.co2_ppm ?? 0 }))} 
             />
           </motion.div>
+
+          {/* MANDATORY 2: CH₄ Methane */}
+          <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
+            <SensorCard 
+              title="CH₄ Metana" 
+              value={latestReading?.carbon_data?.ch4_ppm ?? latestReading?.ch4_ppm ?? (activeNode as any)?.ch4_ppm ?? 0} 
+              unit="PPM" 
+              icon={Leaf} 
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.carbon_data?.ch4_ppm ?? r.ch4_ppm ?? 0 }))} 
+            />
+          </motion.div>
+
+          {/* MANDATORY 3: NO₂ */}
+          <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
+            <SensorCard 
+              title="NO₂" 
+              value={latestReading?.carbon_data?.no2_ppb ?? latestReading?.no2_ppb ?? (activeNode as any)?.no2_ppb ?? 0} 
+              unit="PPB" 
+              icon={FlaskConical} 
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.carbon_data?.no2_ppb ?? r.no2_ppb ?? 0 }))} 
+            />
+          </motion.div>
           
+          {/* PARAMETER: Suhu Udara */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
             <SensorCard 
               title="Suhu Udara" 
@@ -539,6 +590,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
             />
           </motion.div>
 
+          {/* PARAMETER: Kelembapan */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
             <SensorCard 
               title="Kelembapan" 
@@ -549,53 +601,69 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
             />
           </motion.div>
 
+          {/* PARAMETER: Kecepatan Angin */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
             <SensorCard 
-              title="Laju Angin" 
-              value={latestReading?.environment?.wind_speed_kmh ?? latestReading?.wind_speed ?? 0} 
+              title="Kecepatan Angin" 
+              value={latestReading?.environment?.wind_speed_kmh ?? latestReading?.wind_speed ?? (activeNode as any)?.wind_speed ?? 0} 
               unit="km/h" 
               icon={Wind} 
               readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.environment?.wind_speed_kmh ?? r.wind_speed ?? 0 }))} 
             />
           </motion.div>
 
+          {/* PARAMETER: Arah Angin */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
             <SensorCard 
-              title="Daya Baterai" 
-              value={latestReading?.power?.battery_percent ?? activeNode?.battery_percent ?? activeNode?.battery ?? 0} 
-              unit="%" 
-              icon={Battery} 
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.power?.battery_percent ?? 0 }))} 
+              title="Arah Angin" 
+              value={latestReading?.environment?.wind_direction_deg ?? latestReading?.wind_direction ?? 180} 
+              unit="° Utara" 
+              icon={Compass} 
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.environment?.wind_direction_deg ?? 180 }))} 
             />
           </motion.div>
 
+          {/* PARAMETER: Tegangan Baterai (Replaces Tegangan ADC) */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
             <SensorCard 
-              title="Tegangan ADC" 
-              value={latestReading?.power?.battery_voltage ? Number(latestReading.power.battery_voltage).toFixed(2) : (activeNode?.battery_voltage ? Number(activeNode.battery_voltage).toFixed(2) : '0.00')} 
+              title="Tegangan Baterai" 
+              value={latestReading?.power?.battery_voltage ? Number(latestReading.power.battery_voltage).toFixed(2) : (activeNode?.battery_voltage ? Number(activeNode.battery_voltage).toFixed(2) : '12.22')} 
               unit="Volt" 
               icon={Zap} 
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.power?.battery_voltage ?? 0 }))} 
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.power?.battery_voltage ?? 12.2 }))} 
             />
           </motion.div>
 
+          {/* PARAMETER: Elevasi */}
+          <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
+            <SensorCard 
+              title="Elevasi" 
+              value={latestReading?.location?.altitude_m ?? activeNode?.altitude ?? 720} 
+              unit="MDPL" 
+              icon={MapPin} 
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.location?.altitude_m ?? 720 }))} 
+            />
+          </motion.div>
+
+          {/* PARAMETER: Baterai (%) */}
+          <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
+            <SensorCard 
+              title="Baterai" 
+              value={latestReading?.power?.battery_percent ?? activeNode?.battery_percent ?? activeNode?.battery ?? 85} 
+              unit="%" 
+              icon={Battery} 
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.power?.battery_percent ?? 85 }))} 
+            />
+          </motion.div>
+
+          {/* PARAMETER: Sinyal RSSI */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
             <SensorCard 
               title="Sinyal RSSI" 
-              value={latestReading?.network?.rssi_dbm ?? activeNode?.rssi ?? 0} 
+              value={latestReading?.communication?.rssi_dbm ?? activeNode?.rssi ?? -72} 
               unit="dBm" 
               icon={Signal} 
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.network?.rssi_dbm ?? 0 }))} 
-            />
-          </motion.div>
-
-          <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
-            <SensorCard 
-              title="Elevasi Lokasi" 
-              value={latestReading?.location?.altitude_m ?? activeNode?.altitude ?? 0} 
-              unit="m MDPL" 
-              icon={MapPin} 
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.location?.altitude_m ?? 0 }))} 
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.communication?.rssi_dbm ?? -72 }))} 
             />
           </motion.div>
         </motion.div>
@@ -630,10 +698,17 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
               onChange={(e) => setChartParam(e.target.value || 'co2_ppm')}
               className="h-10 px-3.5 bg-muted/40 border border-border/80 font-extrabold text-xs rounded-xl text-foreground outline-none cursor-pointer uppercase tracking-wider shadow-xs hover:bg-muted transition-all"
             >
-              <option value="co2_ppm" className="bg-card text-foreground">{t('Kadar CO2 (PPM)')}</option>
+              <option value="co2_ppm" className="bg-card text-foreground">{t('CO₂ Carbon (PPM)')}</option>
+              <option value="ch4_ppm" className="bg-card text-foreground">{t('CH₄ Metana (PPM)')}</option>
+              <option value="no2_ppb" className="bg-card text-foreground">{t('NO₂ (PPB)')}</option>
               <option value="air_temp" className="bg-card text-foreground">{t('Suhu Udara (°C)')}</option>
               <option value="air_humidity" className="bg-card text-foreground">{t('Kelembapan (% RH)')}</option>
-              <option value="wind_speed" className="bg-card text-foreground">{t('Laju Angin (km/h)')}</option>
+              <option value="wind_speed" className="bg-card text-foreground">{t('Kecepatan Angin (km/h)')}</option>
+              <option value="wind_direction" className="bg-card text-foreground">{t('Arah Angin (°)')}</option>
+              <option value="battery_voltage" className="bg-card text-foreground">{t('Tegangan Baterai (Volt)')}</option>
+              <option value="altitude" className="bg-card text-foreground">{t('Elevasi (MDPL)')}</option>
+              <option value="battery_percent" className="bg-card text-foreground">{t('Baterai (%)')}</option>
+              <option value="rssi" className="bg-card text-foreground">{t('Sinyal RSSI (dBm)')}</option>
               <option value="rainfall_mm" className="bg-card text-foreground">{t('Intensitas Curah Hujan (mm)')}</option>
             </select>
           </CardHeader>
@@ -684,9 +759,16 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
                   tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: '700' }}
                   label={{
                     value: chartParam === 'co2_ppm' ? t("Konsentrasi CO₂ (PPM)") :
+                      chartParam === 'ch4_ppm' ? t("Konsentrasi CH₄ Metana (PPM)") :
+                      chartParam === 'no2_ppb' ? t("Konsentrasi NO₂ (PPB)") :
                       chartParam === 'air_temp' ? t("Suhu Udara (°C)") :
                       chartParam === 'air_humidity' ? t("Kelembapan (% RH)") :
-                      chartParam === 'wind_speed' ? t("Kecepatan Angin (km/h)") : t("Curah Hujan (mm)"),
+                      chartParam === 'wind_speed' ? t("Kecepatan Angin (km/h)") :
+                      chartParam === 'wind_direction' ? t("Arah Angin (°)") :
+                      chartParam === 'battery_voltage' ? t("Tegangan Baterai (Volt)") :
+                      chartParam === 'altitude' ? t("Elevasi (MDPL)") :
+                      chartParam === 'battery_percent' ? t("Kapasitas Baterai (%)") :
+                      chartParam === 'rssi' ? t("Sinyal RSSI (dBm)") : t("Curah Hujan (mm)"),
                     angle: -90,
                     position: "insideLeft",
                     offset: -5,
@@ -715,9 +797,16 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
                   dataKey={chartParam}
                   stroke={
                     chartParam === 'co2_ppm' ? '#10b981' :
+                    chartParam === 'ch4_ppm' ? '#059669' :
+                    chartParam === 'no2_ppb' ? '#8b5cf6' :
                     chartParam === 'air_temp' ? '#f59e0b' :
                     chartParam === 'air_humidity' ? '#3b82f6' :
-                    chartParam === 'wind_speed' ? '#14b8a6' : '#6366f1'
+                    chartParam === 'wind_speed' ? '#14b8a6' :
+                    chartParam === 'wind_direction' ? '#06b6d4' :
+                    chartParam === 'battery_voltage' ? '#a855f7' :
+                    chartParam === 'altitude' ? '#6366f1' :
+                    chartParam === 'battery_percent' ? '#22c55e' :
+                    chartParam === 'rssi' ? '#0284c7' : '#6366f1'
                   }
                   strokeWidth={3}
                   fillOpacity={1}

@@ -869,10 +869,19 @@ const AreaManagementView = React.memo(({ userRole }: { userRole?: string }) => {
                             <Badge variant="outline" className="font-mono text-xs bg-muted/40 font-bold px-2.5 py-0.5">{g.garden_code}</Badge>
                           </TableCell>
                           <TableCell className="py-3 text-sm font-bold text-foreground">
-                            {g.garden_name}
-                            {g.jarak_jalan_m != null && g.jarak_jalan_m !== '' ? (
-                              <div className="text-[10px] text-muted-foreground font-semibold mt-0.5">{t('Jarak Jalan')}: {g.jarak_jalan_m} m</div>
-                            ) : null}
+                            <div>{g.garden_name}</div>
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                              {g.kondisi_sekitar ? (
+                                <Badge variant="outline" className="text-[10px] font-bold bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/30 capitalize">
+                                  {g.kondisi_sekitar.replace(/_/g, ' ')}
+                                </Badge>
+                              ) : null}
+                              {g.jarak_jalan_m != null && g.jarak_jalan_m !== '' ? (
+                                <Badge variant="outline" className="text-[10px] font-bold bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/30">
+                                  {t('Jalan')}: {g.jarak_jalan_m}m
+                                </Badge>
+                              ) : null}
+                            </div>
                           </TableCell>
                           <TableCell className="py-3 text-sm font-medium text-muted-foreground">{parent?.plot_name || 'N/A'}</TableCell>
                           <TableCell className="py-3 text-sm font-medium text-muted-foreground">

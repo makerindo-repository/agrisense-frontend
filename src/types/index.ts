@@ -60,6 +60,8 @@ export interface AnalyticsNode {
   cps?: number;
   kondisi_sekitar?: string;
   radius_konteks_m?: number;
+  jarak_jalan_m?: number | null;
+  dekat_emisi_pabrik?: boolean;
 }
 
 // --- CCI Breakdown ---

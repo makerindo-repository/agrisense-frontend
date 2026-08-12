@@ -670,7 +670,7 @@ export default function App() {
               <span className="text-sm">🇯🇵</span> <span>Japan</span>
             </div>
             <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs font-bold text-white shadow-sm">
-              <span className="text-sm">🇺🇸</span> <span>USA</span>
+              <span className="text-sm">🇹🇭</span> <span>Thailand</span>
             </div>
           </div>
         </div>

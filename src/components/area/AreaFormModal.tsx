@@ -661,7 +661,7 @@ export default function AreaFormModal({
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1.5">
                     <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">{t('Kondisi Sekitar')}</Label>
                     <select
@@ -669,13 +669,25 @@ export default function AreaFormModal({
                       onChange={e => setGardenForm({ ...gardenForm, kondisi_sekitar: e.target.value })}
                       className="w-full h-11 border border-border/80 font-semibold text-xs rounded-2xl px-3.5 bg-card text-foreground focus:ring-2 focus:ring-emerald-500/40 outline-none cursor-pointer"
                     >
-                      <option value="" className="bg-card text-foreground">-- Pilih Kondisi --</option>
-                      <option value="area_industri" className="font-bold text-xs bg-card text-foreground">Area Industri</option>
-                      <option value="pemukiman_padat" className="font-bold text-xs bg-card text-foreground">Pemukiman Padat</option>
-                      <option value="hutan_lindung" className="font-bold text-xs bg-card text-foreground">Hutan Lindung</option>
-                      <option value="pertanian_terbuka" className="font-bold text-xs bg-card text-foreground">Pertanian Terbuka</option>
-                      <option value="pesisir_pantai" className="font-bold text-xs bg-card text-foreground">Pesisir Pantai</option>
+                      <option value="" className="bg-card text-foreground">-- {t('Pilih Kondisi')} --</option>
+                      <option value="pertanian_terbuka" className="font-bold text-xs bg-card text-foreground">{t('Pertanian Terbuka')}</option>
+                      <option value="area_industri" className="font-bold text-xs bg-card text-foreground">{t('Area Industri')}</option>
+                      <option value="pemukiman_padat" className="font-bold text-xs bg-card text-foreground">{t('Pemukiman Padat')}</option>
+                      <option value="hutan_lindung" className="font-bold text-xs bg-card text-foreground">{t('Hutan Lindung')}</option>
+                      <option value="pesisir_pantai" className="font-bold text-xs bg-card text-foreground">{t('Pesisir Pantai')}</option>
                     </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="font-extrabold text-xs text-foreground uppercase tracking-wider">{t('Jarak Jalan Utama (m)')}</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder="50"
+                      value={gardenForm.jarak_jalan_m ?? ''}
+                      onChange={e => setGardenForm({ ...gardenForm, jarak_jalan_m: e.target.value ? parseInt(e.target.value) : null })}
+                      className="rounded-2xl h-11 border-border/80 font-semibold text-xs px-3.5 bg-card shadow-xs"
+                    />
                   </div>
 
                   <div className="space-y-1.5">

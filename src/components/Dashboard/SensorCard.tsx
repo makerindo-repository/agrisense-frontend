@@ -104,7 +104,7 @@ export function SensorCard({ title, value, unit, icon: Icon, readings, descripti
                 <div className={cn("p-1.5 rounded-lg border shadow-xs transition-colors", theme.icon)}>
                   <Icon size={14} strokeWidth={2.5} />
                 </div>
-                <h3 className="font-extrabold text-[10px] text-foreground uppercase tracking-wider truncate max-w-[100px]">{title}</h3>
+                <h3 className="font-extrabold text-[10px] text-foreground uppercase tracking-wider whitespace-nowrap">{title}</h3>
               </div>
               {!isNoData && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />}
             </div>

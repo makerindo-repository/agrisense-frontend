@@ -18,7 +18,12 @@ import {
   CloudSun,
   Loader2,
   Radio,
-  Plus
+  Plus,
+  Building2,
+  Factory,
+  Compass,
+  ShieldAlert,
+  Trees
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from "@/components/ui/badge";
@@ -658,8 +663,46 @@ export default function AnalyticsView({ selectedNode, setSelectedNode, readings,
               <p className="text-base font-bold text-white">{currentNode?.plant_name || "Tanaman Pangan"}</p>
             </div>
             <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15">
-              <p className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-100 mb-1">{t('Ketinggian')}</p>
-              <p className="text-base font-bold text-white">{dynamicMetrics.latest?.location?.altitude_m ?? 720} m dpl</p>
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-100 mb-1">{t('Elevasi')}</p>
+              <p className="text-base font-bold text-white">{dynamicMetrics.latest?.location?.altitude_m ?? 720} MDPL</p>
+            </div>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-md p-4.5 rounded-2xl border border-white/15 space-y-3">
+            <p className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-200 flex items-center gap-2">
+              <ShieldAlert size={15} className="text-emerald-300" />
+              {t('Karakteristik Lingkungan Sekitar')}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="flex items-center gap-3 bg-black/20 p-3 rounded-xl border border-white/10">
+                <Building2 size={18} className="text-emerald-300 shrink-0" />
+                <div>
+                  <span className="text-[9px] font-extrabold text-white/60 uppercase block">{t('Kondisi Sekitar')}</span>
+                  <span className="text-xs font-bold text-white capitalize">
+                    {currentNode?.kondisi_sekitar ? currentNode.kondisi_sekitar.replace(/_/g, ' ') : t('Pertanian Terbuka')}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 bg-black/20 p-3 rounded-xl border border-white/10">
+                <Compass size={18} className="text-teal-300 shrink-0" />
+                <div>
+                  <span className="text-[9px] font-extrabold text-white/60 uppercase block">{t('Akses Jalan Utama')}</span>
+                  <span className="text-xs font-bold text-white">
+                    {currentNode?.jarak_jalan_m ? `${t('Dekat')} (${currentNode.jarak_jalan_m}m)` : `${t('Jalan Desa')} (< 150m)`}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 bg-black/20 p-3 rounded-xl border border-white/10">
+                <Factory size={18} className="text-amber-300 shrink-0" />
+                <div>
+                  <span className="text-[9px] font-extrabold text-white/60 uppercase block">{t('Emisi Pabrik / Industri')}</span>
+                  <span className="text-xs font-bold text-white">
+                    {currentNode?.dekat_emisi_pabrik ? t('Ya (Dalam Radius)') : t('Tidak Ada Emisi Terdekat')}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 

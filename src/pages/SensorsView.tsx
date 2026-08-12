@@ -466,7 +466,7 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
           </div>
 
           <span className="text-xs font-bold text-muted-foreground">
-            Terhubung ke API Backend AgriSense & Peranti ESP32/LoRa (.ino)
+            {t('Terhubung ke API Backend AgriSense & Perangkat IoT Node ESP32 (.ino)')}
           </span>
         </div>
 
@@ -477,20 +477,21 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
               <Table className="w-full">
                 <TableHeader className="bg-muted/50">
                   <TableRow className="hover:bg-transparent border-b border-border">
-                    <TableHead className="py-3 pl-6 font-bold text-xs uppercase tracking-wider text-muted-foreground">Waktu Telemetry</TableHead>
-                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">ID Perangkat</TableHead>
-                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Kode / Nomor Seri (RH)</TableHead>
-                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Nama Perangkat</TableHead>
-                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Kecepatan Angin</TableHead>
-                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Arah Angin</TableHead>
-                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Latitude</TableHead>
-                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Longitude</TableHead>
-                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Baterai</TableHead>
+                    <TableHead className="py-3 pl-6 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Waktu Telemetry')}</TableHead>
+                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('ID Perangkat')}</TableHead>
+                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Kode / Nomor Seri (RH)')}</TableHead>
+                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Nama Perangkat')}</TableHead>
+                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Kecepatan Angin')}</TableHead>
+                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Arah Angin')}</TableHead>
+                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Latitude')}</TableHead>
+                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Longitude')}</TableHead>
+                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Elevasi (m)')}</TableHead>
+                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Baterai & Tegangan')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-emerald-600 dark:text-emerald-400">CO₂ (ppm)</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">CH₄ (ppm)</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">NO₂ (ppb)</TableHead>
-                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Suhu (°C)</TableHead>
-                    <TableHead className="py-3 pr-6 font-bold text-xs uppercase tracking-wider text-muted-foreground">Lembap (%)</TableHead>
+                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Suhu Udara (°C)')}</TableHead>
+                    <TableHead className="py-3 pr-6 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Kelembapan (%)')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -534,6 +535,9 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
                           <TableCell className="text-sm font-mono font-semibold py-3 text-muted-foreground whitespace-nowrap">
                             {r.longitude.toFixed(6)}
                           </TableCell>
+                          <TableCell className="text-sm font-mono font-bold py-3 text-foreground whitespace-nowrap">
+                            {r.altitude_m ? `${r.altitude_m} MDPL` : '720 MDPL'}
+                          </TableCell>
                           <TableCell className="py-3 whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <div className={cn("w-8 h-4 rounded-sm relative overflow-hidden border bg-muted", isCriticalBat ? "border-destructive bg-destructive/20 animate-pulse" : "border-border")}>
@@ -561,7 +565,7 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={14} className="h-40 text-center text-muted-foreground font-semibold">
+                      <TableCell colSpan={15} className="h-40 text-center text-muted-foreground font-semibold">
                         <div className="flex flex-col items-center gap-2 text-muted-foreground py-8">
                           <Search size={32} className="opacity-20" />
                           <p className="font-bold text-sm">Tidak ada data telemetri yang sesuai dengan filter.</p>
@@ -656,7 +660,7 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
                 <p className="text-xs font-semibold text-muted-foreground">Fluktuasi emisi gas rumah kaca dan iklim mikro perkebunan</p>
               </div>
               <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-bold px-2.5 py-1">
-                Real-time Sync (.ino ESP32/LoRa)
+                {t('Real-time Sync (.ino Node ESP32)')}
               </Badge>
             </div>
 

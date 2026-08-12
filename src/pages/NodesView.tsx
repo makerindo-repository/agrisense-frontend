@@ -762,18 +762,27 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
                       {editingNode && (
                         <div className="flex items-center gap-3 pt-2 px-1">
                           <Label className="text-xs font-black text-muted-foreground uppercase opacity-70">{t('Status')}:</Label>
-                          <div className="flex items-center gap-2">
-                            <span className={`w-2 h-2 rounded-full animate-pulse ${
-                              editingNode.status === 'online' ? 'bg-emerald-500' :
-                              editingNode.status === 'warning' ? 'bg-amber-500' : 'bg-rose-500'
-                            }`}></span>
-                            <span className={`text-xs font-black uppercase tracking-widest ${
-                              editingNode.status === 'online' ? 'text-emerald-600 dark:text-emerald-400' :
-                              editingNode.status === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'
-                            }`}>
-                              {editingNode.status === 'online' ? 'ONLINE' : editingNode.status === 'warning' ? 'WARNING' : 'OFFLINE'}
-                            </span>
-                          </div>
+                          {(() => {
+                            const st = (editingNode.status || '').toString().toLowerCase();
+                            const isOnline = st === 'online' || st === 'aktif';
+                            const isWarning = st === 'warning' || st === 'peringatan';
+                            return (
+                              <Badge className={cn(
+                                "text-xs font-extrabold px-3 py-1 rounded-full border flex items-center gap-1.5 shadow-xs",
+                                isOnline 
+                                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40"
+                                  : isWarning
+                                  ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40"
+                                  : "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/40"
+                              )}>
+                                <span className={cn(
+                                  "w-2 h-2 rounded-full shrink-0",
+                                  isOnline ? "bg-emerald-500 animate-pulse" : isWarning ? "bg-amber-500 animate-pulse" : "bg-rose-500"
+                                )} />
+                                {isOnline ? t('Aktif') : isWarning ? t('Peringatan') : t('Tidak Aktif')}
+                              </Badge>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>
