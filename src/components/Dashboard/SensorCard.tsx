@@ -5,7 +5,7 @@ import { ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
-export function SensorCard({ title, value, unit, icon: Icon, readings, description }: any) {
+export function SensorCard({ title, value, unit, icon: Icon, readings, description, subValue }: any) {
   const [isFlipped, setIsFlipped] = useState(false);
   const { t } = useTranslation();
 
@@ -109,11 +109,16 @@ export function SensorCard({ title, value, unit, icon: Icon, readings, descripti
               {!isNoData && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />}
             </div>
 
-            <div className="flex items-baseline gap-1.5 mt-auto">
+            <div className="flex items-baseline gap-1.5 mt-auto flex-wrap">
               <span className={cn("text-2xl font-black tracking-tight", isNoData ? "text-muted-foreground/40" : "text-foreground")}>
                 {isNoData ? '—' : displayValue}
               </span>
-              <span className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">{unit}</span>
+              {unit && <span className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider">{unit}</span>}
+              {subValue && (
+                <span className="text-[10px] font-extrabold text-muted-foreground tracking-tight bg-muted/60 px-1.5 py-0.5 rounded-md border border-border/40">
+                  {subValue}
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>

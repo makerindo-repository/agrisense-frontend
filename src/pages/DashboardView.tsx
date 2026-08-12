@@ -156,7 +156,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
   const activeReadings = useMemo(() => {
     if (!activeNode) return realReadings;
     const targetCode = String(activeNode.device_code || activeNode.id);
-    let filtered = realReadings.filter(r => 
+    let filtered = realReadings.filter(r =>
       String(r.device_code || r.device_id || r.deviceId || '') === targetCode
     );
 
@@ -436,7 +436,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
       )}
 
       {/* ── Executive Top Overview KPI Grid ── */}
-      <motion.div 
+      <motion.div
         className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5"
         initial="hidden"
         animate="show"
@@ -463,7 +463,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
             }
           />
         </motion.div>
-        
+
         <motion.div variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0 } }}>
           <StatCard
             title={t("Peringatan / Alert")}
@@ -537,7 +537,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
           </div>
         </div>
 
-        <motion.div 
+        <motion.div
           className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-5"
           initial="hidden"
           animate="show"
@@ -548,122 +548,112 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
         >
           {/* MANDATORY 1: CO₂ Carbon */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
-            <SensorCard 
-              title="CO₂ Carbon" 
-              value={latestReading?.carbon_data?.co2_ppm ?? latestReading?.co2_ppm ?? (activeNode as any)?.co2_ppm ?? 0} 
-              unit="PPM" 
-              icon={CloudSun} 
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.carbon_data?.co2_ppm ?? r.co2_ppm ?? 0 }))} 
+            <SensorCard
+              title="CO₂ Carbon"
+              value={latestReading?.carbon_data?.co2_ppm ?? latestReading?.co2_ppm ?? (activeNode as any)?.co2_ppm ?? 0}
+              unit="PPM"
+              icon={CloudSun}
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.carbon_data?.co2_ppm ?? r.co2_ppm ?? 0 }))}
             />
           </motion.div>
 
           {/* MANDATORY 2: CH₄ Methane */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
-            <SensorCard 
-              title="CH₄ Metana" 
-              value={latestReading?.carbon_data?.ch4_ppm ?? latestReading?.ch4_ppm ?? (activeNode as any)?.ch4_ppm ?? 0} 
-              unit="PPM" 
-              icon={Leaf} 
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.carbon_data?.ch4_ppm ?? r.ch4_ppm ?? 0 }))} 
+            <SensorCard
+              title="CH₄ Metana"
+              value={latestReading?.carbon_data?.ch4_ppm ?? latestReading?.ch4_ppm ?? (activeNode as any)?.ch4_ppm ?? 0}
+              unit="PPM"
+              icon={Leaf}
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.carbon_data?.ch4_ppm ?? r.ch4_ppm ?? 0 }))}
             />
           </motion.div>
 
           {/* MANDATORY 3: NO₂ */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
-            <SensorCard 
-              title="NO₂" 
-              value={latestReading?.carbon_data?.no2_ppb ?? latestReading?.no2_ppb ?? (activeNode as any)?.no2_ppb ?? 0} 
-              unit="PPB" 
-              icon={FlaskConical} 
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.carbon_data?.no2_ppb ?? r.no2_ppb ?? 0 }))} 
+            <SensorCard
+              title="NO₂"
+              value={latestReading?.carbon_data?.no2_ppb ?? latestReading?.no2_ppb ?? (activeNode as any)?.no2_ppb ?? 0}
+              unit="PPB"
+              icon={FlaskConical}
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.carbon_data?.no2_ppb ?? r.no2_ppb ?? 0 }))}
             />
           </motion.div>
-          
+
           {/* PARAMETER: Suhu Udara */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
-            <SensorCard 
-              title="Suhu Udara" 
-              value={latestReading?.environment?.air_temperature_c ?? latestReading?.temp ?? 0} 
-              unit="°C" 
-              icon={Thermometer} 
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.environment?.air_temperature_c ?? r.temp ?? 0 }))} 
+            <SensorCard
+              title="Suhu Udara"
+              value={latestReading?.environment?.air_temperature_c ?? latestReading?.temp ?? 0}
+              unit="°C"
+              icon={Thermometer}
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.environment?.air_temperature_c ?? r.temp ?? 0 }))}
             />
           </motion.div>
 
           {/* PARAMETER: Kelembapan */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
-            <SensorCard 
-              title="Kelembapan" 
-              value={latestReading?.environment?.air_humidity_percent ?? latestReading?.humidity ?? 0} 
-              unit="% RH" 
-              icon={Droplets} 
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.environment?.air_humidity_percent ?? r.humidity ?? 0 }))} 
+            <SensorCard
+              title="Kelembapan"
+              value={latestReading?.environment?.air_humidity_percent ?? latestReading?.humidity ?? 0}
+              unit="% RH"
+              icon={Droplets}
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.environment?.air_humidity_percent ?? r.humidity ?? 0 }))}
             />
           </motion.div>
 
           {/* PARAMETER: Kecepatan Angin */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
-            <SensorCard 
-              title="Kecepatan Angin" 
-              value={latestReading?.environment?.wind_speed_kmh ?? latestReading?.wind_speed ?? (activeNode as any)?.wind_speed ?? 0} 
-              unit="km/h" 
-              icon={Wind} 
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.environment?.wind_speed_kmh ?? r.wind_speed ?? 0 }))} 
+            <SensorCard
+              title="Kecepatan Angin"
+              value={latestReading?.environment?.wind_speed_kmh ?? latestReading?.wind_speed ?? (activeNode as any)?.wind_speed ?? 0}
+              unit="km/h"
+              icon={Wind}
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.environment?.wind_speed_kmh ?? r.wind_speed ?? 0 }))}
             />
           </motion.div>
 
           {/* PARAMETER: Arah Angin */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
-            <SensorCard 
-              title="Arah Angin" 
-              value={latestReading?.environment?.wind_direction_deg ?? latestReading?.wind_direction ?? 180} 
-              unit="° Utara" 
-              icon={Compass} 
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.environment?.wind_direction_deg ?? 180 }))} 
+            <SensorCard
+              title="Arah Angin"
+              value={latestReading?.environment?.wind_direction_deg ?? latestReading?.wind_direction ?? 180}
+              unit="° Utara"
+              icon={Compass}
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.environment?.wind_direction_deg ?? 180 }))}
             />
           </motion.div>
 
-          {/* PARAMETER: Tegangan Baterai (Replaces Tegangan ADC) */}
+          {/* PARAMETER: Altitude*/}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
-            <SensorCard 
-              title="Tegangan Baterai" 
-              value={latestReading?.power?.battery_voltage ? Number(latestReading.power.battery_voltage).toFixed(2) : (activeNode?.battery_voltage ? Number(activeNode.battery_voltage).toFixed(2) : '12.22')} 
-              unit="Volt" 
-              icon={Zap} 
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.power?.battery_voltage ?? 12.2 }))} 
+            <SensorCard
+              title="Altitude"
+              value={latestReading?.location?.altitude_m ?? activeNode?.altitude ?? 720}
+              unit="MDPL"
+              icon={MapPin}
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.location?.altitude_m ?? 720 }))}
             />
           </motion.div>
 
-          {/* PARAMETER: Elevasi */}
+          {/* PARAMETER: Baterai (% + Voltage) */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
-            <SensorCard 
-              title="Elevasi" 
-              value={latestReading?.location?.altitude_m ?? activeNode?.altitude ?? 720} 
-              unit="MDPL" 
-              icon={MapPin} 
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.location?.altitude_m ?? 720 }))} 
-            />
-          </motion.div>
-
-          {/* PARAMETER: Baterai (%) */}
-          <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
-            <SensorCard 
-              title="Baterai" 
-              value={latestReading?.power?.battery_percent ?? activeNode?.battery_percent ?? activeNode?.battery ?? 85} 
-              unit="%" 
-              icon={Battery} 
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.power?.battery_percent ?? 85 }))} 
+            <SensorCard
+              title="Baterai"
+              value={latestReading?.power?.battery_percent ?? activeNode?.battery_percent ?? activeNode?.battery ?? 85}
+              unit="%"
+              subValue={`${latestReading?.power?.battery_voltage ? Number(latestReading.power.battery_voltage).toFixed(1) : (activeNode?.battery_voltage ? Number(activeNode.battery_voltage).toFixed(1) : '12.4')} VOLT`}
+              icon={Battery}
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.power?.battery_percent ?? 85 }))}
             />
           </motion.div>
 
           {/* PARAMETER: Sinyal RSSI */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
-            <SensorCard 
-              title="Sinyal RSSI" 
-              value={latestReading?.communication?.rssi_dbm ?? activeNode?.rssi ?? -72} 
-              unit="dBm" 
-              icon={Signal} 
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.communication?.rssi_dbm ?? -72 }))} 
+            <SensorCard
+              title="Sinyal RSSI"
+              value={latestReading?.communication?.rssi_dbm ?? activeNode?.rssi ?? -72}
+              unit="dBm"
+              icon={Signal}
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.communication?.rssi_dbm ?? -72 }))}
             />
           </motion.div>
         </motion.div>
@@ -718,24 +708,24 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
               <AreaChart data={chartData} margin={{ top: 10, right: 25, left: 10, bottom: 25 }}>
                 <defs>
                   <linearGradient id="chartGradientCO2" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.45}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.0}/>
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.45} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
                   </linearGradient>
                   <linearGradient id="chartGradientTemp" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.45}/>
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0}/>
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.45} />
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0} />
                   </linearGradient>
                   <linearGradient id="chartGradientHumid" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.45}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0}/>
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.45} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0} />
                   </linearGradient>
                   <linearGradient id="chartGradientWind" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.45}/>
-                    <stop offset="95%" stopColor="#14b8a6" stopOpacity={0.0}/>
+                    <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.45} />
+                    <stop offset="95%" stopColor="#14b8a6" stopOpacity={0.0} />
                   </linearGradient>
                   <linearGradient id="chartGradientRain" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.45}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0}/>
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.45} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={true} horizontal={true} stroke="rgba(0,0,0,0.06)" />
@@ -760,15 +750,15 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
                   label={{
                     value: chartParam === 'co2_ppm' ? t("Konsentrasi CO₂ (PPM)") :
                       chartParam === 'ch4_ppm' ? t("Konsentrasi CH₄ Metana (PPM)") :
-                      chartParam === 'no2_ppb' ? t("Konsentrasi NO₂ (PPB)") :
-                      chartParam === 'air_temp' ? t("Suhu Udara (°C)") :
-                      chartParam === 'air_humidity' ? t("Kelembapan (% RH)") :
-                      chartParam === 'wind_speed' ? t("Kecepatan Angin (km/h)") :
-                      chartParam === 'wind_direction' ? t("Arah Angin (°)") :
-                      chartParam === 'battery_voltage' ? t("Tegangan Baterai (Volt)") :
-                      chartParam === 'altitude' ? t("Elevasi (MDPL)") :
-                      chartParam === 'battery_percent' ? t("Kapasitas Baterai (%)") :
-                      chartParam === 'rssi' ? t("Sinyal RSSI (dBm)") : t("Curah Hujan (mm)"),
+                        chartParam === 'no2_ppb' ? t("Konsentrasi NO₂ (PPB)") :
+                          chartParam === 'air_temp' ? t("Suhu Udara (°C)") :
+                            chartParam === 'air_humidity' ? t("Kelembapan (% RH)") :
+                              chartParam === 'wind_speed' ? t("Kecepatan Angin (km/h)") :
+                                chartParam === 'wind_direction' ? t("Arah Angin (°)") :
+                                  chartParam === 'battery_voltage' ? t("Tegangan Baterai (Volt)") :
+                                    chartParam === 'altitude' ? t("Altitude (MDPL)") :
+                                      chartParam === 'battery_percent' ? t("Kapasitas Baterai (%)") :
+                                        chartParam === 'rssi' ? t("Sinyal RSSI (dBm)") : t("Curah Hujan (mm)"),
                     angle: -90,
                     position: "insideLeft",
                     offset: -5,
@@ -797,24 +787,24 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
                   dataKey={chartParam}
                   stroke={
                     chartParam === 'co2_ppm' ? '#10b981' :
-                    chartParam === 'ch4_ppm' ? '#059669' :
-                    chartParam === 'no2_ppb' ? '#8b5cf6' :
-                    chartParam === 'air_temp' ? '#f59e0b' :
-                    chartParam === 'air_humidity' ? '#3b82f6' :
-                    chartParam === 'wind_speed' ? '#14b8a6' :
-                    chartParam === 'wind_direction' ? '#06b6d4' :
-                    chartParam === 'battery_voltage' ? '#a855f7' :
-                    chartParam === 'altitude' ? '#6366f1' :
-                    chartParam === 'battery_percent' ? '#22c55e' :
-                    chartParam === 'rssi' ? '#0284c7' : '#6366f1'
+                      chartParam === 'ch4_ppm' ? '#059669' :
+                        chartParam === 'no2_ppb' ? '#8b5cf6' :
+                          chartParam === 'air_temp' ? '#f59e0b' :
+                            chartParam === 'air_humidity' ? '#3b82f6' :
+                              chartParam === 'wind_speed' ? '#14b8a6' :
+                                chartParam === 'wind_direction' ? '#06b6d4' :
+                                  chartParam === 'battery_voltage' ? '#a855f7' :
+                                    chartParam === 'altitude' ? '#6366f1' :
+                                      chartParam === 'battery_percent' ? '#22c55e' :
+                                        chartParam === 'rssi' ? '#0284c7' : '#6366f1'
                   }
                   strokeWidth={3}
                   fillOpacity={1}
                   fill={
                     chartParam === 'co2_ppm' ? 'url(#chartGradientCO2)' :
-                    chartParam === 'air_temp' ? 'url(#chartGradientTemp)' :
-                    chartParam === 'air_humidity' ? 'url(#chartGradientHumid)' :
-                    chartParam === 'wind_speed' ? 'url(#chartGradientWind)' : 'url(#chartGradientRain)'
+                      chartParam === 'air_temp' ? 'url(#chartGradientTemp)' :
+                        chartParam === 'air_humidity' ? 'url(#chartGradientHumid)' :
+                          chartParam === 'wind_speed' ? 'url(#chartGradientWind)' : 'url(#chartGradientRain)'
                   }
                 />
               </AreaChart>
@@ -825,7 +815,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
         {/* Dynamic BMKG Weather Widget */}
         <Card className="border border-border/80 shadow-sm rounded-[28px] bg-slate-900 text-white relative overflow-hidden group hover:shadow-2xl transition-all duration-500 flex flex-col justify-between">
           <div className="absolute -right-8 -top-8 w-36 h-36 bg-emerald-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700 pointer-events-none"></div>
-          
+
           <CardHeader className="pb-3 border-b border-white/10">
             <div className="flex items-center justify-between relative z-10">
               <CardTitle className="text-base font-black tracking-wider uppercase text-emerald-400 flex items-center gap-2">
@@ -844,7 +834,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
                   ? (activeLandPlot?.address || activeNode?.location || t("Memuat lokasi..."))
                   : (activeLandPlot?.plot_name || t("Memuat wilayah..."))}
               </span>
-              
+
               {activeNode && (
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-[10px] font-semibold text-emerald-400 flex items-center gap-1">
@@ -879,8 +869,8 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
                     <div className="flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                       <span className="text-[11px] font-black text-white tracking-tight">
-                        {latestReading?.environment?.rainfall_mm !== undefined 
-                          ? `${Number(latestReading.environment.rainfall_mm).toFixed(1)} mm/jam` 
+                        {latestReading?.environment?.rainfall_mm !== undefined
+                          ? `${Number(latestReading.environment.rainfall_mm).toFixed(1)} mm/jam`
                           : `${(weatherData.current.weather?.toLowerCase().includes('hujan') ? 14.5 : 0.0).toFixed(1)} mm/jam`}
                       </span>
                     </div>
@@ -889,17 +879,17 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
                   {/* Real-Time Rainfall Trend Sparkline */}
                   <div className="h-16 w-full pt-1">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart 
+                      <AreaChart
                         data={
-                          activeReadings.length > 0 
+                          activeReadings.length > 0
                             ? activeReadings.slice(0, 12).reverse().map((r: any, idx: number) => ({
-                                idx,
-                                rainfall: r.environment?.rainfall_mm ?? r.rainfall_mm ?? r.rain ?? (weatherData.current.weather?.toLowerCase().includes('hujan') ? (idx % 2 === 0 ? 12.5 : 4.2) : 0)
-                              }))
+                              idx,
+                              rainfall: r.environment?.rainfall_mm ?? r.rainfall_mm ?? r.rain ?? (weatherData.current.weather?.toLowerCase().includes('hujan') ? (idx % 2 === 0 ? 12.5 : 4.2) : 0)
+                            }))
                             : Array.from({ length: 8 }, (_, i) => ({
-                                idx: i,
-                                rainfall: weatherData.current.weather?.toLowerCase().includes('hujan') ? Number((6 + Math.sin(i * 1.5) * 8).toFixed(1)) : 0
-                              }))
+                              idx: i,
+                              rainfall: weatherData.current.weather?.toLowerCase().includes('hujan') ? Number((6 + Math.sin(i * 1.5) * 8).toFixed(1)) : 0
+                            }))
                         }
                         margin={{ top: 2, right: 0, left: 0, bottom: 0 }}
                       >
@@ -909,12 +899,12 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
                             <stop offset="100%" stopColor="#0284c7" stopOpacity={0.05} />
                           </linearGradient>
                         </defs>
-                        <Area 
-                          type="monotone" 
-                          dataKey="rainfall" 
-                          stroke="#38bdf8" 
+                        <Area
+                          type="monotone"
+                          dataKey="rainfall"
+                          stroke="#38bdf8"
                           strokeWidth={2.5}
-                          fill="url(#bmkgRainGradient)" 
+                          fill="url(#bmkgRainGradient)"
                           isAnimationActive={true}
                         />
                       </AreaChart>

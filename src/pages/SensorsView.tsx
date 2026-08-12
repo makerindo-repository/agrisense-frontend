@@ -164,7 +164,7 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
       });
     }
 
-    return [...filtered].sort((a, b) => 
+    return [...filtered].sort((a, b) =>
       new Date(b.timestamp || b.created_at || 0).getTime() - new Date(a.timestamp || a.created_at || 0).getTime()
     );
   }, [readings, nodeFilter, searchQuery, date, timeRange, nodeNameLookup]);
@@ -277,8 +277,8 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
             </div>
           </div>
 
-          <Button 
-            onClick={handleExportCSV} 
+          <Button
+            onClick={handleExportCSV}
             className="h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-2 shadow-lg shadow-emerald-500/20 shrink-0 w-full sm:w-auto"
           >
             <FileSpreadsheet size={16} />
@@ -485,7 +485,7 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Arah Angin')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Latitude')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Longitude')}</TableHead>
-                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Elevasi (m)')}</TableHead>
+                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Altitude (mdpl)')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Baterai & Tegangan')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-emerald-600 dark:text-emerald-400">CO₂ (ppm)</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">CH₄ (ppm)</TableHead>
@@ -541,7 +541,7 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
                           <TableCell className="py-3 whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <div className={cn("w-8 h-4 rounded-sm relative overflow-hidden border bg-muted", isCriticalBat ? "border-destructive bg-destructive/20 animate-pulse" : "border-border")}>
-                                <div 
+                                <div
                                   className={cn("h-full transition-all duration-500", isCriticalBat ? "bg-destructive" : "bg-emerald-500")}
                                   style={{ width: `${r.battery}%` }}
                                 />
@@ -602,16 +602,16 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
               </div>
 
               <div className="flex items-center gap-1.5">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  disabled={currentPage === 1} 
-                  onClick={() => setCurrentPage(p => p - 1)} 
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => p - 1)}
                   className="h-8 px-3 text-xs font-bold rounded-xl"
                 >
                   Sebelumnya
                 </Button>
-                
+
                 <div className="flex items-center mx-1 gap-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     let page: number;
@@ -619,13 +619,13 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
                     else if (currentPage <= 3) page = i + 1;
                     else if (currentPage >= totalPages - 2) page = totalPages - 4 + i;
                     else page = currentPage - 2 + i;
-                    
+
                     return (
-                      <Button 
-                        key={page} 
-                        variant={currentPage === page ? "default" : "outline"} 
-                        size="sm" 
-                        onClick={() => setCurrentPage(page)} 
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
                         className={cn(
                           "h-8 w-8 text-xs font-bold rounded-xl p-0 transition-all",
                           currentPage === page ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20" : ""
@@ -637,11 +637,11 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
                   })}
                 </div>
 
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  disabled={currentPage === totalPages} 
-                  onClick={() => setCurrentPage(p => p + 1)} 
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(p => p + 1)}
                   className="h-8 px-3 text-xs font-bold rounded-xl"
                 >
                   Berikutnya
@@ -669,27 +669,27 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
                 <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="co2Color" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="tempColor" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
                   <XAxis dataKey="time" tick={{ fontSize: 11, fontWeight: 700 }} />
                   <YAxis yAxisId="left" tick={{ fontSize: 11, fontWeight: 700 }} unit=" ppm" />
                   <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fontWeight: 700 }} unit="°C" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(15, 23, 42, 0.9)', 
-                      borderRadius: '16px', 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                      borderRadius: '16px',
                       borderColor: 'rgba(255,255,255,0.1)',
                       color: '#ffffff',
                       fontWeight: 700,
                       fontSize: '12px'
-                    }} 
+                    }}
                   />
                   <Area yAxisId="left" type="monotone" dataKey="co2" name="Emisi CO₂ (ppm)" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#co2Color)" />
                   <Area yAxisId="right" type="monotone" dataKey="temp" name="Suhu Udara (°C)" stroke="#f59e0b" strokeWidth={3} fillOpacity={1} fill="url(#tempColor)" />
