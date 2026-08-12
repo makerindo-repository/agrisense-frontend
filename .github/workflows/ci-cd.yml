@@ -122,11 +122,11 @@ jobs:
             echo "══════════════════════════════════════"
             echo "📥 Step 1/4: Pull latest code"
             echo "══════════════════════════════════════"
-            git remote set-url origin https://x-access-token:${{ secrets.GH_DEPLOY_TOKEN }}@github.com/dafayape/agrisense-frontend.git
+            git remote set-url origin https://x-access-token:${{ secrets.GH_DEPLOY_TOKEN }}@github.com/makerindo-repository/agrisense-frontend.git
             git fetch origin frontend
             git reset --hard origin/frontend
             # Hapus token dari .git/config
-            git remote set-url origin git@github.com:dafayape/agrisense-frontend.git
+            git remote set-url origin git@github.com:makerindo-repository/agrisense-frontend.git
 
             echo "══════════════════════════════════════"
             echo "🐳 Step 2/4: Build Docker image"
