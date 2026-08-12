@@ -2,7 +2,7 @@
 # AgriSense CI/CD Pipeline
 # ============================================================
 # Trigger:
-#   - Push ke main     → CI + Auto Deploy ke VPS
+#   - Push ke frontend → CI + Auto Deploy ke VPS
 #   - Pull Request     → CI saja (lint + test + build)
 # ============================================================
 
@@ -10,9 +10,9 @@ name: AgriSense CI/CD
 
 on:
   push:
-    branches: [main]
+    branches: [frontend]
   pull_request:
-    branches: [main]
+    branches: [frontend]
 
 jobs:
   # ════════════════════════════════════════════
@@ -92,13 +92,13 @@ jobs:
 
   # ════════════════════════════════════════════
   # JOB 3: CD — Deploy ke VPS via SSH
-  # Hanya jalan saat push ke main (bukan PR)
+  # Hanya jalan saat push ke frontend (bukan PR)
   # ════════════════════════════════════════════
   deploy:
     name: "🚀 Deploy to VPS"
     runs-on: ubuntu-latest
-    needs: [backend-ci, frontend-ci]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [frontend-ci]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/frontend'
     timeout-minutes: 45
 
     steps:
@@ -122,11 +122,11 @@ jobs:
             echo "══════════════════════════════════════"
             echo "📥 Step 1/4: Pull latest code"
             echo "══════════════════════════════════════"
-            git remote set-url origin https://x-access-token:${{ secrets.GH_DEPLOY_TOKEN }}@github.com/bagus081/AgriSense-Web--V1.0.git
-            git fetch origin main
-            git reset --hard origin/main
+            git remote set-url origin https://x-access-token:${{ secrets.GH_DEPLOY_TOKEN }}@github.com/dafayape/agrisense-frontend.git
+            git fetch origin frontend
+            git reset --hard origin/frontend
             # Hapus token dari .git/config
-            git remote set-url origin git@github.com:bagus081/AgriSense-Web--V1.0.git
+            git remote set-url origin git@github.com:dafayape/agrisense-frontend.git
 
             echo "══════════════════════════════════════"
             echo "🐳 Step 2/4: Build Docker image"
