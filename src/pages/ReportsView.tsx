@@ -89,30 +89,86 @@ export default function ReportsView() {
 
         if (fileFormat === 'excel') {
           const worksheet = XLSX.utils.json_to_sheet(exportData);
+          if (exportData.length > 0) {
+            const colWidths = Object.keys(exportData[0]).map((key) => {
+              const maxLen = Math.max(
+                key.length,
+                ...exportData.map((row: any) => String(row[key] ?? '').length)
+              );
+              return { wch: Math.min(Math.max(maxLen + 4, 12), 40) };
+            });
+            worksheet['!cols'] = colWidths;
+          }
           const workbook = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+          XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan AgriSense");
           XLSX.writeFile(workbook, `${filename}.xlsx`);
           toast.success(t('Excel berhasil diunduh!'));
         } else if (fileFormat === 'pdf') {
-          const doc = new jsPDF();
-          doc.text(`Laporan AgriSense - ${activeNodeName}`, 14, 15);
-          doc.setFontSize(10);
-          doc.text(`Periode: ${format(dateRange.from, "dd MMM yyyy", { locale: id })} - ${dateRange.to ? format(dateRange.to, "dd MMM yyyy", { locale: id }) : '-'}`, 14, 22);
+          const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+          const typeTitle = reportTypeLabels[reportType] || 'Laporan AgriSense';
           
+          // Header Banner
+          doc.setFillColor(16, 185, 129); // Emerald 500
+          doc.rect(0, 0, 297, 24, 'F');
+          
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('AGRISENSE SMART CARBON SYSTEM', 14, 11);
+          
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`${typeTitle.toUpperCase()} - ${activeNodeName.toUpperCase()}`, 14, 18);
+
+          // Report Info Metadata Subheader
+          doc.setTextColor(51, 65, 85); // Slate 700
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'bold');
+          const dateFromStr = format(dateRange.from, "dd MMM yyyy", { locale: id });
+          const dateToStr = dateRange.to ? format(dateRange.to, "dd MMM yyyy", { locale: id }) : '-';
+          doc.text(`Periode Laporan: ${dateFromStr} s/d ${dateToStr}`, 14, 30);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Dicetak Pada: ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB`, 180, 30);
+
           if (exportData.length > 0) {
             const head = Object.keys(exportData[0]);
-            const body = exportData.map((row: any) => Object.values(row));
-            
+            const body = exportData.map((row: any) => Object.values(row).map(v => v !== null && v !== undefined ? String(v) : '-'));
+
             autoTable(doc, {
               head: [head],
               body: body,
-              startY: 30,
-              theme: 'grid',
-              headStyles: { fillColor: [16, 185, 129] },
-              styles: { fontSize: 8 }
+              startY: 34,
+              theme: 'striped',
+              headStyles: {
+                fillColor: [15, 118, 110], // Teal 700
+                textColor: [255, 255, 255],
+                fontStyle: 'bold',
+                fontSize: 7.5,
+                halign: 'center',
+                cellPadding: 2.5,
+              },
+              styles: {
+                fontSize: 7,
+                cellPadding: 2,
+                overflow: 'linebreak',
+                valign: 'middle',
+              },
+              alternateRowStyles: {
+                fillColor: [248, 250, 252], // Slate 50
+              },
+              didDrawPage: (data) => {
+                // Footer Page Numbering
+                const str = `Halaman ${data.pageNumber} dari ${(doc as any).internal.getNumberOfPages()}`;
+                doc.setFontSize(8);
+                doc.setTextColor(148, 163, 184);
+                doc.text(str, 297 - 14, 201, { align: 'right' });
+                doc.text('Dokumen Resmi AgriSense System • Hak Cipta Dilindungi', 14, 201);
+              }
             });
           } else {
-            doc.text("Tidak ada data pada periode ini.", 14, 40);
+            doc.setFontSize(10);
+            doc.setTextColor(100, 116, 139);
+            doc.text("Tidak ada record data telemetri yang ditemukan pada rentang tanggal ini.", 14, 45);
           }
           
           doc.save(`${filename}.pdf`);
@@ -387,19 +443,33 @@ export default function ReportsView() {
                   ) : (
                     reportType === 'raw-data' ? (
                       <>
-                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Stempel Waktu')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Waktu Telemetry')}</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('ID Perangkat')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Kode RH Perangkat')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Nama Perangkat')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Kecepatan Angin (km/h)')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Arah Angin')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Latitude</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Longitude</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Elevasi (MDPL)')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Baterai & Tegangan')}</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">CO2 (PPM)</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">CH4 (PPM)</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Suhu (°C)</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">NO2 (PPB)</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Suhu Udara (°C)')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Kelembapan Udara (%)')}</TableHead>
                       </>
                     ) : reportType === 'maintenance' ? (
                       <>
-                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Tanggal</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('ID Perangkat')}</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Teknisi</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Status Hardware</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Tindakan</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Kode RH Perangkat')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Nama Perangkat')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Lahan Induk')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Status Node')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Baterai & Tegangan')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Sinyal RSSI')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Firmware')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Pembacaan Terakhir')}</TableHead>
                       </>
                     ) : reportType === 'system-logs' ? (
                       <>
@@ -413,10 +483,18 @@ export default function ReportsView() {
                       </>
                     ) : (
                       <>
-                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Periode</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('ID Perangkat')}</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Tren Analisis</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Rekomendasi</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Kode RH Perangkat')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Nama Perangkat')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Lahan Induk')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Jumlah Pembacaan')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Periode Awal')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Periode Akhir')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Rata-rata CO2 (PPM)</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Rata-rata CH4 (PPM)</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Rata-rata NO2 (PPB)</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Suhu Udara (°C)')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Kelembapan Udara (%)')}</TableHead>
                       </>
                     )
                   )}
