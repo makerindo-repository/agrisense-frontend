@@ -342,6 +342,7 @@ export default function App() {
             telegramBot: settingsData.telegramBot === '1',
             telegramInviteLink: settingsData.telegramInviteLink || "",
             notificationEmails: settingsData.notificationEmails || "[]",
+            useBmkgTemp: settingsData.useBmkgTemp === '1' || settingsData.useBmkgTemp === true,
           });
         } catch (settingsErr) {
           console.error("Failed to fetch settings:", settingsErr);
