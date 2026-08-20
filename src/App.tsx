@@ -144,6 +144,7 @@ export interface SystemSettings {
   telegramBot: boolean;
   telegramInviteLink: string;
   notificationEmails: string;
+  useBmkgTemp?: boolean;
 }
 
 const getFullUrl = (path: string | null) => {
@@ -228,7 +229,8 @@ export default function App() {
     emailAlert: true,
     telegramBot: false,
     telegramInviteLink: "",
-    notificationEmails: "[]"
+    notificationEmails: "[]",
+    useBmkgTemp: false,
   });
 
   // Background Service for Data Refresh (Polling)

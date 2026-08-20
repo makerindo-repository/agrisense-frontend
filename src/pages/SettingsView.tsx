@@ -390,6 +390,26 @@ export default function SettingsView({ settings, setSettings, userRole }: { sett
                 </Button>
               </div>
             </div>
+
+            {/* BMKG Temperature Sync Toggle */}
+            <div
+              className="flex items-center justify-between p-3.5 rounded-2xl bg-muted/30 border border-border/50 cursor-pointer hover:bg-muted/60 transition-colors"
+              onClick={() => updateLocal({ useBmkgTemp: !localSettings.useBmkgTemp })}
+            >
+              <div className="flex flex-col pr-3">
+                <span className="text-xs font-extrabold text-foreground">{t('Suhu Udara BMKG (BMKG Weather Sync)')}</span>
+                <span className="text-[10px] text-muted-foreground font-medium">{t('Suhu udara otomatis mengikuti data cuaca BMKG/OpenWeather berbasis titik koordinat GPS sensor')}</span>
+              </div>
+              <div className={cn(
+                "w-11 h-6 rounded-full relative transition-colors p-0.5 shrink-0",
+                localSettings.useBmkgTemp ? "bg-emerald-600" : "bg-zinc-300 dark:bg-zinc-700"
+              )}>
+                <motion.div
+                  animate={{ x: localSettings.useBmkgTemp ? 20 : 0 }}
+                  className="w-5 h-5 bg-white rounded-full shadow-sm"
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
 
