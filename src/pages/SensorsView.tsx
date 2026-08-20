@@ -233,7 +233,6 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
         "Longitude": r.longitude,
         "Ketinggian (m)": r.altitude_m,
         "Kecepatan Angin (km/h)": r.windSpeed,
-        "Arah Angin": r.windDirection,
         "CO2 (ppm)": r.co2,
         "CH4 (ppm)": r.ch4,
         "NO2 (ppb)": r.no2,
@@ -482,7 +481,6 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Kode / Nomor Seri (RH)')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Nama Perangkat')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Kecepatan Angin')}</TableHead>
-                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Arah Angin')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Latitude')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Longitude')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Altitude (mdpl)')}</TableHead>
@@ -521,12 +519,6 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
                             <div className="flex items-center gap-1.5">
                               <Wind size={14} className="text-sky-500 shrink-0" />
                               <span className="text-sm font-semibold text-muted-foreground">{r.windSpeed} km/h</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-3 whitespace-nowrap">
-                            <div className="flex items-center gap-1.5">
-                              <Compass size={14} className="text-amber-500 shrink-0" />
-                              <span className="text-sm font-semibold text-muted-foreground">{r.windDirection}</span>
                             </div>
                           </TableCell>
                           <TableCell className="text-sm font-mono font-semibold py-3 text-muted-foreground whitespace-nowrap">
