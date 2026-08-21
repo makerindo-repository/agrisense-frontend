@@ -3,7 +3,7 @@ import {
   Search, X, Droplets, Thermometer, Wind, Battery, Signal, AlertTriangle, CloudSun,
   Activity, Filter, Download, CheckCircle2, Trees, MapPin, Calendar as CalendarIcon,
   RefreshCw, TrendingUp, Cpu, Gauge, Zap, FileSpreadsheet, BarChart2, Table as TableIcon,
-  Compass
+  Compass, Info
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { mockReadings, SensorReading, IoTNode, formatEYDDeviceName } from '../lib/mockData';
@@ -233,6 +233,7 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
         "Longitude": r.longitude,
         "Ketinggian (m)": r.altitude_m,
         "Kecepatan Angin (km/h)": r.windSpeed,
+        "Arah Angin (BMKG)": `${r.windDirection} (BMKG Sync)`,
         "CO2 (ppm)": r.co2,
         "CH4 (ppm)": r.ch4,
         "NO2 (ppb)": r.no2,
@@ -472,6 +473,10 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
         {/* View 1: Telemetry Data Table (Consistently styled with NodeTable.tsx) */}
         {activeTab === 'table' && (
           <Card className="w-full border-border/80 shadow-2xl shadow-black/5 rounded-3xl overflow-hidden bg-card">
+            <div className="bg-sky-500/10 border-b border-sky-500/20 px-6 py-2.5 flex items-center gap-2 text-xs font-semibold text-sky-700 dark:text-sky-300">
+              <Info size={14} className="shrink-0 text-sky-500" />
+              <span>{t('Catatan: Data Arah Angin disinkronkan langsung dari Stasiun Cuaca BMKG terdekat (BMKG Sync).')}</span>
+            </div>
             <div className="overflow-x-auto w-full">
               <Table className="w-full">
                 <TableHeader className="bg-muted/50">
@@ -481,6 +486,7 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Kode / Nomor Seri (RH)')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Nama Perangkat')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Kecepatan Angin')}</TableHead>
+                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Arah Angin (BMKG)')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Latitude')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Longitude')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Altitude (mdpl)')}</TableHead>
@@ -519,6 +525,13 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
                             <div className="flex items-center gap-1.5">
                               <Wind size={14} className="text-sky-500 shrink-0" />
                               <span className="text-sm font-semibold text-muted-foreground">{r.windSpeed} km/h</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-3 whitespace-nowrap">
+                            <div className="flex items-center gap-1.5">
+                              <Compass size={14} className="text-amber-500 shrink-0" />
+                              <span className="text-sm font-semibold text-muted-foreground">{r.windDirection}</span>
+                              <Badge variant="secondary" className="bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20 text-[9px] font-extrabold px-1.5 py-0">BMKG</Badge>
                             </div>
                           </TableCell>
                           <TableCell className="text-sm font-mono font-semibold py-3 text-muted-foreground whitespace-nowrap">

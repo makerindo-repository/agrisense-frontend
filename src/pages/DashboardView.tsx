@@ -616,10 +616,17 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
             <SensorCard
               title="Arah Angin"
-              value={latestReading?.environment?.wind_direction_deg ?? latestReading?.wind_direction ?? 180}
-              unit="° Utara"
+              value={(() => {
+                const deg = latestReading?.environment?.wind_direction_deg ?? latestReading?.wind_direction ?? 0;
+                const dirs = ['Utara (N)', 'Timur Laut (NE)', 'Timur (E)', 'Tenggara (SE)', 'Selatan (S)', 'Barat Daya (SW)', 'Barat (W)', 'Barat Laut (NW)'];
+                const idx = Math.round(deg / 45) % 8;
+                return `${deg}° ${dirs[idx]}`;
+              })()}
+              unit=""
               icon={Compass}
-              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.environment?.wind_direction_deg ?? 180 }))}
+              subValue="Sumber: BMKG"
+              description="Arah tiupan angin disinkronkan langsung dari data Stasiun Cuaca BMKG terdekat."
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.environment?.wind_direction_deg ?? 0 }))}
             />
           </motion.div>
 

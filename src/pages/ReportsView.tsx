@@ -448,6 +448,7 @@ export default function ReportsView() {
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Kode RH Perangkat')}</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Nama Perangkat')}</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Kecepatan Angin (km/h)')}</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Arah Angin (BMKG)')}</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Latitude</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Longitude</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Elevasi (MDPL)')}</TableHead>
