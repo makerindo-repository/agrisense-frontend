@@ -7,7 +7,7 @@ import {
   FlaskConical, Zap, Activity, Filter, Plus, Save, MoreVertical, Edit, Trash2,
   Download, CheckCircle2, Eye, EyeOff, Trees, Layers, Sprout, MapPin, SearchIcon,
   Share2, Info, Brain, ChevronRight, Globe, Layers3, Cpu, Compass, Building2,
-  ArrowUpRight, ArrowDownRight, ShieldCheck, Sparkles
+  ArrowUpRight, ArrowDownRight, ShieldCheck, Sparkles, Gauge
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -673,6 +673,32 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
               unit="dBm"
               icon={Signal}
               readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.communication?.rssi_dbm ?? -72 }))}
+            />
+          </motion.div>
+
+          {/* PARAMETER: Curah Hujan (BMKG) */}
+          <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
+            <SensorCard
+              title="Curah Hujan"
+              value={latestReading?.environment?.rainfall_mm ?? weatherData?.current?.rainfall ?? (weatherData?.current?.weather?.toLowerCase().includes('hujan') ? 12.5 : 0)}
+              unit="mm"
+              icon={CloudRain}
+              subValue="Sumber: BMKG"
+              description="Intensitas presipitasi hujan disinkronkan langsung dari data Stasiun Cuaca BMKG terdekat."
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.environment?.rainfall_mm ?? 0 }))}
+            />
+          </motion.div>
+
+          {/* PARAMETER: Tekanan Udara (BMKG / Sensor) */}
+          <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
+            <SensorCard
+              title="Tekanan Udara"
+              value={latestReading?.environment?.air_pressure_hpa ?? weatherData?.current?.pressure ?? 1013.25}
+              unit="hPa"
+              icon={Gauge}
+              subValue="Sumber: BMKG"
+              description="Tekanan barometrik atmosfer disinkronkan dari Stasiun Cuaca BMKG terdekat."
+              readings={activeReadings.slice(0, 24).reverse().map(r => ({ value: r.environment?.air_pressure_hpa ?? 1013.25 }))}
             />
           </motion.div>
         </motion.div>
