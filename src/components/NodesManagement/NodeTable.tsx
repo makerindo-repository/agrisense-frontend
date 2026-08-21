@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, Search, Wind } from 'lucide-react';
+import { Edit, Trash2, Search, Wind, AlertTriangle } from 'lucide-react';
 import { IoTNode, formatEYDDeviceName } from '../../lib/mockData';
 import { cn } from '@/lib/utils';
 
@@ -72,23 +72,42 @@ const NodeTable = React.memo(({ nodes, onEdit, onDelete, userRole }: NodeTablePr
                       const st = (node.status || '').toString().toLowerCase();
                       const isOnline = st === 'online' || st === 'aktif' || st === 'active';
                       const isWarning = st === 'warning' || st === 'peringatan' || st === 'alert';
+                      const hasWarning = (node as any).has_warning || isWarning;
+
+                      if (isOnline) {
+                        return (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <Badge className="text-xs font-extrabold px-3 py-1 rounded-full border shadow-xs bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40 flex items-center w-fit gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                              {t('Aktif')}
+                            </Badge>
+                            {hasWarning && (
+                              <Badge 
+                                className="text-xs font-extrabold px-2.5 py-0.5 rounded-full border bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40 flex items-center w-fit gap-1"
+                                title={(node as any).warning_reasons?.join(', ') || t('Anomali Telemetri')}
+                              >
+                                <AlertTriangle size={12} className="text-amber-500 shrink-0" />
+                                {t('Peringatan')}
+                              </Badge>
+                            )}
+                          </div>
+                        );
+                      }
 
                       return (
                         <Badge 
                           className={cn(
                             "text-xs font-extrabold px-3 py-1 rounded-full border shadow-xs flex items-center w-fit gap-1.5 transition-all",
-                            isOnline 
-                              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40" 
-                              : isWarning 
+                            isWarning 
                               ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40" 
                               : "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/40"
                           )}
                         >
                           <span className={cn(
                             "w-2.5 h-2.5 rounded-full shrink-0",
-                            isOnline ? "bg-emerald-500 animate-pulse" : isWarning ? "bg-amber-500 animate-pulse" : "bg-rose-500"
+                            isWarning ? "bg-amber-500 animate-pulse" : "bg-rose-500"
                           )} />
-                          {isOnline ? t('Aktif') : isWarning ? t('Peringatan') : t('Tidak Aktif')}
+                          {isWarning ? t('Peringatan') : t('Tidak Aktif')}
                         </Badge>
                       );
                     })()}

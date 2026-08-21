@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format, formatTime, id } from '@/utils/formatters';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { IoTNode, formatEYDDeviceName } from '../lib/mockData';
+import { IoTNode, formatEYDDeviceName, evaluateNodeWarning } from '../lib/mockData';
 import { cn } from '@/lib/utils';
 import api from '../lib/api';
 import { translateWeather } from '../constants/agriConstants';
@@ -288,9 +288,21 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
   }, [activeReadings, timeRange]);
 
   // Aggregate Executive Stats
-  const onlineCount = nodes.filter(n => n.status === 'online').length;
-  const warningCount = nodes.filter(n => n.status === 'warning').length;
-  const offlineCount = nodes.filter(n => n.status === 'offline').length;
+  const onlineCount = useMemo(() => {
+    return nodes.filter(n => n.status === 'online').length;
+  }, [nodes]);
+
+  const warningCount = useMemo(() => {
+    return nodes.filter(n => {
+      if (n.status === 'warning' || n.status === 'offline') return true;
+      const latest = realReadings.find(r => (r.device_code || r.device_id) === (n.device_code || n.id));
+      return evaluateNodeWarning(latest, n.status).isWarning;
+    }).length;
+  }, [nodes, realReadings]);
+
+  const offlineCount = useMemo(() => {
+    return nodes.filter(n => n.status === 'offline').length;
+  }, [nodes]);
   const totalAreaHa = landPlots.reduce((sum, l) => sum + Number(l.area_hectare || 0), 0);
 
   const resolvedPlantName = activeNode?.plant_name || activePlanting?.nama_tanaman || activeGarden?.plant_types || activeLandPlot?.plant_types || t('Belum ditentukan');

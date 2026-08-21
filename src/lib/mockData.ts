@@ -191,6 +191,42 @@ export const normalizeNode = (n: any): IoTNode => {
   };
 };
 
+// Evaluasi ambang batas telemetri untuk menentukan apakah node aktif memiliki peringatan
+export const evaluateNodeWarning = (latestReading: any, nodeStatus: string = 'online'): { isWarning: boolean; reasons: string[] } => {
+  const reasons: string[] = [];
+
+  const st = (nodeStatus || '').toLowerCase();
+  if (st === 'offline') {
+    return { isWarning: true, reasons: ['Perangkat offline'] };
+  }
+
+  if (!latestReading) {
+    return { isWarning: false, reasons: [] };
+  }
+
+  const co2 = latestReading.co2_sensor ?? latestReading.co2_ppm ?? latestReading.carbon_data?.co2_ppm ?? 0;
+  const ch4 = latestReading.ch4_ppm ?? latestReading.carbon_data?.ch4_ppm ?? 0;
+  const no2 = latestReading.no2_ppb ?? latestReading.carbon_data?.no2_ppb ?? 0;
+  const temp = latestReading.air_temperature_sensor ?? latestReading.air_temperature_c ?? latestReading.environment?.air_temperature_c ?? 25;
+  const humidity = latestReading.air_humidity_sensor ?? latestReading.air_humidity_percent ?? latestReading.environment?.air_humidity_percent ?? 50;
+  const battery = latestReading.battery_percent ?? latestReading.power?.battery_percent ?? 100;
+  const sensorStatus = latestReading.sensor_status ?? latestReading.status?.sensor_status ?? 'normal';
+
+  if (co2 > 1000) reasons.push(`CO₂ Tinggi (${Math.round(co2)} ppm)`);
+  if (ch4 > 10.0) reasons.push(`CH₄ Tinggi (${Number(ch4).toFixed(1)} ppm)`);
+  if (no2 > 50.0) reasons.push(`NO₂ Tinggi (${Math.round(no2)} ppb)`);
+  if (temp > 35.0) reasons.push(`Suhu Tinggi (${Number(temp).toFixed(1)}°C)`);
+  if (temp < 15.0) reasons.push(`Suhu Rendah (${Number(temp).toFixed(1)}°C)`);
+  if (humidity < 30.0) reasons.push(`Kelembapan Sangat Rendah (${Number(humidity).toFixed(1)}%)`);
+  if (battery < 20) reasons.push(`Baterai Lemah (${battery}%)`);
+  if (sensorStatus === 'degraded' || sensorStatus === 'error') reasons.push('Kinerja sensor menurun (degraded)');
+
+  return {
+    isWarning: reasons.length > 0,
+    reasons
+  };
+};
+
 // All data starts empty - will be populated via API or user interaction
 export const mockUsers: User[] = [
   { id: 'USR-001', name: 'AgriSense Dev', email: 'dev@agrisense.id', role: 'admin', status: 'active', lastLogin: new Date().toISOString() }
