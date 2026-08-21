@@ -192,7 +192,11 @@ export const normalizeNode = (n: any): IoTNode => {
 };
 
 // Evaluasi ambang batas telemetri untuk menentukan apakah node aktif memiliki peringatan
-export const evaluateNodeWarning = (latestReading: any, nodeStatus: string = 'online'): { isWarning: boolean; reasons: string[] } => {
+export const evaluateNodeWarning = (
+  latestReading: any, 
+  nodeStatus: string = 'online',
+  thresholds?: { co2Threshold?: number | string; tempMax?: number; humidityMin?: number }
+): { isWarning: boolean; reasons: string[] } => {
   const reasons: string[] = [];
 
   const st = (nodeStatus || '').toLowerCase();
@@ -204,6 +208,11 @@ export const evaluateNodeWarning = (latestReading: any, nodeStatus: string = 'on
     return { isWarning: false, reasons: [] };
   }
 
+  // Memanfaatkan batas dinamis dari pengaturan global (atau default fallback)
+  const co2Limit = thresholds?.co2Threshold ? Number(thresholds.co2Threshold) : 1000;
+  const tempLimit = thresholds?.tempMax ? Number(thresholds.tempMax) : 35;
+  const humidityLimit = thresholds?.humidityMin ? Number(thresholds.humidityMin) : 30;
+
   const co2 = latestReading.co2_sensor ?? latestReading.co2_ppm ?? latestReading.carbon_data?.co2_ppm ?? 0;
   const ch4 = latestReading.ch4_ppm ?? latestReading.carbon_data?.ch4_ppm ?? 0;
   const no2 = latestReading.no2_ppb ?? latestReading.carbon_data?.no2_ppb ?? 0;
@@ -212,12 +221,12 @@ export const evaluateNodeWarning = (latestReading: any, nodeStatus: string = 'on
   const battery = latestReading.battery_percent ?? latestReading.power?.battery_percent ?? 100;
   const sensorStatus = latestReading.sensor_status ?? latestReading.status?.sensor_status ?? 'normal';
 
-  if (co2 > 1000) reasons.push(`CO₂ Tinggi (${Math.round(co2)} ppm)`);
+  if (co2 > co2Limit) reasons.push(`CO₂ Tinggi (${Math.round(co2)} ppm / Batas: ${co2Limit})`);
   if (ch4 > 10.0) reasons.push(`CH₄ Tinggi (${Number(ch4).toFixed(1)} ppm)`);
   if (no2 > 50.0) reasons.push(`NO₂ Tinggi (${Math.round(no2)} ppb)`);
-  if (temp > 35.0) reasons.push(`Suhu Tinggi (${Number(temp).toFixed(1)}°C)`);
+  if (temp > tempLimit) reasons.push(`Suhu Tinggi (${Number(temp).toFixed(1)}°C / Batas: ${tempLimit})`);
   if (temp < 15.0) reasons.push(`Suhu Rendah (${Number(temp).toFixed(1)}°C)`);
-  if (humidity < 30.0) reasons.push(`Kelembapan Sangat Rendah (${Number(humidity).toFixed(1)}%)`);
+  if (humidity < humidityLimit) reasons.push(`Kelembapan Rendah (${Number(humidity).toFixed(1)}% / Batas: ${humidityLimit})`);
   if (battery < 20) reasons.push(`Baterai Lemah (${battery}%)`);
   if (sensorStatus === 'degraded' || sensorStatus === 'error') reasons.push('Kinerja sensor menurun (degraded)');
 
