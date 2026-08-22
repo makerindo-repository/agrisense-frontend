@@ -35,7 +35,26 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
   const [nodes, setNodes] = useState<IoTNode[]>(propNodes || []);
   const [selectedNodeId, setSelectedNodeId] = useState<string>("");
   const [weatherData, setWeatherData] = useState<any>(null);
-  const [realReadings, setRealReadings] = useState<any[]>([]);
+  const [realReadings, setRealReadings] = useState<any[]>(() => {
+    try {
+      const cached = localStorage.getItem('agrisense_cached_readings');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return [];
+  });
+
+  const updateRealReadings = (rData: any[]) => {
+    if (Array.isArray(rData) && rData.length > 0) {
+      setRealReadings(rData);
+      try {
+        localStorage.setItem('agrisense_cached_readings', JSON.stringify(rData.slice(0, 1000)));
+      } catch (e) {}
+    }
+  };
+
   const [landPlots, setLandPlots] = useState<any[]>([]);
   const [gardens, setGardens] = useState<any[]>([]);
   const [plantings, setPlantings] = useState<any[]>([]);
@@ -72,7 +91,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
 
         if (readingsRes.status === 'fulfilled') {
           const rData = readingsRes.value.data?.data || readingsRes.value.data;
-          if (Array.isArray(rData)) setRealReadings(rData);
+          if (Array.isArray(rData)) updateRealReadings(rData);
         }
 
         if (landRes.status === 'fulfilled') {
@@ -100,7 +119,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
       try {
         const res = await api.get('/readings?limit=1500');
         const rData = res.data?.data || res.data;
-        if (Array.isArray(rData)) setRealReadings(rData);
+        if (Array.isArray(rData)) updateRealReadings(rData);
       } catch { /* silent */ }
     };
     const readingsInterval = setInterval(refreshReadings, 15000);
@@ -118,7 +137,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
         }
         if (readingsRes.status === 'fulfilled') {
           const rData = readingsRes.value.data?.data || readingsRes.value.data;
-          if (Array.isArray(rData)) setRealReadings(rData);
+          if (Array.isArray(rData)) updateRealReadings(rData);
         }
       } catch (e) { console.error("Error refreshing nodes", e); }
     };
@@ -164,30 +183,29 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
       const now = new Date();
       const isToday = date.toDateString() === now.toDateString();
 
-      const selectedDate = new Date(date);
-      if (isToday) {
-        selectedDate.setTime(now.getTime());
-      } else {
+      // Non-today filter logic
+      if (!isToday) {
+        const selectedDate = new Date(date);
         selectedDate.setHours(23, 59, 59, 999);
-      }
 
-      let startDate = new Date(selectedDate);
-      if (timeRange === '24h') {
-        startDate.setTime(selectedDate.getTime() - 24 * 60 * 60 * 1000);
-      } else if (timeRange === '7d') {
-        startDate.setDate(startDate.getDate() - 7);
-      } else if (timeRange === '30d') {
-        startDate.setDate(startDate.getDate() - 30);
-      } else {
-        startDate.setFullYear(startDate.getFullYear() - 1);
-      }
+        let startDate = new Date(selectedDate);
+        if (timeRange === '24h') {
+          startDate.setTime(selectedDate.getTime() - 24 * 60 * 60 * 1000);
+        } else if (timeRange === '7d') {
+          startDate.setDate(startDate.getDate() - 7);
+        } else if (timeRange === '30d') {
+          startDate.setDate(startDate.getDate() - 30);
+        } else {
+          startDate.setFullYear(startDate.getFullYear() - 1);
+        }
 
-      filtered = filtered.filter(r => {
-        const rawTime = r.timestamp || r.reading_time || r.created_at || 0;
-        if (!rawTime) return true;
-        const ts = new Date(rawTime);
-        return ts >= startDate && ts <= selectedDate;
-      });
+        filtered = filtered.filter(r => {
+          const rawTime = r.timestamp || r.reading_time || r.created_at || 0;
+          if (!rawTime) return true;
+          const ts = new Date(rawTime);
+          return ts >= startDate && ts <= selectedDate;
+        });
+      }
     }
     return filtered;
   }, [realReadings, activeNode, date, timeRange]);
@@ -198,21 +216,46 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
       if (activeNode) {
         try {
           localStorage.setItem(`agrisense_latest_reading_${activeNode.device_code || activeNode.id}`, JSON.stringify(lr));
+          localStorage.setItem('agrisense_latest_reading_global', JSON.stringify(lr));
         } catch (e) {}
       }
       return lr;
     }
+
+    if (realReadings.length > 0) {
+      const targetCode = activeNode ? String(activeNode.device_code || activeNode.id) : null;
+      const match = targetCode
+        ? realReadings.find(r => String(r.device_code || r.device_id || r.deviceId || '') === targetCode)
+        : realReadings[0];
+      if (match) {
+        if (activeNode) {
+          try {
+            localStorage.setItem(`agrisense_latest_reading_${activeNode.device_code || activeNode.id}`, JSON.stringify(match));
+            localStorage.setItem('agrisense_latest_reading_global', JSON.stringify(match));
+          } catch (e) {}
+        }
+        return match;
+      }
+    }
+
     if (activeNode) {
       try {
         const cached = localStorage.getItem(`agrisense_latest_reading_${activeNode.device_code || activeNode.id}`);
         if (cached) return JSON.parse(cached);
       } catch (e) {}
     }
+
+    try {
+      const cachedGlobal = localStorage.getItem('agrisense_latest_reading_global');
+      if (cachedGlobal) return JSON.parse(cachedGlobal);
+    } catch (e) {}
+
     if ((activeNode as any)?.latest_reading) {
       return (activeNode as any).latest_reading;
     }
+
     return null;
-  }, [activeReadings, activeNode]);
+  }, [activeReadings, realReadings, activeNode]);
 
   // Fetch BMKG weather data
   useEffect(() => {

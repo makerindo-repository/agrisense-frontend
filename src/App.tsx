@@ -171,9 +171,27 @@ export default function App() {
   const [users, setUsers] = useState<User[]>([]);
   const isInitialLoad = useRef(true);
   const [isAuthReady, setIsAuthReady] = useState(false);
-  const [realTimeReadings, setRealTimeReadings] = useState<any[]>([]);
+  const [realTimeReadings, setRealTimeReadings] = useState<any[]>(() => {
+    try {
+      const cached = localStorage.getItem('agrisense_cached_readings');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return [];
+  });
   const [realTimeLogs, setRealTimeLogs] = useState<any[]>([]);
-  const [allNodes, setAllNodes] = useState<IoTNode[]>([]);
+  const [allNodes, setAllNodes] = useState<IoTNode[]>(() => {
+    try {
+      const cached = localStorage.getItem('agrisense_cached_nodes');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return [];
+  });
   const [appStats, setAppStats] = useState({ online: 0, warning: 0, offline: 0, total: 0 });
   const [lastSync, setLastSync] = useState<Date>(new Date());
   const [lastUpdateInfo, setLastUpdateInfo] = useState<{ name: string, id: string, time: string, status: string, detail: string, isWarning: boolean } | null>(null);
@@ -287,7 +305,15 @@ export default function App() {
           }
         }
 
-        if (resReadings) setRealTimeReadings(resReadings.data);
+        if (resReadings) {
+          setRealTimeReadings(resReadings.data);
+          const rList = Array.isArray(resReadings.data?.data) ? resReadings.data.data : (Array.isArray(resReadings.data) ? resReadings.data : []);
+          if (rList.length > 0) {
+            try {
+              localStorage.setItem('agrisense_cached_readings', JSON.stringify(rList.slice(0, 1000)));
+            } catch (e) {}
+          }
+        }
 
         if (resNodes && Array.isArray(resNodes.data)) {
           const readingsList = Array.isArray(resReadings?.data?.data) 
@@ -305,6 +331,9 @@ export default function App() {
             return normalizeNode(n);
           });
           setAllNodes(normalizedNodes);
+          try {
+            localStorage.setItem('agrisense_cached_nodes', JSON.stringify(normalizedNodes));
+          } catch (e) {}
         }
 
         if (isStaff && resLogs) {
