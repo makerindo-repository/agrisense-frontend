@@ -183,7 +183,9 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
       }
 
       filtered = filtered.filter(r => {
-        const ts = new Date(r.timestamp || r.created_at);
+        const rawTime = r.timestamp || r.reading_time || r.created_at || 0;
+        if (!rawTime) return true;
+        const ts = new Date(rawTime);
         return ts >= startDate && ts <= selectedDate;
       });
     }
@@ -213,7 +215,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
   const chartData = useMemo(() => {
     const raw = activeReadings
       .map(r => ({
-        timestamp: r.timestamp || r.created_at || new Date().toISOString(),
+        timestamp: r.timestamp || r.reading_time || r.created_at || new Date().toISOString(),
         co2_ppm: r.carbon_data?.co2_ppm ?? r.co2_ppm ?? 0,
         ch4_ppm: r.carbon_data?.ch4_ppm ?? r.ch4_ppm ?? 0,
         no2_ppb: r.carbon_data?.no2_ppb ?? r.no2_ppb ?? 0,

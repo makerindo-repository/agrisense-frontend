@@ -54,7 +54,7 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
     const batVoltage = rawVolt ? Number(rawVolt).toFixed(2) : '0.00';
 
     return {
-      timestamp: r.timestamp || r.created_at || new Date().toISOString(),
+      timestamp: r.timestamp || r.reading_time || r.created_at || new Date().toISOString(),
       device_db_id: r.id || r.db_id || r.device_db_id || rawId,
       device_id: rawId,
       device_code: rawCode,
@@ -139,15 +139,8 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
     }
 
     if (date) {
-      const now = new Date();
-      const isToday = date.toDateString() === now.toDateString();
       const selectedDate = new Date(date);
-
-      if (isToday) {
-        selectedDate.setTime(now.getTime());
-      } else {
-        selectedDate.setHours(23, 59, 59, 999);
-      }
+      selectedDate.setHours(23, 59, 59, 999);
 
       let startDate = new Date(selectedDate);
       if (timeRange === '24h') {
@@ -159,14 +152,18 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
       }
 
       filtered = filtered.filter(r => {
-        const ts = new Date(r.timestamp || r.created_at || 0);
+        const rawTime = r.timestamp || r.reading_time || r.created_at || 0;
+        if (!rawTime) return true;
+        const ts = new Date(rawTime);
         return ts >= startDate && ts <= selectedDate;
       });
     }
 
-    return [...filtered].sort((a, b) =>
-      new Date(b.timestamp || b.created_at || 0).getTime() - new Date(a.timestamp || a.created_at || 0).getTime()
-    );
+    return [...filtered].sort((a, b) => {
+      const ta = new Date(a.timestamp || a.reading_time || a.created_at || 0).getTime();
+      const tb = new Date(b.timestamp || b.reading_time || b.created_at || 0).getTime();
+      return tb - ta;
+    });
   }, [readings, nodeFilter, searchQuery, date, timeRange, nodeNameLookup]);
 
   // Executive KPI summary calculations
