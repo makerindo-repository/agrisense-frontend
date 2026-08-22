@@ -64,7 +64,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
     const fetchInitialData = async () => {
       try {
         const [readingsRes, landRes, gardenRes, plantRes] = await Promise.allSettled([
-          api.get('/readings?limit=50000'),
+          api.get('/readings?limit=5000'),
           api.get('/land-plots'),
           api.get('/gardens'),
           api.get('/plantings')

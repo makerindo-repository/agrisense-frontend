@@ -32,7 +32,7 @@ export default function SensorsView({ readings: propReadings = [], nodes = [] }:
   useEffect(() => {
     const fetchReadings = async () => {
       try {
-        const res = await api.get('/readings?limit=50000');
+        const res = await api.get('/readings?limit=5000');
         const list = Array.isArray(res.data?.data) ? res.data.data : (Array.isArray(res.data) ? res.data : []);
         if (list.length > 0) {
           setInternalReadings(list);
