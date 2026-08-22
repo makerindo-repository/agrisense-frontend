@@ -943,10 +943,39 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
                       if (timeRange === '30d' || timeRange === '1y') return label;
                       return format(new Date(label), timeRange === '24h' ? "d MMM, HH:mm" : "PPP", { locale: id });
                     }}
+                    formatter={(value: any, name: any) => [
+                      typeof value === 'number' ? value : String(value ?? 0),
+                      name === 'no2_ppb' || String(name) === 'no2_ppb' ? t('N₂O (PPB)') :
+                        name === 'co2_ppm' ? t('CO₂ Carbon (PPM)') :
+                          name === 'ch4_ppm' ? t('CH₄ Metana (PPM)') :
+                            name === 'air_temp' ? t('Suhu Udara (°C)') :
+                              name === 'air_humidity' ? t('Kelembapan (% RH)') :
+                                name === 'wind_speed' ? t('Kecepatan Angin (km/h)') :
+                                  name === 'wind_direction' ? t('Arah Angin (°)') :
+                                    name === 'battery_voltage' ? t('Tegangan Baterai (Volt)') :
+                                      name === 'altitude' ? t('Elevasi (MDPL)') :
+                                        name === 'battery_percent' ? t('Baterai (%)') :
+                                          name === 'rssi' ? t('Sinyal RSSI (dBm)') :
+                                            name === 'rainfall_mm' ? t('Curah Hujan (mm)') : String(name)
+                    ]}
                   />
                   <Area
                     type="monotone"
                     dataKey={chartParam}
+                    name={
+                      chartParam === 'no2_ppb' ? t('N₂O (PPB)') :
+                        chartParam === 'co2_ppm' ? t('CO₂ Carbon (PPM)') :
+                          chartParam === 'ch4_ppm' ? t('CH₄ Metana (PPM)') :
+                            chartParam === 'air_temp' ? t('Suhu Udara (°C)') :
+                              chartParam === 'air_humidity' ? t('Kelembapan (% RH)') :
+                                chartParam === 'wind_speed' ? t('Kecepatan Angin (km/h)') :
+                                  chartParam === 'wind_direction' ? t('Arah Angin (°)') :
+                                    chartParam === 'battery_voltage' ? t('Tegangan Baterai (Volt)') :
+                                      chartParam === 'altitude' ? t('Elevasi (MDPL)') :
+                                        chartParam === 'battery_percent' ? t('Baterai (%)') :
+                                          chartParam === 'rssi' ? t('Sinyal RSSI (dBm)') :
+                                            chartParam === 'rainfall_mm' ? t('Curah Hujan (mm)') : chartParam
+                    }
                     stroke={
                       chartParam === 'co2_ppm' ? '#10b981' :
                         chartParam === 'ch4_ppm' ? '#059669' :
