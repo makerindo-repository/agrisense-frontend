@@ -253,7 +253,7 @@ export default function App() {
         const baseEndpoints = [
           api.get('/dashboard/summary'),
           api.get('/nodes'),
-          api.get('/readings?limit=1500')
+          api.get('/readings?limit=50000')
         ];
 
         if (isStaff) {
@@ -551,7 +551,7 @@ export default function App() {
       {
         title: 'SISTEM',
         items: [
-          { id: 'reports', label: 'Laporan, Ekspor', icon: FileText, roles: ['admin', 'operator'] },
+          { id: 'reports', label: 'Laporan', icon: FileText, roles: ['admin', 'operator'] },
           { id: 'logs', label: 'Log Aktivitas', icon: Activity, roles: ['admin', 'operator'] },
           { id: 'settings', label: 'Pengaturan', icon: Settings, roles: ['admin'] },
         ]

@@ -840,11 +840,11 @@ export default function NodesView({ nodes: propNodes, userRole }: { nodes?: IoTN
 
         <div className="bg-card p-5 rounded-[24px] shadow-sm border border-border/80 flex items-center justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group">
           <div className="flex flex-col gap-1">
-            <span className="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider">{t("Peringatan")}</span>
+            <span className="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider">{t("Alert Anomali")}</span>
             <span className="text-3xl font-black tracking-tight text-amber-600 dark:text-amber-400">
-              {nodes.filter(n => n.status === 'warning' || (n as any).has_warning).length}
+              {nodes.filter(n => n.status === 'online' && ((n as any).has_warning || (n as any).warning_reasons?.length > 0)).length}
             </span>
-            <span className="text-[11px] font-semibold text-amber-700/80 dark:text-amber-400/80">{t("Melebihi Ambang Batas / Sinyal")}</span>
+            <span className="text-[11px] font-semibold text-amber-700/80 dark:text-amber-400/80">{t("Node Aktif dengan Anomali")}</span>
           </div>
           <div className="p-3.5 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 group-hover:scale-105 transition-transform">
             <AlertTriangle size={24} />

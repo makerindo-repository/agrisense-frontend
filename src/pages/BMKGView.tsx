@@ -299,6 +299,26 @@ export default function BMKGView() {
               </div>
 
               <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 space-y-1">
+                <p className="text-[10px] font-extrabold uppercase text-muted-foreground">{t('Arah Angin')}</p>
+                <p className="text-sm font-black text-foreground truncate">
+                  {(() => {
+                    const deg = bmkgData?.current?.wind_direction_deg ?? 0;
+                    const dirs = ['Utara (N)', 'Timur Laut (NE)', 'Timur (E)', 'Tenggara (SE)', 'Selatan (S)', 'Barat Daya (SW)', 'Barat (W)', 'Barat Laut (NW)'];
+                    const idx = Math.round(deg / 45) % 8;
+                    return `${deg}° ${dirs[idx]}`;
+                  })()}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 space-y-1">
+                <p className="text-[10px] font-extrabold uppercase text-muted-foreground">{t('Tekanan Udara')}</p>
+                <div className="flex items-baseline gap-1">
+                  <p className="text-2xl font-black text-foreground">{formatNum(bmkgData?.current?.pressure ?? 1013.25)}</p>
+                  <p className="text-xs font-bold text-muted-foreground">hPa</p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 space-y-1">
                 <p className="text-[10px] font-extrabold uppercase text-muted-foreground">{t('Kondisi')}</p>
                 <p className="text-sm font-black text-foreground truncate">{bmkgData?.current?.weather}</p>
               </div>

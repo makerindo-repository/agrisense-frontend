@@ -71,8 +71,7 @@ const NodeTable = React.memo(({ nodes, onEdit, onDelete, userRole }: NodeTablePr
                     {(() => {
                       const st = (node.status || '').toString().toLowerCase();
                       const isOnline = st === 'online' || st === 'aktif' || st === 'active';
-                      const isWarning = st === 'warning' || st === 'peringatan' || st === 'alert';
-                      const hasWarning = (node as any).has_warning || isWarning;
+                      const hasWarning = (node as any).has_warning || (node as any).warning_reasons?.length > 0;
 
                       if (isOnline) {
                         return (
@@ -83,11 +82,11 @@ const NodeTable = React.memo(({ nodes, onEdit, onDelete, userRole }: NodeTablePr
                             </Badge>
                             {hasWarning && (
                               <Badge 
-                                className="text-xs font-extrabold px-2.5 py-0.5 rounded-full border bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40 flex items-center w-fit gap-1"
+                                className="text-xs font-extrabold px-2.5 py-0.5 rounded-full border bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40 flex items-center w-fit gap-1 cursor-help"
                                 title={(node as any).warning_reasons?.join(', ') || t('Anomali Telemetri')}
                               >
                                 <AlertTriangle size={12} className="text-amber-500 shrink-0" />
-                                {t('Peringatan')}
+                                {t('Alert Anomali')}
                               </Badge>
                             )}
                           </div>
@@ -95,19 +94,9 @@ const NodeTable = React.memo(({ nodes, onEdit, onDelete, userRole }: NodeTablePr
                       }
 
                       return (
-                        <Badge 
-                          className={cn(
-                            "text-xs font-extrabold px-3 py-1 rounded-full border shadow-xs flex items-center w-fit gap-1.5 transition-all",
-                            isWarning 
-                              ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40" 
-                              : "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/40"
-                          )}
-                        >
-                          <span className={cn(
-                            "w-2.5 h-2.5 rounded-full shrink-0",
-                            isWarning ? "bg-amber-500 animate-pulse" : "bg-rose-500"
-                          )} />
-                          {isWarning ? t('Peringatan') : t('Tidak Aktif')}
+                        <Badge className="text-xs font-extrabold px-3 py-1 rounded-full border shadow-xs bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/40 flex items-center w-fit gap-1.5 transition-all">
+                          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0" />
+                          {t('Tidak Aktif')}
                         </Badge>
                       );
                     })()}

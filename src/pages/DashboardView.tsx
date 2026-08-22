@@ -294,7 +294,8 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
 
   const warningCount = useMemo(() => {
     return nodes.filter(n => {
-      if (n.status === 'warning' || n.status === 'offline') return true;
+      if (n.status !== 'online') return false;
+      if ((n as any).has_warning || ((n as any).warning_reasons && (n as any).warning_reasons.length > 0)) return true;
       const latest = realReadings.find(r => (r.device_code || r.device_id) === (n.device_code || n.id));
       return evaluateNodeWarning(latest, n.status).isWarning;
     }).length;
@@ -308,6 +309,54 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
   const resolvedPlantName = activeNode?.plant_name || activePlanting?.nama_tanaman || activeGarden?.plant_types || activeLandPlot?.plant_types || t('Belum ditentukan');
   const resolvedFirmware = latestReading?.firmware_version || latestReading?.firmware || (activeNode as any)?.firmware_version || (activeNode as any)?.firmware || '1.0.0';
   const cleanFirmware = resolvedFirmware.toString().replace(/^fw\s*v?/i, '').replace(/^v/i, '');
+
+  const getAgronomicAdvice = (data: any, customStation?: string) => {
+    const isEn = i18n.language === 'en';
+    const temp = data?.current?.temp ?? 28.1;
+    const humidity = data?.current?.humidity ?? 70;
+    const weather = (data?.current?.weather || '').toLowerCase();
+    const wind = data?.windSpeed || 12.5;
+    const station = customStation || data?.station || "Padasuka, Sumedang, Jawa Barat";
+
+    const svp = 0.6108 * Math.exp((17.27 * temp) / (temp + 237.3));
+    const avp = svp * (humidity / 100);
+    const vpd = svp - avp;
+    const vpdStr = vpd.toFixed(2);
+
+    let adviceText = isEn
+      ? `Based on climatological data for ${station} region — `
+      : `Berdasarkan data klimatologi wilayah ${station} — `;
+    
+    const isRaining = weather.includes('rain') || weather.includes('hujan') || weather.includes('drizzle') || weather.includes('gerimis') || weather.includes('thunderstorm') || weather.includes('badai');
+    
+    if (isRaining && wind > 20) {
+      return adviceText + (isEn
+        ? `Rain accompanied by strong winds (${wind.toFixed(1)} km/h) at ${temp.toFixed(1)}°C. Low sunlight triggers temporary reduction in photosynthesis. Measured VPD is ${vpdStr} kPa.`
+        : `Hujan disertai angin kencang (${wind.toFixed(1)} km/j) pada suhu ${temp.toFixed(1)}°C. Cahaya matahari rendah memicu penurunan fotosintesis sementara. VPD terukur ${vpdStr} kPa.`);
+    }
+    
+    if (isRaining) {
+      return adviceText + (isEn
+        ? `Rain detected at ${temp.toFixed(1)}°C with humidity of ${humidity}% (VPD: ${vpdStr} kPa). CO₂ exchange operates at a steady rate and moist soil supports biological respiration.`
+        : `Hujan terdeteksi pada suhu ${temp.toFixed(1)}°C dengan kelembapan ${humidity}% (VPD: ${vpdStr} kPa). Pertukaran CO₂ berada pada laju teratur dan tanah basah mendukung respirasi biologis.`);
+    }
+
+    if (temp > 32 && humidity < 50) {
+      return adviceText + (isEn
+        ? `Hot conditions (${temp.toFixed(1)}°C) and dry (humidity ${humidity}%, VPD: ${vpdStr} kPa). High evaporation triggers leaf stomata protection.`
+        : `Kondisi terik (${temp.toFixed(1)}°C) dan kering (kelembapan ${humidity}%, VPD: ${vpdStr} kPa). Penguapan tinggi memicu perlindungan stomata pada daun.`);
+    }
+    
+    if (temp >= 24 && temp <= 30 && humidity >= 50 && humidity <= 80) {
+      return adviceText + (isEn
+        ? `Optimal conditions for carbon sequestration — temperature ${temp.toFixed(1)}°C, humidity ${humidity}%, VPD ${vpdStr} kPa. Photosynthesis and CO₂ absorption run at peak capacity.`
+        : `Kondisi sangat ideal untuk penyerapan karbon — suhu ${temp.toFixed(1)}°C, kelembapan ${humidity}%, VPD ${vpdStr} kPa. Fotosintesis dan serapan CO₂ berjalan optimal.`);
+    }
+
+    return adviceText + (isEn
+      ? `Monitored temperature ${temp.toFixed(1)}°C with humidity ${humidity}% (VPD: ${vpdStr} kPa). Microclimate remains in a stable range for plant gas exchange.`
+      : `Suhu termonitor ${temp.toFixed(1)}°C dengan kelembapan ${humidity}% (VPD: ${vpdStr} kPa). Mikroklimat berada pada rentang stabil untuk pertukaran gas tanaman.`);
+  };
 
   return (
     <div className="w-full space-y-8 max-w-7xl mx-auto pb-24 select-none">
@@ -394,16 +443,25 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-black text-foreground tracking-tight">{formatEYDDeviceName(activeNode.name, activeNode.device_code || activeNode.id)}</h2>
-                <Badge variant="outline" className={cn(
-                  "text-[10px] px-2.5 py-0.5 font-extrabold uppercase rounded-lg border flex items-center gap-1.5",
-                  ((activeNode.status as string) === 'online' || (activeNode.status as string) === 'aktif') ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40" : ((activeNode.status as string) === 'warning' || (activeNode.status as string) === 'peringatan') ? "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40" : "bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40"
-                )}>
-                  <span className={cn(
-                    "w-2 h-2 rounded-full shrink-0",
-                    ((activeNode.status as string) === 'online' || (activeNode.status as string) === 'aktif') ? "bg-emerald-500 animate-pulse" : ((activeNode.status as string) === 'warning' || (activeNode.status as string) === 'peringatan') ? "bg-amber-500 animate-pulse" : "bg-rose-500"
-                  )} />
-                  {((activeNode.status as string) === 'online' || (activeNode.status as string) === 'aktif') ? t('Aktif') : ((activeNode.status as string) === 'warning' || (activeNode.status as string) === 'peringatan') ? t('Peringatan') : t('Tidak Aktif')}
-                </Badge>
+                {((activeNode.status as string) === 'online' || (activeNode.status as string) === 'aktif') ? (
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="outline" className="text-[10px] px-2.5 py-0.5 font-extrabold uppercase rounded-lg border flex items-center gap-1.5 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40">
+                      <span className="w-2 h-2 rounded-full shrink-0 bg-emerald-500 animate-pulse" />
+                      {t('Aktif')}
+                    </Badge>
+                    {((activeNode as any).has_warning || (activeNode as any).warning_reasons?.length > 0) && (
+                      <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-extrabold uppercase rounded-lg border flex items-center gap-1 bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40">
+                        <AlertTriangle size={11} className="text-amber-500" />
+                        {t('Alert Anomali')}
+                      </Badge>
+                    )}
+                  </div>
+                ) : (
+                  <Badge variant="outline" className="text-[10px] px-2.5 py-0.5 font-extrabold uppercase rounded-lg border flex items-center gap-1.5 bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40">
+                    <span className="w-2 h-2 rounded-full shrink-0 bg-rose-500" />
+                    {t('Tidak Aktif')}
+                  </Badge>
+                )}
               </div>
               <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground mt-1">
                 <span className="flex items-center gap-1 text-foreground font-bold">
@@ -478,7 +536,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
 
         <motion.div variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0 } }}>
           <StatCard
-            title={t("Peringatan / Alert")}
+            title={t("Alert Anomali")}
             value={warningCount}
             total={nodes.length}
             icon="https://cdn-icons-png.flaticon.com/512/272/272340.png"
@@ -854,6 +912,17 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
                 />
               </AreaChart>
             </ResponsiveContainer>
+
+            {/* ANALISIS AGRISENSE AI Box (Matching Screenshot Design) */}
+            <div className="mt-5 p-5 rounded-2xl bg-[#057a55] dark:bg-emerald-950/90 border border-emerald-500/30 text-white shadow-lg relative overflow-hidden space-y-2">
+              <p className="text-xs font-black uppercase tracking-wider text-emerald-100 flex items-center gap-1.5">
+                <Sparkles size={16} className="text-emerald-200" />
+                {t('ANALISIS AGRISENSE AI')}
+              </p>
+              <p className="text-xs sm:text-sm font-semibold leading-relaxed text-emerald-50">
+                {getAgronomicAdvice(weatherData, activeNode?.location || 'Padasuka, Sumedang, Jawa Barat')}
+              </p>
+            </div>
           </CardContent>
         </Card>
 
