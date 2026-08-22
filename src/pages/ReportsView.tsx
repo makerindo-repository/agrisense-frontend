@@ -455,7 +455,7 @@ export default function ReportsView() {
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Baterai & Tegangan')}</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">CO2 (PPM)</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">CH4 (PPM)</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">NO2 (PPB)</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">N₂O (PPB)</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Suhu Udara (°C)')}</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Kelembapan Udara (%)')}</TableHead>
                       </>
@@ -492,7 +492,7 @@ export default function ReportsView() {
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Periode Akhir')}</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Rata-rata CO2 (PPM)</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Rata-rata CH4 (PPM)</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Rata-rata NO2 (PPB)</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Rata-rata N₂O (PPB)</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Suhu Udara (°C)')}</TableHead>
                         <TableHead className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t('Kelembapan Udara (%)')}</TableHead>
                       </>

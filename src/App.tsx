@@ -253,7 +253,7 @@ export default function App() {
         const baseEndpoints = [
           api.get('/dashboard/summary'),
           api.get('/nodes'),
-          api.get('/readings?limit=5000')
+          api.get('/readings?limit=25000')
         ];
 
         if (isStaff) {

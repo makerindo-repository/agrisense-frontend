@@ -64,7 +64,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
     const fetchInitialData = async () => {
       try {
         const [readingsRes, landRes, gardenRes, plantRes] = await Promise.allSettled([
-          api.get('/readings?limit=5000'),
+          api.get('/readings?limit=25000'),
           api.get('/land-plots'),
           api.get('/gardens'),
           api.get('/plantings')
@@ -313,13 +313,8 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
   }, [nodes]);
 
   const warningCount = useMemo(() => {
-    return nodes.filter(n => {
-      if (n.status !== 'online') return false;
-      if ((n as any).has_warning || ((n as any).warning_reasons && (n as any).warning_reasons.length > 0)) return true;
-      const latest = realReadings.find(r => (r.device_code || r.device_id) === (n.device_code || n.id));
-      return evaluateNodeWarning(latest, n.status).isWarning;
-    }).length;
-  }, [nodes, realReadings]);
+    return nodes.filter(n => n.status === 'online' && ((n as any).has_warning || (n as any).warning_reasons?.length > 0)).length;
+  }, [nodes]);
 
   const offlineCount = useMemo(() => {
     return nodes.filter(n => n.status === 'offline').length;
@@ -375,8 +370,8 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
 
     if (param === 'no2_ppb') {
       return baseText + (isEn
-        ? `NO₂ gas concentration is ${latest.no2} ppb. Microclimate nitrous oxide signals indicate clean air index without excessive nitrogen pollution.`
-        : `Konsentrasi gas NO₂ saat ini ${latest.no2} ppb. Indeks emisi nitrogen mikroiklim perkebunan aman dan berada di bawah ambang batas pencemaran udara.`);
+        ? `N₂O Nitrous Oxide gas concentration is ${latest.no2} ppb. Microclimate nitrous oxide signals indicate clean air index without excessive nitrogen pollution.`
+        : `Konsentrasi gas N₂O (Dinitrogen Oksida) saat ini ${latest.no2} ppb. Indeks emisi dinitrogen oksida mikroiklim perkebunan aman dan berada di bawah ambang batas pencemaran.`);
     }
 
     if (param === 'air_temp') {
@@ -704,7 +699,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
           {/* MANDATORY 3: NO₂ */}
           <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
             <SensorCard
-              title="NO₂"
+              title="N₂O"
               value={latestReading?.carbon_data?.no2_ppb ?? latestReading?.no2_ppb ?? (activeNode as any)?.no2_ppb ?? 0}
               unit="PPB"
               icon={FlaskConical}
@@ -856,7 +851,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
             >
               <option value="co2_ppm" className="bg-card text-foreground">{t('CO₂ Carbon (PPM)')}</option>
               <option value="ch4_ppm" className="bg-card text-foreground">{t('CH₄ Metana (PPM)')}</option>
-              <option value="no2_ppb" className="bg-card text-foreground">{t('NO₂ (PPB)')}</option>
+              <option value="no2_ppb" className="bg-card text-foreground">{t('N₂O (PPB)')}</option>
               <option value="air_temp" className="bg-card text-foreground">{t('Suhu Udara (°C)')}</option>
               <option value="air_humidity" className="bg-card text-foreground">{t('Kelembapan (% RH)')}</option>
               <option value="wind_speed" className="bg-card text-foreground">{t('Kecepatan Angin (km/h)')}</option>
@@ -917,7 +912,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
                     label={{
                       value: chartParam === 'co2_ppm' ? t("Konsentrasi CO₂ (PPM)") :
                         chartParam === 'ch4_ppm' ? t("Konsentrasi CH₄ Metana (PPM)") :
-                          chartParam === 'no2_ppb' ? t("Konsentrasi NO₂ (PPB)") :
+                          chartParam === 'no2_ppb' ? t("Konsentrasi N₂O (PPB)") :
                             chartParam === 'air_temp' ? t("Suhu Udara (°C)") :
                               chartParam === 'air_humidity' ? t("Kelembapan (% RH)") :
                                 chartParam === 'wind_speed' ? t("Kecepatan Angin (km/h)") :

@@ -32,7 +32,7 @@ export default function SensorsView({ readings: propReadings = [], nodes = [] }:
   useEffect(() => {
     const fetchReadings = async () => {
       try {
-        const res = await api.get('/readings?limit=5000');
+        const res = await api.get('/readings?limit=25000');
         const list = Array.isArray(res.data?.data) ? res.data.data : (Array.isArray(res.data) ? res.data : []);
         if (list.length > 0) {
           setInternalReadings(list);
@@ -259,7 +259,7 @@ export default function SensorsView({ readings: propReadings = [], nodes = [] }:
         "Arah Angin (BMKG)": `${r.windDirection} (BMKG Sync)`,
         "CO2 (ppm)": r.co2,
         "CH4 (ppm)": r.ch4,
-        "NO2 (ppb)": r.no2,
+        "N2O (ppb)": r.no2,
         "Suhu Udara (°C)": r.temp,
         "Kelembapan Udara (%)": r.humidity,
         "Baterai": `${r.battery}% (${r.batteryVoltage}V)`,
@@ -516,7 +516,7 @@ export default function SensorsView({ readings: propReadings = [], nodes = [] }:
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Baterai & Tegangan')}</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-emerald-600 dark:text-emerald-400">CO₂ (ppm)</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">CH₄ (ppm)</TableHead>
-                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">NO₂ (ppb)</TableHead>
+                    <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">N₂O (ppb)</TableHead>
                     <TableHead className="py-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Suhu Udara (°C)')}</TableHead>
                     <TableHead className="py-3 pr-6 font-bold text-xs uppercase tracking-wider text-muted-foreground">{t('Kelembapan (%)')}</TableHead>
                   </TableRow>
