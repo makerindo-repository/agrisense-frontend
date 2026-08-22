@@ -193,8 +193,26 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
   }, [realReadings, activeNode, date, timeRange]);
 
   const latestReading = useMemo(() => {
-    return activeReadings.length > 0 ? activeReadings[0] : null;
-  }, [activeReadings]);
+    if (activeReadings.length > 0) {
+      const lr = activeReadings[0];
+      if (activeNode) {
+        try {
+          localStorage.setItem(`agrisense_latest_reading_${activeNode.device_code || activeNode.id}`, JSON.stringify(lr));
+        } catch (e) {}
+      }
+      return lr;
+    }
+    if (activeNode) {
+      try {
+        const cached = localStorage.getItem(`agrisense_latest_reading_${activeNode.device_code || activeNode.id}`);
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+    }
+    if ((activeNode as any)?.latest_reading) {
+      return (activeNode as any).latest_reading;
+    }
+    return null;
+  }, [activeReadings, activeNode]);
 
   // Fetch BMKG weather data
   useEffect(() => {
