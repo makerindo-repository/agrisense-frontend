@@ -22,8 +22,34 @@ import * as XLSX from 'xlsx';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
-export default function SensorsView({ readings = [], nodes = [] }: { readings: any[]; nodes?: any[] }) {
+import api from '../lib/api';
+
+export default function SensorsView({ readings: propReadings = [], nodes = [] }: { readings: any[]; nodes?: any[] }) {
   const { t } = useTranslation();
+  const [internalReadings, setInternalReadings] = useState<any[]>([]);
+
+  // Ensure readings are fetched directly if prop is empty or invalid
+  useEffect(() => {
+    const fetchReadings = async () => {
+      try {
+        const res = await api.get('/readings?limit=50000');
+        const list = Array.isArray(res.data?.data) ? res.data.data : (Array.isArray(res.data) ? res.data : []);
+        if (list.length > 0) {
+          setInternalReadings(list);
+        }
+      } catch (e) {}
+    };
+
+    const propList = Array.isArray((propReadings as any)?.data) 
+      ? (propReadings as any).data 
+      : (Array.isArray(propReadings) ? propReadings : []);
+
+    if (propList.length > 0) {
+      setInternalReadings(propList);
+    } else {
+      fetchReadings();
+    }
+  }, [propReadings]);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [timeRange, setTimeRange] = useState("24h");
   const [nodeFilter, setNodeFilter] = useState("all");
@@ -104,7 +130,7 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
     });
 
     // 2. Tambahkan device_code dari readings jika belum ada
-    readings.forEach(r => {
+    internalReadings.forEach(r => {
       const code = String(r.device_code || r.device_id || r.deviceId || r.db_id || '');
       if (code && !seen.has(code)) {
         seen.add(code);
@@ -116,11 +142,11 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
     });
 
     return list;
-  }, [nodes, readings, nodeNameLookup]);
+  }, [nodes, internalReadings, nodeNameLookup]);
 
   // Filtered telemetry records
   const filteredReadings = useMemo(() => {
-    let filtered = readings;
+    let filtered = internalReadings;
 
     if (nodeFilter !== "all") {
       filtered = filtered.filter(r => {
@@ -164,7 +190,7 @@ export default function SensorsView({ readings = [], nodes = [] }: { readings: a
       const tb = new Date(b.timestamp || b.reading_time || b.created_at || 0).getTime();
       return tb - ta;
     });
-  }, [readings, nodeFilter, searchQuery, date, timeRange, nodeNameLookup]);
+  }, [internalReadings, nodeFilter, searchQuery, date, timeRange, nodeNameLookup]);
 
   // Executive KPI summary calculations
   const kpiMetrics = useMemo(() => {
