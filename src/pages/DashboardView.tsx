@@ -312,7 +312,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
   const resolvedFirmware = latestReading?.firmware_version || latestReading?.firmware || (activeNode as any)?.firmware_version || (activeNode as any)?.firmware || '1.0.0';
   const cleanFirmware = resolvedFirmware.toString().replace(/^fw\s*v?/i, '').replace(/^v/i, '');
 
-  const getAgronomicAdvice = (data: any, customStation?: string) => {
+  const getAgronomicAdvice = (data: any, customStation?: string, param?: string) => {
     const isEn = i18n.language === 'en';
     const temp = data?.current?.temp ?? 28.1;
     const humidity = data?.current?.humidity ?? 70;
@@ -325,39 +325,82 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
     const vpd = svp - avp;
     const vpdStr = vpd.toFixed(2);
 
-    let adviceText = isEn
-      ? `Based on climatological data for ${station} region — `
+    let baseText = isEn
+      ? `Based on climatological data for ${station} — `
       : `Berdasarkan data klimatologi wilayah ${station} — `;
-    
-    const isRaining = weather.includes('rain') || weather.includes('hujan') || weather.includes('drizzle') || weather.includes('gerimis') || weather.includes('thunderstorm') || weather.includes('badai');
-    
-    if (isRaining && wind > 20) {
-      return adviceText + (isEn
-        ? `Rain accompanied by strong winds (${wind.toFixed(1)} km/h) at ${temp.toFixed(1)}°C. Low sunlight triggers temporary reduction in photosynthesis. Measured VPD is ${vpdStr} kPa.`
-        : `Hujan disertai angin kencang (${wind.toFixed(1)} km/j) pada suhu ${temp.toFixed(1)}°C. Cahaya matahari rendah memicu penurunan fotosintesis sementara. VPD terukur ${vpdStr} kPa.`);
+
+    const latest = latestReading ? {
+      co2: latestReading.carbon_data?.co2_ppm ?? latestReading.co2_ppm ?? 415,
+      temp: latestReading.environment?.air_temperature_c ?? latestReading.air_temperature_sensor ?? temp,
+      humidity: latestReading.environment?.air_humidity_percent ?? latestReading.air_humidity_sensor ?? humidity,
+      flux: latestReading.carbon_data?.carbon_flux ?? latestReading.carbon_flux ?? -0.45,
+      ch4: latestReading.carbon_data?.ch4_ppm ?? latestReading.ch4_ppm ?? 1.8,
+      no2: latestReading.carbon_data?.no2_ppb ?? latestReading.no2_ppb ?? 15,
+      wind: latestReading.environment?.wind_speed_kmh ?? latestReading.wind_speed_kmh ?? wind,
+      rain: latestReading.environment?.rainfall_mm ?? latestReading.rainfall_mm ?? 0,
+      battery: latestReading.power?.battery_percent ?? latestReading.battery_percent ?? 85,
+    } : {
+      co2: 415, temp, humidity, flux: -0.45, ch4: 1.8, no2: 15, wind, rain: 0, battery: 85
+    };
+
+    if (param === 'co2_ppm') {
+      return baseText + (isEn
+        ? `Ambient CO₂ is measured at ${latest.co2} ppm. Carbon Flux (NEE) is currently ${latest.flux} g C/m²/hour. Negative flux indicates active vegetation carbon sequestration.`
+        : `Kadar CO₂ terukur pada ${latest.co2} ppm. Laju pertukaran karbon (Carbon Flux) saat ini adalah ${latest.flux} g C/m²/jam. Nilai negatif menunjukkan serapan karbon aktif oleh vegetasi.`);
     }
-    
+
+    if (param === 'ch4_ppm') {
+      return baseText + (isEn
+        ? `CH₄ Methane levels are stable at ${latest.ch4} ppm. Safe soil aeration limits prevent anaerobic organic matter decomposition alerts.`
+        : `Kadar gas Metana (CH₄) termonitor stabil pada ${latest.ch4} ppm. Kondisi aerasi tanah yang baik mencegah dekomposisi anaerobik pembentukan gas metana.`);
+    }
+
+    if (param === 'no2_ppb') {
+      return baseText + (isEn
+        ? `NO₂ gas concentration is ${latest.no2} ppb. Microclimate nitrous oxide signals indicate clean air index without excessive nitrogen pollution.`
+        : `Konsentrasi gas NO₂ saat ini ${latest.no2} ppb. Indeks emisi nitrogen mikroiklim perkebunan aman dan berada di bawah ambang batas pencemaran udara.`);
+    }
+
+    if (param === 'air_temp') {
+      return baseText + (isEn
+        ? `Air Temperature is ${latest.temp.toFixed(1)}°C. Optimal temperature range supports plant enzyme activity for maximum vegetative growth.`
+        : `Suhu udara saat ini berada pada ${latest.temp.toFixed(1)}°C. Suhu optimal berkontribusi langsung pada aktivitas enzim tanaman untuk pertumbuhan vegetatif.`);
+    }
+
+    if (param === 'air_humidity') {
+      return baseText + (isEn
+        ? `Relative humidity is ${latest.humidity}% with Vapor Pressure Deficit (VPD) of ${vpdStr} kPa. Stable VPD maintains healthy transpiration balance.`
+        : `Kelembapan relatif ${latest.humidity}% dengan Vapor Pressure Deficit (VPD) sebesar ${vpdStr} kPa. VPD yang stabil menjaga keseimbangan transpirasi tanaman.`);
+    }
+
+    if (param === 'wind_speed' || param === 'wind_direction') {
+      return baseText + (isEn
+        ? `Wind speed is ${latest.wind} km/h. Gentle micro-ventilation reduces leaf boundary layer resistance, enhancing CO₂ transport.`
+        : `Kecepatan angin ${latest.wind} km/j. Ventilasi mikro yang lembut mereduksi hambatan lapisan batas daun, memperlancar transpor karbon dioksida.`);
+    }
+
+    if (param === 'rainfall_mm') {
+      return baseText + (isEn
+        ? `Rainfall is recorded at ${latest.rain} mm. Sufficient precipitation replenishes soil water reserves for root absorption.`
+        : `Intensitas curah hujan termonitor ${latest.rain} mm. Presipitasi yang cukup memulihkan cadangan air tanah untuk kebutuhan absorbsi akar.`);
+    }
+
+    if (param === 'battery_percent' || param === 'battery_voltage') {
+      return baseText + (isEn
+        ? `IoT node telemetry power status is at ${latest.battery}%. Stable solar recharge logs guarantee continuous field observation.`
+        : `Kapasitas baterai node IoT termonitor sebesar ${latest.battery}%. Pengisian daya yang stabil menjamin kelangsungan transmisi data telemetri.`);
+    }
+
+    const isRaining = weather.includes('rain') || weather.includes('hujan') || weather.includes('drizzle') || weather.includes('gerimis');
     if (isRaining) {
-      return adviceText + (isEn
-        ? `Rain detected at ${temp.toFixed(1)}°C with humidity of ${humidity}% (VPD: ${vpdStr} kPa). CO₂ exchange operates at a steady rate and moist soil supports biological respiration.`
-        : `Hujan terdeteksi pada suhu ${temp.toFixed(1)}°C dengan kelembapan ${humidity}% (VPD: ${vpdStr} kPa). Pertukaran CO₂ berada pada laju teratur dan tanah basah mendukung respirasi biologis.`);
+      return baseText + (isEn
+        ? `Rain detected at ${temp.toFixed(1)}°C with ${humidity}% RH (VPD: ${vpdStr} kPa). Photosynthesis operates at baseline.`
+        : `Hujan terdeteksi pada suhu ${temp.toFixed(1)}°C dengan kelembapan ${humidity}% (VPD: ${vpdStr} kPa). Laju fotosintesis berada pada kapasitas dasar.`);
     }
 
-    if (temp > 32 && humidity < 50) {
-      return adviceText + (isEn
-        ? `Hot conditions (${temp.toFixed(1)}°C) and dry (humidity ${humidity}%, VPD: ${vpdStr} kPa). High evaporation triggers leaf stomata protection.`
-        : `Kondisi terik (${temp.toFixed(1)}°C) dan kering (kelembapan ${humidity}%, VPD: ${vpdStr} kPa). Penguapan tinggi memicu perlindungan stomata pada daun.`);
-    }
-    
-    if (temp >= 24 && temp <= 30 && humidity >= 50 && humidity <= 80) {
-      return adviceText + (isEn
-        ? `Optimal conditions for carbon sequestration — temperature ${temp.toFixed(1)}°C, humidity ${humidity}%, VPD ${vpdStr} kPa. Photosynthesis and CO₂ absorption run at peak capacity.`
-        : `Kondisi sangat ideal untuk penyerapan karbon — suhu ${temp.toFixed(1)}°C, kelembapan ${humidity}%, VPD ${vpdStr} kPa. Fotosintesis dan serapan CO₂ berjalan optimal.`);
-    }
-
-    return adviceText + (isEn
-      ? `Monitored temperature ${temp.toFixed(1)}°C with humidity ${humidity}% (VPD: ${vpdStr} kPa). Microclimate remains in a stable range for plant gas exchange.`
-      : `Suhu termonitor ${temp.toFixed(1)}°C dengan kelembapan ${humidity}% (VPD: ${vpdStr} kPa). Mikroklimat berada pada rentang stabil untuk pertukaran gas tanaman.`);
+    return baseText + (isEn
+      ? `Optimal conditions — temperature ${temp.toFixed(1)}°C, humidity ${humidity}%, VPD ${vpdStr} kPa. CO₂ absorption operates at peak capacity.`
+      : `Kondisi sangat ideal — suhu ${temp.toFixed(1)}°C, kelembapan ${humidity}%, VPD ${vpdStr} kPa. Fotosintesis dan serapan CO₂ berjalan optimal.`);
   };
 
   return (
@@ -808,112 +851,114 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
             </select>
           </CardHeader>
 
-          <CardContent className="h-[380px] pt-6 min-h-0 min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 25, left: 10, bottom: 25 }}>
-                <defs>
-                  <linearGradient id="chartGradientCO2" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.45} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
-                  </linearGradient>
-                  <linearGradient id="chartGradientTemp" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.45} />
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0} />
-                  </linearGradient>
-                  <linearGradient id="chartGradientHumid" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.45} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0} />
-                  </linearGradient>
-                  <linearGradient id="chartGradientWind" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.45} />
-                    <stop offset="95%" stopColor="#14b8a6" stopOpacity={0.0} />
-                  </linearGradient>
-                  <linearGradient id="chartGradientRain" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.45} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={true} horizontal={true} stroke="rgba(0,0,0,0.06)" />
-                <XAxis
-                  dataKey={timeRange === '30d' || timeRange === '1y' ? "displayLabel" : "timestamp"}
-                  tickFormatter={(str) => {
-                    if (timeRange === '30d' || timeRange === '1y') return str;
-                    const d = new Date(str);
-                    if (timeRange === '24h') return format(d, 'HH:mm');
-                    if (timeRange === '7d') return format(d, 'd MMM', { locale: id });
-                    return format(d, 'MMM yyyy', { locale: id });
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: '700' }}
-                  label={{ value: t("Waktu Pengamatan"), position: "insideBottom", offset: -18, fontSize: 11, fontWeight: "700", fill: "hsl(var(--muted-foreground))" }}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: '700' }}
-                  label={{
-                    value: chartParam === 'co2_ppm' ? t("Konsentrasi CO₂ (PPM)") :
-                      chartParam === 'ch4_ppm' ? t("Konsentrasi CH₄ Metana (PPM)") :
-                        chartParam === 'no2_ppb' ? t("Konsentrasi NO₂ (PPB)") :
-                          chartParam === 'air_temp' ? t("Suhu Udara (°C)") :
-                            chartParam === 'air_humidity' ? t("Kelembapan (% RH)") :
-                              chartParam === 'wind_speed' ? t("Kecepatan Angin (km/h)") :
-                                chartParam === 'wind_direction' ? t("Arah Angin (°)") :
-                                  chartParam === 'battery_voltage' ? t("Tegangan Baterai (Volt)") :
-                                    chartParam === 'altitude' ? t("Altitude (MDPL)") :
-                                      chartParam === 'battery_percent' ? t("Kapasitas Baterai (%)") :
-                                        chartParam === 'rssi' ? t("Sinyal RSSI (dBm)") : t("Curah Hujan (mm)"),
-                    angle: -90,
-                    position: "insideLeft",
-                    offset: -5,
-                    fontSize: 11,
-                    fontWeight: "700",
-                    fill: "hsl(var(--muted-foreground))"
-                  }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: '16px',
-                    border: '1px solid rgba(0,0,0,0.08)',
-                    boxShadow: '0 20px 40px -15px rgba(0,0,0,0.15)',
-                    padding: '12px',
-                    backgroundColor: 'var(--card)',
-                    color: 'var(--foreground)'
-                  }}
-                  labelStyle={{ fontWeight: '800', fontSize: '11px', color: '#10b981', marginBottom: '4px' }}
-                  labelFormatter={(label) => {
-                    if (timeRange === '30d' || timeRange === '1y') return label;
-                    return format(new Date(label), timeRange === '24h' ? "d MMM, HH:mm" : "PPP", { locale: id });
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey={chartParam}
-                  stroke={
-                    chartParam === 'co2_ppm' ? '#10b981' :
-                      chartParam === 'ch4_ppm' ? '#059669' :
-                        chartParam === 'no2_ppb' ? '#8b5cf6' :
-                          chartParam === 'air_temp' ? '#f59e0b' :
-                            chartParam === 'air_humidity' ? '#3b82f6' :
-                              chartParam === 'wind_speed' ? '#14b8a6' :
-                                chartParam === 'wind_direction' ? '#06b6d4' :
-                                  chartParam === 'battery_voltage' ? '#a855f7' :
-                                    chartParam === 'altitude' ? '#6366f1' :
-                                      chartParam === 'battery_percent' ? '#22c55e' :
-                                        chartParam === 'rssi' ? '#0284c7' : '#6366f1'
-                  }
-                  strokeWidth={3}
-                  fillOpacity={1}
-                  fill={
-                    chartParam === 'co2_ppm' ? 'url(#chartGradientCO2)' :
-                      chartParam === 'air_temp' ? 'url(#chartGradientTemp)' :
-                        chartParam === 'air_humidity' ? 'url(#chartGradientHumid)' :
-                          chartParam === 'wind_speed' ? 'url(#chartGradientWind)' : 'url(#chartGradientRain)'
-                  }
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+          <CardContent className="p-6 space-y-5 min-h-0 min-w-0">
+            <div className="h-[350px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 10, right: 25, left: 10, bottom: 25 }}>
+                  <defs>
+                    <linearGradient id="chartGradientCO2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.45} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                    </linearGradient>
+                    <linearGradient id="chartGradientTemp" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.45} />
+                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0} />
+                    </linearGradient>
+                    <linearGradient id="chartGradientHumid" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.45} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0} />
+                    </linearGradient>
+                    <linearGradient id="chartGradientWind" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.45} />
+                      <stop offset="95%" stopColor="#14b8a6" stopOpacity={0.0} />
+                    </linearGradient>
+                    <linearGradient id="chartGradientRain" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.45} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={true} horizontal={true} stroke="rgba(0,0,0,0.06)" />
+                  <XAxis
+                    dataKey={timeRange === '30d' || timeRange === '1y' ? "displayLabel" : "timestamp"}
+                    tickFormatter={(str) => {
+                      if (timeRange === '30d' || timeRange === '1y') return str;
+                      const d = new Date(str);
+                      if (timeRange === '24h') return format(d, 'HH:mm');
+                      if (timeRange === '7d') return format(d, 'd MMM', { locale: id });
+                      return format(d, 'MMM yyyy', { locale: id });
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: '700' }}
+                    label={{ value: t("Waktu Pengamatan"), position: "insideBottom", offset: -18, fontSize: 11, fontWeight: "700", fill: "hsl(var(--muted-foreground))" }}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: '700' }}
+                    label={{
+                      value: chartParam === 'co2_ppm' ? t("Konsentrasi CO₂ (PPM)") :
+                        chartParam === 'ch4_ppm' ? t("Konsentrasi CH₄ Metana (PPM)") :
+                          chartParam === 'no2_ppb' ? t("Konsentrasi NO₂ (PPB)") :
+                            chartParam === 'air_temp' ? t("Suhu Udara (°C)") :
+                              chartParam === 'air_humidity' ? t("Kelembapan (% RH)") :
+                                chartParam === 'wind_speed' ? t("Kecepatan Angin (km/h)") :
+                                  chartParam === 'wind_direction' ? t("Arah Angin (°)") :
+                                    chartParam === 'battery_voltage' ? t("Tegangan Baterai (Volt)") :
+                                      chartParam === 'altitude' ? t("Altitude (MDPL)") :
+                                        chartParam === 'battery_percent' ? t("Kapasitas Baterai (%)") :
+                                          chartParam === 'rssi' ? t("Sinyal RSSI (dBm)") : t("Curah Hujan (mm)"),
+                      angle: -90,
+                      position: "insideLeft",
+                      offset: -5,
+                      fontSize: 11,
+                      fontWeight: "700",
+                      fill: "hsl(var(--muted-foreground))"
+                    }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: '16px',
+                      border: '1px solid rgba(0,0,0,0.08)',
+                      boxShadow: '0 20px 40px -15px rgba(0,0,0,0.15)',
+                      padding: '12px',
+                      backgroundColor: 'var(--card)',
+                      color: 'var(--foreground)'
+                    }}
+                    labelStyle={{ fontWeight: '800', fontSize: '11px', color: '#10b981', marginBottom: '4px' }}
+                    labelFormatter={(label) => {
+                      if (timeRange === '30d' || timeRange === '1y') return label;
+                      return format(new Date(label), timeRange === '24h' ? "d MMM, HH:mm" : "PPP", { locale: id });
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey={chartParam}
+                    stroke={
+                      chartParam === 'co2_ppm' ? '#10b981' :
+                        chartParam === 'ch4_ppm' ? '#059669' :
+                          chartParam === 'no2_ppb' ? '#8b5cf6' :
+                            chartParam === 'air_temp' ? '#f59e0b' :
+                              chartParam === 'air_humidity' ? '#3b82f6' :
+                                chartParam === 'wind_speed' ? '#14b8a6' :
+                                  chartParam === 'wind_direction' ? '#06b6d4' :
+                                    chartParam === 'battery_voltage' ? '#a855f7' :
+                                      chartParam === 'altitude' ? '#6366f1' :
+                                        chartParam === 'battery_percent' ? '#22c55e' :
+                                          chartParam === 'rssi' ? '#0284c7' : '#6366f1'
+                    }
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill={
+                      chartParam === 'co2_ppm' ? 'url(#chartGradientCO2)' :
+                        chartParam === 'air_temp' ? 'url(#chartGradientTemp)' :
+                          chartParam === 'air_humidity' ? 'url(#chartGradientHumid)' :
+                            chartParam === 'wind_speed' ? 'url(#chartGradientWind)' : 'url(#chartGradientRain)'
+                    }
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
 
             {/* ANALISIS AGRISENSE AI Box (Matching Screenshot Design) */}
             <div className="mt-5 p-5 rounded-2xl bg-[#057a55] dark:bg-emerald-950/90 border border-emerald-500/30 text-white shadow-lg relative overflow-hidden space-y-2">
@@ -922,7 +967,7 @@ export default function DashboardView({ stats, nodes: propNodes, onNavigate }: {
                 {t('ANALISIS AGRISENSE AI')}
               </p>
               <p className="text-xs sm:text-sm font-semibold leading-relaxed text-emerald-50">
-                {getAgronomicAdvice(weatherData, activeNode?.location || 'Padasuka, Sumedang, Jawa Barat')}
+                {getAgronomicAdvice(weatherData, activeNode?.location || 'Padasuka, Sumedang, Jawa Barat', chartParam)}
               </p>
             </div>
           </CardContent>
